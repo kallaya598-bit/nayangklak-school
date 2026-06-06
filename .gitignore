@@ -1,0 +1,11 @@
+# Windows
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Editor
+.vscode/
+.idea/
+
+# Node (ถ้ามีในอนาคต)
+node_modules/
