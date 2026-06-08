@@ -297,6 +297,19 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
 .detail-row{display:flex;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--border);}
 .detail-row .k{color:var(--text3);width:130px;flex-shrink:0;}
 .detail-row .v{color:var(--text);font-weight:600;}
+
+/* ===== ตารางคะแนนแบบกระชับ (พอดีจอ) ===== */
+#grContent table{font-size:10.5px;width:100%;border-collapse:collapse;}
+#grContent thead th{padding:3px 2px!important;font-size:10px;line-height:1.1;white-space:normal;}
+#grContent tbody td{padding:2px 2px!important;}
+#grContent input[type=number]{width:34px!important;padding:2px 1px!important;font-size:10.5px!important;text-align:center;-moz-appearance:textfield;}
+#grContent input[type=number]::-webkit-outer-spin-button,#grContent input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+/* คอลัมน์ เลขที่ + ชื่อ ตรึงไว้ซ้าย (กรณีกว้างเกินก็ยังเห็นชื่อ) */
+#grContent .cNo{position:sticky;left:0;z-index:2;width:26px;min-width:26px;max-width:26px;text-align:center;background:#fff;}
+#grContent .cName{position:sticky;left:26px;z-index:2;text-align:left;max-width:100px;white-space:normal;word-break:break-word;line-height:1.15;font-size:10px;background:#fff;}
+#grContent thead .cNo,#grContent thead .cName{background:var(--blue);}
+#grContent tbody tr:hover .cNo,#grContent tbody tr:hover .cName{background:var(--bluel);}
+@media(max-width:600px){#grContent input[type=number]{width:30px!important;}#grContent .cName{max-width:78px;}}
 </style>
 </head>
 <body>
@@ -1902,7 +1915,7 @@ async function loadGradeStructure(){
     GR.structs=ordered;GR.groups=groups;
     var maxTotal=ordered.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
     // header 2 แถว: แถวบน = ช่วง (คลุมช่องย่อย+รวม), แถวล่าง = ชื่อช่องย่อย + รวม
-    var h1='<tr><th rowspan="2">เลขที่</th><th rowspan="2">ชื่อ-นามสกุล</th>';
+    var h1='<tr><th rowspan="2" class="cNo">ที่</th><th rowspan="2" class="cName">ชื่อ-นามสกุล</th>';
     groups.forEach(function(g){var gm=g.items.reduce(function(a,it){return a+parseFloat(it.max_score||0);},0);h1+='<th colspan="'+(g.items.length+1)+'" style="background:var(--blue);border-bottom:2px solid #fff;">'+g.label+'<br><small>('+gm+')</small></th>';});
     h1+='<th rowspan="2">รวม<br><small>('+maxTotal+')</small></th><th rowspan="2">ร้อยละ</th><th rowspan="2">เกรด</th></tr>';
     var h2='<tr>';
@@ -1922,7 +1935,7 @@ async function loadGradeStructure(){
         rowCells+='<td class="phaseSub" data-phase="'+g.key+'" style="background:#f0f7ff;font-weight:700;color:var(--blue);text-align:center;">'+psub.toFixed(1)+'</td>';
       });
       var gr=calcGrade(total,maxTotal),pct=maxTotal?(total/maxTotal*100):0;
-      html+='<tr><td style="text-align:center;">'+(s.order_no||'')+'</td><td style="white-space:nowrap;">'+s.fullname+'</td>'+rowCells+
+      html+='<tr><td class="cNo">'+(s.order_no||'')+'</td><td class="cName">'+s.fullname+'</td>'+rowCells+
         '<td class="grTotal" style="font-weight:800;color:var(--blue);text-align:center;">'+total.toFixed(1)+'</td>'+
         '<td class="grPct" style="text-align:center;color:var(--text2);">'+pct.toFixed(1)+'</td>'+
         '<td class="grGrade" style="font-weight:800;text-align:center;color:'+(gr>=1?'var(--green)':'var(--red)')+';">'+gr.toFixed(1)+'</td></tr>';
