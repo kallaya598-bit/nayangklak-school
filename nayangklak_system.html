@@ -1290,6 +1290,19 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
   </div>
 </div>
 
+<!-- POPUP: แก้สถานะเช็คชื่อในรายงาน -->
+<div id="sarEditPop" style="display:none;position:absolute;z-index:300;background:#fff;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);padding:8px;width:150px;">
+  <div id="sarEditInfo" style="font-size:11px;color:var(--text2);text-align:center;margin-bottom:6px;font-weight:700;">แก้สถานะ</div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;">
+    <button class="btn btn-xs" style="background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;" onclick="setCellStatus('present')">✓ มา</button>
+    <button class="btn btn-xs" style="background:#fff3e0;color:#e65100;border-color:#ffcc80;" onclick="setCellStatus('late')">สาย</button>
+    <button class="btn btn-xs" style="background:#e0f2f1;color:#00695c;border-color:#80cbc4;" onclick="setCellStatus('leave')">ลา</button>
+    <button class="btn btn-xs" style="background:#ffebee;color:#c62828;border-color:#ef9a9a;" onclick="setCellStatus('absent')">ขาด</button>
+  </div>
+  <button class="btn btn-xs btn-outline" style="width:100%;margin-top:5px;" onclick="setCellStatus('clear')">🗑️ ลบสถานะ</button>
+  <button class="btn btn-xs" style="width:100%;margin-top:3px;color:#999;border:none;background:none;" onclick="closeCellEdit()">ปิด</button>
+</div>
+
 <script>
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
@@ -2374,7 +2387,7 @@ function buildSarDetail(){
     sessions.map(function(k,i){var p=k.split('#');return '<th><button class="btn btn-xs btn-red" style="height:18px;padding:0 5px;font-size:10px;margin-bottom:2px;" onclick="deleteSession(\''+p[0]+'\','+p[1]+')">✕</button><br>'+thaiDateShort(p[0])+'<br>คาบ'+p[1]+'<br>('+(i+1)+')</th>';}).join('')+'</tr></thead><tbody>';
   SAR.students.forEach(function(s,i){
     h+='<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'')+'</td><td class="l">'+s.fullname+'</td>'+
-      sessions.map(function(k){return '<td>'+attSym(SAR.att[s.id+'_'+k])+'</td>';}).join('')+'</tr>';
+      sessions.map(function(k){return '<td class="sarCell" style="cursor:pointer;" title="คลิกเพื่อแก้สถานะ" onclick="openCellEdit('+s.id+',\''+k+'\',this,event)">'+attSym(SAR.att[s.id+'_'+k])+'</td>';}).join('')+'</tr>';
   });
   // footer
   var fAtt='<tr style="background:var(--bluel);font-weight:700;"><td colspan="3" class="l">จำนวนนักเรียนที่เข้าเรียน</td>';
@@ -2386,9 +2399,48 @@ function buildSarDetail(){
   });
   fAtt+='</tr>';fPct+='</tr>';
   h+='</tbody><tfoot>'+fAtt+fPct+'</tfoot></table>';
-  h+='<div style="font-size:11px;color:var(--text3);margin-top:6px;">สัญลักษณ์: / = มาเรียน · (ส) = มาสาย · (ล) = ลา · (ข) = ขาด · - = ยังไม่เช็ค'+(more>0?(' · (ซ่อน '+more+' คาบ — เพิ่มจำนวนคอลัมน์เพื่อดูเพิ่ม)'):'')+'</div>';
+  h+='<div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 คลิกที่ช่องสถานะเพื่อแก้ไข (กรณีเช็คผิด) · สัญลักษณ์: / = มาเรียน · (ส) = มาสาย · (ล) = ลา · (ข) = ขาด · - = ยังไม่เช็ค'+(more>0?(' · (ซ่อน '+more+' คาบ — เพิ่มจำนวนคอลัมน์เพื่อดูเพิ่ม)'):'')+'</div>';
   return h;
 }
+
+// แก้สถานะเช็คชื่อจากรายงาน (คลิกช่อง → popup → บันทึกทันที)
+var SAREDIT={sid:null,key:null};
+function openCellEdit(sid,key,cell,ev){
+  if(ev){ev.stopPropagation();}
+  SAREDIT={sid:sid,key:key};
+  var p=key.split('#');
+  var stu=SAR.students.filter(function(s){return s.id==sid;})[0];
+  document.getElementById('sarEditInfo').textContent=(stu?stu.fullname.split(' ')[0]:'')+' · '+thaiDateShort(p[0])+' คาบ'+p[1];
+  var pop=document.getElementById('sarEditPop');
+  var r=cell.getBoundingClientRect();
+  pop.style.display='block';
+  var left=r.left+window.scrollX, top=r.bottom+window.scrollY+4;
+  if(left+160>window.scrollX+document.documentElement.clientWidth)left=window.scrollX+document.documentElement.clientWidth-160;
+  pop.style.left=Math.max(8,left)+'px';
+  pop.style.top=top+'px';
+}
+function closeCellEdit(){document.getElementById('sarEditPop').style.display='none';SAREDIT={sid:null,key:null};}
+async function setCellStatus(status){
+  var sid=SAREDIT.sid,key=SAREDIT.key;if(!sid){return;}
+  var p=key.split('#'),date=p[0],period=parseInt(p[1]);
+  closeCellEdit();
+  try{
+    if(status==='clear'){
+      await api('/rest/v1/subject_attendance?assignment_id=eq.'+SAR.assignId+'&student_id=eq.'+sid+'&att_date=eq.'+date+'&period=eq.'+period,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+      delete SAR.att[sid+'_'+key];
+    }else{
+      await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{assignment_id:parseInt(SAR.assignId),student_id:parseInt(sid),teacher_id:G.user.id,att_date:date,period:period,status:status}])});
+      SAR.att[sid+'_'+key]=status;
+    }
+    renderSubjAttReport();
+    toast('✅ แก้ไขสถานะแล้ว');
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+// ปิด popup เมื่อคลิกที่อื่น
+document.addEventListener('click',function(e){
+  var pop=document.getElementById('sarEditPop');
+  if(pop&&pop.style.display!=='none'&&!pop.contains(e.target)&&!(e.target.closest&&e.target.closest('.sarCell')))closeCellEdit();
+});
 function buildSarSummary(){
   var total=SAR.sessions.length;
   var h='<table><thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ครั้งเรียน</th><th>มา</th><th>มา%</th><th>สาย</th><th>สาย%</th><th>ลา</th><th>ลา%</th><th>ขาด</th><th>ขาด%</th><th>เข้าเรียน%</th></tr></thead><tbody>';
