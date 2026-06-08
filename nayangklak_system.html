@@ -314,7 +314,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
 /* ===== ตารางเช็คชื่อแบบเรดิโอ (ใช้ร่วมทุกหน้าเช็คชื่อ) ===== */
 .att-grid{width:100%;border-collapse:collapse;font-size:13px;background:#fff;}
 .att-grid th,.att-grid td{border:1px solid var(--border);padding:5px 4px;text-align:center;vertical-align:middle;}
-.att-grid thead th{background:var(--blue);color:#fff;position:sticky;top:54px;z-index:3;}
+.att-grid thead th{background:var(--blue);color:#fff;}
 .att-grid th.l,.att-grid td.l{text-align:left;}
 .att-grid .agNo{width:32px;}
 .att-grid .agName{min-width:120px;}
@@ -324,7 +324,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
 .ag-radio{display:inline-block;width:23px;height:23px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
 .ag-radio:hover{border-color:var(--c);transform:scale(1.1);}
 .ag-radio.on{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 3px #fff;}
-@media(max-width:560px){.att-grid{font-size:12px;}.att-grid th,.att-grid td{padding:4px 2px;}.att-grid .agName{min-width:90px;}.ag-radio{width:21px;height:21px;}.att-grid thead th{top:0;}}
+@media(max-width:560px){.att-grid{font-size:12px;}.att-grid th,.att-grid td{padding:4px 2px;}.att-grid .agName{min-width:90px;}.ag-radio{width:21px;height:21px;}}
 </style>
 </head>
 <body>
@@ -517,13 +517,8 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span style="font-size:12px;font-weight:700;color:#e65100;" id="maEditLabel"></span>
           <span style="font-size:11px;color:#bf360c;">— แก้ไขย้อนหลัง กด 💾 บันทึก เพื่อบันทึก</span>
         </div>
-        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
-            <button class="stbtn stbtn-p" id="maBtnAllP">มาเรียน<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-l" id="maBtnAllAb">ขาด<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-a" id="maBtnAllLate">มาสาย<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-lv" id="maBtnAllLeave">ลา<br>ทั้งหมด</button>
-          </div>
+        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+          <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
           <button class="btn btn-outline btn-sm" id="maBtnReset">🔄 รีเซ็ต</button>
           <button class="btn btn-primary btn-sm" id="maBtnSave">💾 บันทึก</button>
         </div>
@@ -554,13 +549,8 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span style="font-size:12px;font-weight:700;color:#e65100;" id="eaEditLabel"></span>
           <span style="font-size:11px;color:#bf360c;">— แก้ไขย้อนหลัง กด 💾 บันทึก เพื่อบันทึก</span>
         </div>
-        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
-            <button class="stbtn stbtn-p" id="eaBtnAllP">อยู่ครบ<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-lv" id="eaBtnAllGone">กลับบ้าน<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-l" id="eaBtnAllAb">ขาด<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-a" id="eaBtnAllSp">พิเศษ<br>ทั้งหมด</button>
-          </div>
+        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+          <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
           <button class="btn btn-primary btn-sm" id="eaBtnSave">💾 บันทึก</button>
         </div>
         <div class="stu-list" id="eaList"><div class="loading">กำลังโหลด...</div></div>
@@ -590,12 +580,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
         </div>
         <div class="bulk-row" id="saBulk" style="display:none;flex-wrap:wrap;gap:6px;">
           <button class="btn btn-outline btn-sm" id="saCopyPrev" style="width:100%;display:none;" onclick="saCopyPrevPeriod()">📋 ดึงข้อมูลจากคาบที่แล้ว (กรณีเรียน 2 คาบติด)</button>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1;">
-            <button class="stbtn stbtn-p btn-sm" onclick="saSetAll('present')">มา<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-l btn-sm" onclick="saSetAll('absent')">ขาด<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-a btn-sm" onclick="saSetAll('late')">สาย<br>ทั้งหมด</button>
-            <button class="stbtn stbtn-lv btn-sm" onclick="saSetAll('leave')">ลา<br>ทั้งหมด</button>
-          </div>
+          <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
         </div>
         <div class="stu-list" id="saList"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
       </div>
@@ -1590,18 +1575,10 @@ function setAttStatus(sid,status,btn,type){var o=type==='morning'?G.att:G.evenin
 function setAttRemark(sid,val){if(!G.att[sid])G.att[sid]={};G.att[sid].remark=val;}
 function updateAttCount(){}
 
-// MARK ALL
-function markAllAs(status){G.students.forEach(function(s){G.att[s.id]={status:status,remark:G.att[s.id]?G.att[s.id].remark||'':''};});renderAtt('maList',G.students,G.att,'morning');}
-document.getElementById('maBtnAllP').addEventListener('click',function(){markAllAs('present');});
-document.getElementById('maBtnAllAb').addEventListener('click',function(){markAllAs('absent');});
-document.getElementById('maBtnAllLate').addEventListener('click',function(){markAllAs('late');});
-document.getElementById('maBtnAllLeave').addEventListener('click',function(){markAllAs('leave');});
+// MARK ALL (ปุ่มถูกแทนด้วย checkbox หัวคอลัมน์ — เหลือเฉพาะรีเซ็ต)
+function markAllAs(status){G.students.forEach(function(s){G.att[s.id]={status:status};});renderAtt('maList',G.students,G.att,'morning');}
+function markEveAllAs(status){G.students.forEach(function(s){G.eveningAtt[s.id]={status:status};});renderEveningAtt(G.students);}
 document.getElementById('maBtnReset').addEventListener('click',function(){G.att={};renderAtt('maList',G.students,G.att,'morning');});
-function markEveAllAs(status){G.students.forEach(function(s){G.eveningAtt[s.id]={status:status,remark:G.eveningAtt[s.id]?G.eveningAtt[s.id].remark||'':''};});renderEveningAtt(G.students);}
-document.getElementById('eaBtnAllP').addEventListener('click',function(){markEveAllAs('present');});
-document.getElementById('eaBtnAllGone').addEventListener('click',function(){markEveAllAs('gone_home');});
-document.getElementById('eaBtnAllAb').addEventListener('click',function(){markEveAllAs('absent');});
-document.getElementById('eaBtnAllSp').addEventListener('click',function(){markEveAllAs('special_leave');});
 
 // SEARCH
 document.getElementById('maQ').addEventListener('input',function(){var q=this.value.toLowerCase();renderAtt('maList',G.students.filter(function(s){return s.fullname.toLowerCase().indexOf(q)>=0||s.student_code.indexOf(q)>=0;}),G.att,'morning');});
