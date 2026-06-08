@@ -384,6 +384,12 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="nav-item" data-page="pgGood">❤️ <span>บันทึกความดี</span></div>
       <div class="nav-item" data-page="pgBehave">⚠️ <span>บันทึกพฤติกรรม</span></div>
       <div class="nav-item" data-page="pgScore">📊 <span>คะแนนสุทธิ</span></div>
+      <div class="nav-section">การสอน</div>
+      <div class="nav-item" data-page="pgTeachSubjects">🎓 <span>รายวิชาที่สอน</span></div>
+      <div class="nav-item" data-page="pgManageSubjects">🗂️ <span>จัดการรายวิชา</span></div>
+      <div class="nav-item" data-page="pgTeachTimetable">🗓️ <span>จัดการตารางสอน</span></div>
+      <div class="nav-item" data-page="pgSubjAttReport">📊 <span>เวลาเรียนรายวิชา</span></div>
+      <div class="nav-item" data-page="pgRoomAttReport">🏫 <span>เวลาเรียนรายห้อง</span></div>
       <div class="nav-section">วิชาเรียน</div>
       <div class="nav-item" data-page="pgGrades">📝 <span>คะแนนรายวิชา</span></div>
       <div class="nav-item" data-page="pgTimetable">🗓️ <span>ตารางสอน</span></div>
@@ -432,6 +438,14 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div class="mc" onclick="openPage('pgScore')"><div class="mico mico-p">📊</div><div class="mlbl">คะแนน<br>สุทธิ</div></div>
           <div class="mc" onclick="openReport('good')"><div class="mico mico-gold">📄</div><div class="mlbl">Report<br>ความดี</div><div class="rbadge">PDF</div></div>
           <div class="mc" onclick="openReport('behave')"><div class="mico mico-gold">📄</div><div class="mlbl">Report<br>พฤติกรรม</div><div class="rbadge">PDF</div></div>
+        </div>
+        <div class="sec-head"><div class="sec-bar"></div><div class="sec-title">ระบบการสอน (ครูผู้สอน)</div></div>
+        <div class="mgrid">
+          <div class="mc" onclick="openPage('pgTeachSubjects')"><div class="mico mico-b">🎓</div><div class="mlbl">รายวิชา<br>ที่สอน</div></div>
+          <div class="mc" onclick="openPage('pgManageSubjects')"><div class="mico mico-t">🗂️</div><div class="mlbl">จัดการ<br>รายวิชา</div></div>
+          <div class="mc" onclick="openPage('pgTeachTimetable')"><div class="mico mico-p">🗓️</div><div class="mlbl">จัดการ<br>ตารางสอน</div></div>
+          <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-g">📚</div><div class="mlbl">เช็คชื่อ<br>รายวิชา</div></div>
+          <div class="mc" onclick="openReport('papo5')"><div class="mico mico-gold">📄</div><div class="mlbl">รายงาน<br>ปพ.5</div><div class="rbadge">PDF</div></div>
         </div>
         <div class="sec-head"><div class="sec-bar"></div><div class="sec-title">วิชาเรียนและคะแนน</div></div>
         <div class="mgrid">
@@ -528,14 +542,31 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
           <div class="pt1">📚 เช็คชื่อรายวิชา</div>
         </div>
-        <div class="filter-bar">
-          <select class="filter-select" id="saSubject" onchange="loadSubjectStudents()">
-            <option value="">เลือกรายวิชา...</option>
+        <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
+          <select class="filter-select" id="saAssign" onchange="loadSubjectStudents()" style="flex:1;min-width:160px;">
+            <option value="">เลือกกลุ่มเรียน...</option>
+          </select>
+          <select class="filter-select" id="saPeriod" onchange="loadSubjectStudents()" title="คาบ">
+            <option value="1">คาบ 1</option><option value="2">คาบ 2</option><option value="3">คาบ 3</option><option value="4">คาบ 4</option><option value="5">คาบ 5</option><option value="6">คาบ 6</option><option value="7">คาบ 7</option>
           </select>
           <input type="date" class="filter-select" id="saDate" onchange="loadSubjectStudents()">
           <button class="btn btn-primary btn-sm" id="saBtnSave" style="margin-left:auto;">💾 บันทึก</button>
         </div>
-        <div class="stu-list" id="saList"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกรายวิชาก่อนครับ</div></div>
+        <div class="att-stats" id="saStats" style="display:none;">
+          <div class="astat"><div class="aval av-all" id="saAll">0</div><div class="albl al-all">ทั้งหมด</div></div>
+          <div class="astat"><div class="aval av-p" id="saP">0</div><div class="albl al-p">มา</div></div>
+          <div class="astat"><div class="aval av-l" id="saAb">0</div><div class="albl al-l">ขาด</div></div>
+          <div class="astat"><div class="aval av-ab" id="saLt">0</div><div class="albl al-ab">สาย/ลา</div></div>
+        </div>
+        <div class="bulk-row" id="saBulk" style="display:none;flex-wrap:wrap;gap:6px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1;">
+            <button class="stbtn stbtn-p btn-sm" onclick="saSetAll('present')">มา<br>ทั้งหมด</button>
+            <button class="stbtn stbtn-l btn-sm" onclick="saSetAll('absent')">ขาด<br>ทั้งหมด</button>
+            <button class="stbtn stbtn-a btn-sm" onclick="saSetAll('late')">สาย<br>ทั้งหมด</button>
+            <button class="stbtn stbtn-lv btn-sm" onclick="saSetAll('leave')">ลา<br>ทั้งหมด</button>
+          </div>
+        </div>
+        <div class="stu-list" id="saList"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
       </div>
 
       <!-- ===== GOOD DEEDS ===== -->
@@ -602,13 +633,16 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
           <div class="pt1">📝 คะแนนรายวิชา</div>
         </div>
-        <div class="filter-bar">
-          <select class="filter-select" id="grSubject" onchange="loadGradeStructure()">
-            <option value="">เลือกรายวิชา...</option>
+        <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
+          <select class="filter-select" id="grAssign" onchange="loadGradeStructure()" style="flex:1;min-width:160px;">
+            <option value="">เลือกกลุ่มเรียน...</option>
           </select>
-          <button class="btn btn-primary btn-sm" id="grBtnSave" style="margin-left:auto;">💾 บันทึก</button>
+          <button class="btn btn-outline btn-sm" onclick="openGradeStructEditor()">⚙️ โครงสร้างคะแนน</button>
+          <button class="btn btn-primary btn-sm" id="grBtnSave">💾 บันทึก</button>
+          <button class="btn btn-green btn-sm" onclick="exportGradesExcel()">📊 Excel</button>
+          <button class="btn btn-sm" style="background:var(--goldl);color:#e65100;border-color:var(--gold);" onclick="openReport('papo5')">📄 ปพ.5 PDF</button>
         </div>
-        <div id="grContent" style="padding:0 14px 80px;"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกรายวิชาก่อนครับ</div></div>
+        <div id="grContent" style="padding:0 14px 80px;"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
       </div>
 
       <!-- ===== TIMETABLE ===== -->
@@ -619,6 +653,115 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2);" onclick="openReport('timetable')">📄 PDF</button>
         </div>
         <div id="ttContent" style="padding:14px 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
+      </div>
+
+      <!-- ===== TEACH: เลือก/ค้นหารายวิชาที่สอน ===== -->
+      <div class="page" id="pgTeachSubjects">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
+          <div class="pt1">🎓 เลือกรายวิชาที่ทำการสอน</div>
+          <button class="btn btn-sm" style="background:#fff;color:var(--blue);" onclick="openPage('pgManageSubjects')">🗂️ รายวิชาของฉัน</button>
+        </div>
+        <div style="padding:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+            <div class="card">
+              <div class="bold" style="color:var(--blue);text-align:center;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px;">ค้นหาตามรหัสรายวิชา</div>
+              <div class="form-label">ป้อนรหัสรายวิชา</div>
+              <div class="flex gap8">
+                <input type="text" class="form-control" id="tsCode" placeholder="เช่น ว32203" onkeydown="if(event.key==='Enter')searchTeachSubjects('code')">
+                <button class="btn btn-green btn-sm" onclick="searchTeachSubjects('code')">ค้นหา</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="bold" style="color:var(--blue);text-align:center;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px;">ค้นหาตามชื่อรายวิชา</div>
+              <div class="form-label">ป้อนชื่อรายวิชา</div>
+              <div class="flex gap8">
+                <input type="text" class="form-control" id="tsName" placeholder="เช่น ฟิสิกส์" onkeydown="if(event.key==='Enter')searchTeachSubjects('name')">
+                <button class="btn btn-green btn-sm" onclick="searchTeachSubjects('name')">ค้นหา</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="bold" style="color:var(--blue);text-align:center;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px;">ค้นหาตามระดับชั้น/กลุ่มสาระ</div>
+              <div class="form-label">ระดับชั้น</div>
+              <select class="form-control mb8" id="tsLevel">
+                <option value="">ทุกระดับชั้น</option>
+                <option>ม.1</option><option>ม.2</option><option>ม.3</option><option>ม.4</option><option>ม.5</option><option>ม.6</option>
+              </select>
+              <div class="form-label">กลุ่มสาระการเรียนรู้</div>
+              <div class="flex gap8">
+                <select class="form-control" id="tsGroup1"><option value="">ทุกกลุ่มสาระ</option></select>
+                <button class="btn btn-green btn-sm" onclick="searchTeachSubjects('level')">ค้นหา</button>
+              </div>
+            </div>
+            <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+              <div style="font-size:32px;">✅</div>
+              <button class="btn btn-green" onclick="searchTeachSubjects('all')">แสดงรายวิชาทั้งหมด</button>
+              <button class="btn btn-outline btn-sm" onclick="openAddSubjectMaster()">➕ เพิ่มรายวิชาใหม่ในระบบ</button>
+            </div>
+          </div>
+          <div id="tsResult" style="margin-top:16px;"><div class="loading">ค้นหาหรือกด "แสดงรายวิชาทั้งหมด"</div></div>
+        </div>
+      </div>
+
+      <!-- ===== TEACH: จัดการรายวิชาที่สอน ===== -->
+      <div class="page" id="pgManageSubjects">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
+          <div class="pt1">🗂️ จัดการรายวิชาที่ทำการสอน</div>
+          <button class="btn btn-sm" style="background:#fff;color:var(--blue);" onclick="openPage('pgTeachSubjects')">➕ เพิ่มรายวิชา</button>
+        </div>
+        <div id="msContent" style="padding:14px 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
+      </div>
+
+      <!-- ===== TEACH: จัดการตารางสอน (แก้ไขได้) ===== -->
+      <div class="page" id="pgTeachTimetable">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
+          <div class="pt1">🗓️ จัดการตารางสอน</div>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2);" onclick="openReport('timetable')">📄 PDF</button>
+        </div>
+        <div style="padding:8px 14px;font-size:12px;color:var(--text2);">💡 คลิกช่องว่างเพื่อเพิ่มคาบสอน · คลิกช่องที่มีวิชาเพื่อไปเช็คชื่อ</div>
+        <div id="ttEditContent" style="padding:0 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
+      </div>
+
+      <!-- ===== REPORT: เวลาเรียนรายวิชา ===== -->
+      <div class="page" id="pgSubjAttReport">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
+          <div class="pt1">📊 รายงานเวลาเรียนรายวิชา</div>
+        </div>
+        <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
+          <select class="filter-select" id="sarAssign" onchange="loadSubjAttReport()" style="flex:1;min-width:180px;">
+            <option value="">เลือกกลุ่มเรียน...</option>
+          </select>
+          <div style="display:flex;border:1.5px solid var(--border2);border-radius:var(--radius2);overflow:hidden;">
+            <button id="sarTabD" onclick="setSarTab('detail')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:var(--blue);color:#fff;cursor:pointer;">รายครั้ง</button>
+            <button id="sarTabS" onclick="setSarTab('summary')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#fff;color:var(--blue);cursor:pointer;">สรุป %</button>
+          </div>
+          <div id="sarColWrap" style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:12px;color:var(--text2);">คอลัมน์</span>
+            <input type="number" id="sarMaxCol" value="15" min="1" style="width:56px;" class="filter-select" onchange="renderSubjAttReport()">
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="printSubjAttReport()">🖨️ พิมพ์</button>
+          <button class="btn btn-green btn-sm" onclick="excelSubjAttReport()">📊 Excel</button>
+        </div>
+        <div id="sarContent" style="padding:14px;overflow-x:auto;"><div class="loading">เลือกกลุ่มเรียนก่อนครับ</div></div>
+      </div>
+
+      <!-- ===== REPORT: เวลาเรียนรายห้อง ===== -->
+      <div class="page" id="pgRoomAttReport">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
+          <div class="pt1">🏫 รายงานเวลาเรียนรายห้อง</div>
+        </div>
+        <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
+          <select class="filter-select" id="rarRoom" style="min-width:120px;"><option value="">เลือกห้อง...</option></select>
+          <input type="date" class="filter-select" id="rarDate">
+          <button class="btn btn-primary btn-sm" onclick="loadRoomAttReport()">🔍 ค้นหา</button>
+          <button class="btn btn-outline btn-sm" onclick="printRoomAttReport()">🖨️ พิมพ์</button>
+          <button class="btn btn-green btn-sm" onclick="excelRoomAttReport()">📊 Excel</button>
+        </div>
+        <div id="rarContent" style="padding:14px;overflow-x:auto;"><div class="loading">เลือกห้องและวันที่แล้วกดค้นหา</div></div>
       </div>
 
       <!-- ===== REPORT ===== -->
@@ -1033,6 +1176,118 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
   </div>
 </div>
 
+<!-- MODAL: เพิ่มกลุ่มเรียน (สร้าง teaching_assignment) -->
+<div class="modal-bg" id="modalAddGroup">
+  <div class="modal">
+    <div class="modal-head">➕ เพิ่มกลุ่มเรียน <button class="modal-close" onclick="closeModal('modalAddGroup')">✕</button></div>
+    <div id="agSubjInfo" style="background:var(--bluel);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-weight:700;color:var(--blue);"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ห้องเรียน</label><select class="form-control" id="agRoom"></select></div>
+      <div class="form-group"><label class="form-label">กลุ่มที่</label><input type="number" class="form-control" id="agGroup" value="1" min="1"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ภาคเรียน</label><input type="number" class="form-control" id="agSem" value="1" min="1" max="2"></div>
+      <div class="form-group"><label class="form-label">ปีการศึกษา</label><input type="number" class="form-control" id="agYear" value="2569"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">รูปแบบเช็คชื่อ</label>
+      <select class="form-control" id="agMode"><option value="period">ตามคาบ</option><option value="daily">ตามวัน</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAddGroup')">ยกเลิก</button>
+      <button class="btn btn-green" onclick="saveAddGroup()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: เพิ่มนักเรียนเข้ากลุ่มเรียน -->
+<div class="modal-bg" id="modalEnroll">
+  <div class="modal">
+    <div class="modal-head">👥 เพิ่มนักเรียนเข้ากลุ่ม <button class="modal-close" onclick="closeModal('modalEnroll')">✕</button></div>
+    <div id="enrInfo" style="font-size:12px;color:var(--text2);margin-bottom:8px;"></div>
+    <div class="flex gap8 mb8">
+      <div class="search-box" style="flex:1;"><span>🔍</span><input type="text" id="enrQ" placeholder="ค้นหาชื่อ..." oninput="filterEnrollList()"></div>
+      <button class="btn btn-outline btn-sm" onclick="toggleAllEnroll(true)">เลือกทั้งห้อง</button>
+    </div>
+    <div id="enrList" style="max-height:50vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px;"><div class="loading">กำลังโหลด...</div></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalEnroll')">ยกเลิก</button>
+      <button class="btn btn-green" onclick="saveEnroll()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: เชิญครูร่วมสอน -->
+<div class="modal-bg" id="modalInvite">
+  <div class="modal">
+    <div class="modal-head">🤝 เชิญครูร่วมสอน <button class="modal-close" onclick="closeModal('modalInvite')">✕</button></div>
+    <div id="invInfo" style="font-size:12px;color:var(--text2);margin-bottom:8px;"></div>
+    <div class="form-group">
+      <label class="form-label">เลือกครู</label>
+      <select class="form-control" id="invTeacher"></select>
+    </div>
+    <div id="invCurrent" style="font-size:12px;color:var(--text2);"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalInvite')">ปิด</button>
+      <button class="btn btn-green" onclick="saveInvite()">➕ เชิญ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: เพิ่มรายวิชาใหม่ในระบบ (subjects) -->
+<div class="modal-bg" id="modalAddSubj">
+  <div class="modal">
+    <div class="modal-head">➕ เพิ่มรายวิชาใหม่ <button class="modal-close" onclick="closeModal('modalAddSubj')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">รหัสวิชา</label><input type="text" class="form-control" id="asCode" placeholder="ว32203"></div>
+      <div class="form-group"><label class="form-label">หน่วยกิต</label><input type="number" step="0.5" class="form-control" id="asCredit" value="1.0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">ชื่อวิชา</label><input type="text" class="form-control" id="asName" placeholder="ฟิสิกส์ 3"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ระดับชั้น</label><select class="form-control" id="asLevel"><option>ม.1</option><option>ม.2</option><option>ม.3</option><option>ม.4</option><option selected>ม.5</option><option>ม.6</option></select></div>
+      <div class="form-group"><label class="form-label">กลุ่มสาระ</label><input type="text" class="form-control" id="asGroup" placeholder="วิทยาศาสตร์และเทคโนโลยี"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAddSubj')">ยกเลิก</button>
+      <button class="btn btn-green" onclick="saveAddSubject()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: กำหนดคาบสอนในตาราง -->
+<div class="modal-bg" id="modalTTSlot">
+  <div class="modal">
+    <div class="modal-head">🗓️ กำหนดคาบสอน <button class="modal-close" onclick="closeModal('modalTTSlot')">✕</button></div>
+    <div id="ttSlotInfo" style="background:var(--bluel);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-weight:700;color:var(--blue);"></div>
+    <div class="form-group">
+      <label class="form-label">เลือกกลุ่มเรียน (วิชา + ห้อง)</label>
+      <select class="form-control" id="ttSlotAssign"></select>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-red btn-sm" id="ttSlotDel" style="display:none;" onclick="deleteTTSlot()">🗑️ ลบคาบนี้</button>
+      <div class="flex gap8">
+        <button class="btn btn-outline" onclick="closeModal('modalTTSlot')">ยกเลิก</button>
+        <button class="btn btn-green" onclick="saveTTSlot()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: โครงสร้างคะแนน -->
+<div class="modal-bg" id="modalGradeStruct">
+  <div class="modal">
+    <div class="modal-head">⚙️ โครงสร้างคะแนน <button class="modal-close" onclick="closeModal('modalGradeStruct')">✕</button></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">กำหนดช่องเก็บคะแนน (รวมคะแนนเต็มควรเป็น 100)</div>
+    <div id="gsRows"></div>
+    <button class="btn btn-outline btn-sm mt8" onclick="addGSRow()">➕ เพิ่มช่องคะแนน</button>
+    <div style="text-align:right;font-weight:700;color:var(--blue);margin-top:8px;">รวมคะแนนเต็ม: <span id="gsTotal">0</span></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalGradeStruct')">ยกเลิก</button>
+      <button class="btn btn-green" onclick="saveGradeStruct()">💾 บันทึกโครงสร้าง</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
@@ -1040,7 +1295,7 @@ var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6In
 var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
 
 // ===== STATE =====
-var G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null};
+var G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null};
 var AV=['#e3f2fd|#0d47a1','#e8f5e9|#1b5e20','#fce4ec|#880e4f','#f3e5f5|#4a148c','#e0f2f1|#004d40','#fff8e1|#e65100'];
 
 // ===== UTILS =====
@@ -1077,6 +1332,11 @@ function openPage(id){
   if(id==='pgTimetable')loadTimetable();
   if(id==='pgSubjectAtt')loadSubjectsForAtt();
   if(id==='pgStudents')loadStudentProfiles();
+  if(id==='pgTeachSubjects')initTeachSubjects();
+  if(id==='pgManageSubjects')loadManageSubjects();
+  if(id==='pgTeachTimetable')loadTeachTimetable();
+  if(id==='pgSubjAttReport')initSubjAttReport();
+  if(id==='pgRoomAttReport')initRoomAttReport();
 }
 
 // ===== LOGIN =====
@@ -1350,35 +1610,77 @@ document.getElementById('eaBtnSave').addEventListener('click',async function(){
 });
 
 // ===== SUBJECT ATT =====
+// ===== เช็คชื่อรายวิชา (ผูกกลุ่มเรียน + คาบ) =====
+var SA={stus:[],att:{}};
+
+// โหลดนักเรียนที่ลงทะเบียนในกลุ่มเรียน
+async function loadEnrolledStudents(assignId){
+  var enr=await api('/rest/v1/enrollments?assignment_id=eq.'+assignId+'&status=eq.active&select=students(id,student_code,fullname,order_no)&order=student_id');
+  var stus=(enr||[]).map(function(e){return e.students;}).filter(Boolean);
+  stus.sort(function(a,b){return (a.order_no||0)-(b.order_no||0);});
+  return stus;
+}
+
 async function loadSubjectsForAtt(){
   document.getElementById('saDate').value=today();
   try{
-    var subs=await api('/rest/v1/subjects?select=id,subject_code,subject_name&order=subject_code');
-    document.getElementById('saSubject').innerHTML='<option value="">เลือกรายวิชา...</option>'+(subs||[]).map(function(s){return '<option value="'+s.id+'">'+s.subject_code+' '+s.subject_name+'</option>';}).join('');
+    var assigns=await loadMyAssigns();
+    var opts='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+    document.getElementById('saAssign').innerHTML=opts;
   }catch(e){}
 }
 
 async function loadSubjectStudents(){
-  var subId=document.getElementById('saSubject').value,dt=document.getElementById('saDate').value;
-  if(!subId){document.getElementById('saList').innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกรายวิชาก่อนครับ</div>';return;}
+  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||1;
+  var hide=function(){document.getElementById('saStats').style.display='none';document.getElementById('saBulk').style.display='none';};
+  if(!assignId){hide();document.getElementById('saList').innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div>';return;}
   document.getElementById('saList').innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
-    var stus=await loadStudents();
-    var saAtt={};
-    if(stus.length&&dt){
+    var stus=await loadEnrolledStudents(assignId);
+    SA.stus=stus;SA.att={};
+    if(!stus.length){hide();document.getElementById('saList').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่หน้า "จัดการรายวิชา"</div>';return;}
+    if(dt){
       var ids=stus.map(function(s){return s.id;}).join(',');
-      var ad=await api('/rest/v1/subject_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status');
-      (ad||[]).forEach(function(a){saAtt[a.student_id]={status:a.status};});
+      var ad=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&att_date=eq.'+dt+'&period=eq.'+period+'&student_id=in.('+ids+')&select=student_id,status');
+      (ad||[]).forEach(function(a){SA.att[a.student_id]={status:a.status};});
     }
-    renderAtt('saList',stus,saAtt,'subject');
+    document.getElementById('saStats').style.display='';
+    document.getElementById('saBulk').style.display='flex';
+    renderSubjectAtt();
     document.getElementById('saBtnSave').onclick=async function(){
-      var records=stus.filter(function(s){return saAtt[s.id]&&saAtt[s.id].status;}).map(function(s){return {student_id:s.id,teacher_id:G.user.id,att_date:dt,status:saAtt[s.id].status};});
+      var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
       if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
-      try{await api('/rest/v1/subject_attendance?on_conflict=timetable_id,student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ บันทึกแล้ว '+records.length+' คน');}
+      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ บันทึกแล้ว '+records.length+' คน');}
       catch(e){toast('❌ '+e.message,'err');}
     };
-  }catch(e){document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+  }catch(e){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
+
+function renderSubjectAtt(){
+  var el=document.getElementById('saList'),list=SA.stus;
+  var p=0,ab=0,ll=0;
+  list.forEach(function(s){var st=SA.att[s.id]&&SA.att[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
+  document.getElementById('saAll').textContent=list.length;
+  document.getElementById('saP').textContent=p;
+  document.getElementById('saAb').textContent=ab;
+  document.getElementById('saLt').textContent=ll;
+  el.innerHTML=list.map(function(s,i){
+    var av=AV[i%AV.length].split('|');
+    var a=SA.att[s.id]||{status:''};
+    var init=s.fullname.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('');
+    return '<div class="stu-item">'+
+      '<div class="flex gap8 mb8"><div class="stu-avatar" style="background:'+av[0]+';color:'+av[1]+';">'+init+'</div>'+
+      '<div class="stu-name">'+s.fullname+'<div class="stu-no">เลขที่ '+s.order_no+' · '+s.student_code+'</div></div></div>'+
+      '<div class="status-btns">'+
+      '<button class="stbtn stbtn-p'+(a.status==='present'?' active':'')+'" onclick="saSet('+s.id+',\'present\')">มาเรียน</button>'+
+      '<button class="stbtn stbtn-l'+(a.status==='absent'?' active':'')+'" onclick="saSet('+s.id+',\'absent\')">ขาด</button>'+
+      '<button class="stbtn stbtn-a'+(a.status==='late'?' active':'')+'" onclick="saSet('+s.id+',\'late\')">สาย</button>'+
+      '<button class="stbtn stbtn-lv'+(a.status==='leave'?' active':'')+'" onclick="saSet('+s.id+',\'leave\')">ลา</button>'+
+      '</div></div>';
+  }).join('');
+}
+function saSet(sid,status){if(!SA.att[sid])SA.att[sid]={};SA.att[sid].status=status;renderSubjectAtt();}
+function saSetAll(status){SA.stus.forEach(function(s){SA.att[s.id]={status:status};});renderSubjectAtt();}
 
 // ===== GOOD DEEDS =====
 async function loadGood(){
@@ -1522,40 +1824,64 @@ function filterScore(){
   });
 }
 
-// ===== GRADES =====
+// ===== GRADES + เกรด 0-4 + ปพ.5 =====
+var GR={structs:[],stus:[]};
+
+// คำนวณเกรดจากคะแนนรวม (เกณฑ์มาตรฐานไทย) — total เทียบฐาน 100
+function calcGrade(total,maxTotal){
+  var pct=maxTotal>0?(total/maxTotal)*100:0;
+  if(pct>=80)return 4;
+  if(pct>=75)return 3.5;
+  if(pct>=70)return 3;
+  if(pct>=65)return 2.5;
+  if(pct>=60)return 2;
+  if(pct>=55)return 1.5;
+  if(pct>=50)return 1;
+  return 0;
+}
+
 async function loadSubjectsForGrade(){
   try{
-    var subs=await api('/rest/v1/subjects?select=id,subject_code,subject_name&order=subject_code');
-    document.getElementById('grSubject').innerHTML='<option value="">เลือกรายวิชา...</option>'+(subs||[]).map(function(s){return '<option value="'+s.id+'">'+s.subject_code+' '+s.subject_name+'</option>';}).join('');
+    var assigns=await loadMyAssigns();
+    var opts='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+    document.getElementById('grAssign').innerHTML=opts;
   }catch(e){}
 }
 
+function curGradeAssignId(){return document.getElementById('grAssign').value;}
+
 async function loadGradeStructure(){
-  var subId=document.getElementById('grSubject').value;
-  if(!subId){document.getElementById('grContent').innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกรายวิชาก่อนครับ</div>';return;}
+  var assignId=curGradeAssignId();
+  if(!assignId){document.getElementById('grContent').innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div>';return;}
   document.getElementById('grContent').innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
-    var stus=await loadStudents();
-    var structs=await api('/rest/v1/grade_structures?subject_id=eq.'+subId+'&select=id,name,max_score,grade_type&order=order_no');
-    if(!structs||!structs.length){document.getElementById('grContent').innerHTML='<div class="loading">ยังไม่มีโครงสร้างคะแนน<br><small>Admin ต้องเพิ่มโครงสร้างคะแนนก่อน</small></div>';return;}
+    var stus=await loadEnrolledStudents(assignId);
+    GR.stus=stus;
+    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId+'&select=id,name,max_score,grade_type,order_no&order=order_no');
+    GR.structs=structs||[];
+    if(!structs||!structs.length){document.getElementById('grContent').innerHTML='<div class="loading">ยังไม่มีโครงสร้างคะแนน<br><button class="btn btn-green btn-sm mt12" onclick="openGradeStructEditor()">⚙️ ตั้งโครงสร้างคะแนน</button></div>';return;}
+    if(!stus.length){document.getElementById('grContent').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่ "จัดการรายวิชา"</div>';return;}
     var ids=stus.map(function(s){return s.id;}).join(',')||'0';
     var sids=structs.map(function(s){return s.id;}).join(',')||'0';
     var grades=await api('/rest/v1/grades?structure_id=in.('+sids+')&student_id=in.('+ids+')&select=structure_id,student_id,score');
     var gradeMap={};
     (grades||[]).forEach(function(g){gradeMap[g.structure_id+'_'+g.student_id]=g.score;});
-    var html='<div style="overflow-x:auto;"><table><thead><tr><th>ชื่อ</th>'+structs.map(function(s){return '<th>'+s.name+'<br><small>('+s.max_score+')</small></th>';}).join('')+'<th>รวม</th></tr></thead><tbody>';
+    var maxTotal=structs.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
+    var html='<div style="overflow-x:auto;"><table><thead><tr><th>เลขที่</th><th>ชื่อ-นามสกุล</th>'+structs.map(function(s){return '<th>'+s.name+'<br><small>('+s.max_score+')</small></th>';}).join('')+'<th>รวม<br><small>('+maxTotal+')</small></th><th>เกรด</th></tr></thead><tbody>';
     stus.forEach(function(s){
       var total=0;
-      html+='<tr><td style="white-space:nowrap;">'+s.fullname+'</td>'+structs.map(function(st){
-        var sc=gradeMap[st.id+'_'+s.id]||'';
+      html+='<tr><td style="text-align:center;">'+(s.order_no||'')+'</td><td style="white-space:nowrap;">'+s.fullname+'</td>'+structs.map(function(st){
+        var sc=gradeMap[st.id+'_'+s.id];sc=(sc===undefined||sc===null)?'':sc;
         total+=parseFloat(sc)||0;
-        return '<td><input type="number" style="width:60px;border:1px solid var(--border2);border-radius:6px;padding:3px 6px;font-family:Sarabun,sans-serif;font-size:12px;" value="'+sc+'" min="0" max="'+st.max_score+'" data-sid="'+s.id+'" data-stid="'+st.id+'" onchange="gradeChanged(this)"></td>';
+        return '<td><input type="number" style="width:58px;border:1px solid var(--border2);border-radius:6px;padding:3px 6px;font-family:Sarabun,sans-serif;font-size:12px;" value="'+sc+'" min="0" max="'+st.max_score+'" data-sid="'+s.id+'" data-stid="'+st.id+'" onchange="gradeChanged(this)"></td>';
       }).join('');
-      html+='<td style="font-weight:800;color:var(--blue);">'+total.toFixed(1)+'</td></tr>';
+      var g=calcGrade(total,maxTotal);
+      html+='<td class="grTotal" style="font-weight:800;color:var(--blue);text-align:center;">'+total.toFixed(1)+'</td><td class="grGrade" style="font-weight:800;text-align:center;color:'+(g>=1?'var(--green)':'var(--red)')+';">'+g.toFixed(1)+'</td></tr>';
     });
     html+='</tbody></table></div>';
+    html+='<div id="grSummary" style="margin-top:12px;"></div>';
     document.getElementById('grContent').innerHTML=html;
-    var gradeData={};
+    renderGradeSummary();
     document.getElementById('grBtnSave').onclick=async function(){
       var inputs=document.querySelectorAll('#grContent input[data-sid]');
       var records=[];
@@ -1571,10 +1897,100 @@ function gradeChanged(inp){
   var max=parseFloat(inp.max);
   if(parseFloat(inp.value)>max){inp.value=max;toast('คะแนนเกินกำหนด (max '+max+')','err');}
   if(parseFloat(inp.value)<0)inp.value=0;
-  // อัปเดตรวม
   var row=inp.closest('tr');
+  var maxTotal=GR.structs.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
   var total=0;row.querySelectorAll('input').forEach(function(i){total+=parseFloat(i.value)||0;});
-  row.cells[row.cells.length-1].textContent=total.toFixed(1);
+  row.querySelector('.grTotal').textContent=total.toFixed(1);
+  var g=calcGrade(total,maxTotal);
+  var ge=row.querySelector('.grGrade');ge.textContent=g.toFixed(1);ge.style.color=g>=1?'var(--green)':'var(--red)';
+  renderGradeSummary();
+}
+
+// สรุป: คะแนนเฉลี่ย + การกระจายเกรด + GPA
+function readGradeTable(){
+  var maxTotal=GR.structs.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
+  var rows=[];
+  document.querySelectorAll('#grContent tbody tr').forEach(function(tr){
+    var total=0;tr.querySelectorAll('input').forEach(function(i){total+=parseFloat(i.value)||0;});
+    rows.push({total:total,grade:calcGrade(total,maxTotal)});
+  });
+  return {maxTotal:maxTotal,rows:rows};
+}
+function renderGradeSummary(){
+  var d=readGradeTable();if(!d.rows.length){document.getElementById('grSummary').innerHTML='';return;}
+  var sum=0,gsum=0,dist={};[4,3.5,3,2.5,2,1.5,1,0].forEach(function(g){dist[g]=0;});
+  d.rows.forEach(function(r){sum+=r.total;gsum+=r.grade;dist[r.grade]=(dist[r.grade]||0)+1;});
+  var n=d.rows.length;
+  var avg=(sum/n).toFixed(1),gpa=(gsum/n).toFixed(2);
+  var distHtml=[4,3.5,3,2.5,2,1.5,1,0].map(function(g){return '<span class="badge '+(g>=1?'badge-green':'badge-red')+'" style="margin:2px;">เกรด '+g+': '+dist[g]+'</span>';}).join('');
+  document.getElementById('grSummary').innerHTML='<div class="card"><div class="bold" style="color:var(--blue);margin-bottom:6px;">📊 สรุปผลการเรียน ('+n+' คน)</div>'+
+    '<div class="text-sm mb8">คะแนนเฉลี่ย: <b>'+avg+'</b> / '+d.maxTotal+' · GPA เฉลี่ย: <b style="color:var(--blue);">'+gpa+'</b></div>'+
+    '<div>'+distHtml+'</div></div>';
+}
+
+// ---------- โครงสร้างคะแนน (ตั้งเอง) ----------
+function openGradeStructEditor(){
+  var assignId=curGradeAssignId();
+  if(!assignId){toast('เลือกกลุ่มเรียนก่อน','err');return;}
+  var rows=GR.structs.length?GR.structs:[{name:'เก็บคะแนนระหว่างภาค',max_score:60,grade_type:'homework'},{name:'สอบกลางภาค',max_score:20,grade_type:'midterm'},{name:'สอบปลายภาค',max_score:20,grade_type:'final'}];
+  document.getElementById('gsRows').innerHTML='';
+  rows.forEach(function(r){addGSRow(r);});
+  updateGSTotal();
+  showModal('modalGradeStruct');
+}
+function addGSRow(r){
+  r=r||{name:'',max_score:'',grade_type:'homework'};
+  var div=document.createElement('div');div.className='flex gap8 mb8 gsRow';
+  div.innerHTML='<input class="form-control" placeholder="ชื่อช่อง" value="'+(r.name||'')+'" data-f="name" style="flex:2;">'+
+    '<input class="form-control" type="number" placeholder="เต็ม" value="'+(r.max_score||'')+'" data-f="max" oninput="updateGSTotal()" style="flex:1;">'+
+    '<select class="form-control" data-f="type" style="flex:1.4;">'+
+      ['homework|เก็บคะแนน','quiz|quiz','midterm|กลางภาค','final|ปลายภาค','other|อื่นๆ'].map(function(o){var p=o.split('|');return '<option value="'+p[0]+'"'+(r.grade_type===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+    '</select>'+
+    '<button class="btn btn-red btn-xs" onclick="this.closest(\'.gsRow\').remove();updateGSTotal();">✕</button>';
+  document.getElementById('gsRows').appendChild(div);
+}
+function updateGSTotal(){
+  var t=0;document.querySelectorAll('#gsRows .gsRow input[data-f="max"]').forEach(function(i){t+=parseFloat(i.value)||0;});
+  document.getElementById('gsTotal').textContent=t;
+}
+async function saveGradeStruct(){
+  var assignId=curGradeAssignId();
+  var rows=[];document.querySelectorAll('#gsRows .gsRow').forEach(function(r,i){
+    var name=r.querySelector('[data-f="name"]').value.trim(),max=parseFloat(r.querySelector('[data-f="max"]').value)||0,type=r.querySelector('[data-f="type"]').value;
+    if(name&&max>0)rows.push({assignment_id:parseInt(assignId),subject_id:gradeAssignSubject(assignId),name:name,max_score:max,grade_type:type,order_no:i+1});
+  });
+  if(!rows.length){toast('เพิ่มช่องคะแนนอย่างน้อย 1 ช่อง','err');return;}
+  try{
+    // ลบของเดิมแล้วใส่ใหม่
+    await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await api('/rest/v1/grade_structures',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rows)});
+    toast('✅ บันทึกโครงสร้างคะแนนแล้ว');closeModal('modalGradeStruct');loadGradeStructure();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+function gradeAssignSubject(assignId){var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0];return a?a.subject_id:null;}
+
+// ---------- Export Excel ----------
+function exportGradesExcel(){
+  if(!GR.structs.length||!GR.stus.length){toast('ยังไม่มีข้อมูลคะแนน','err');return;}
+  var a=G.myAssigns.filter(function(x){return x.id==curGradeAssignId();})[0]||{};
+  var sc=a.subjects?a.subjects.subject_code+' '+a.subjects.subject_name:'';
+  var maxTotal=GR.structs.reduce(function(x,s){return x+parseFloat(s.max_score||0);},0);
+  var rows=document.querySelectorAll('#grContent tbody tr');
+  var head=['เลขที่','ชื่อ-นามสกุล'].concat(GR.structs.map(function(s){return s.name+'('+s.max_score+')';})).concat(['รวม('+maxTotal+')','เกรด']);
+  var data=[['ปพ.5 '+sc+' · '+(a.classrooms?a.classrooms.room_name:'')],['ครูผู้สอน: '+G.user.fullname],[],head];
+  rows.forEach(function(tr){
+    var c=tr.children,line=[c[0].textContent,c[1].textContent];
+    tr.querySelectorAll('input').forEach(function(i){line.push(i.value||'0');});
+    line.push(tr.querySelector('.grTotal').textContent);line.push(tr.querySelector('.grGrade').textContent);
+    data.push(line);
+  });
+  downloadCSV(data,'papo5_'+(a.subjects?a.subjects.subject_code:'grade')+'_'+today()+'.csv');
+}
+function downloadCSV(rows,filename){
+  var csv=rows.map(function(r){return r.map(function(c){c=(c==null?'':''+c);return '"'+c.replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+  toast('✅ ดาวน์โหลด Excel แล้ว');
 }
 
 // ===== TIMETABLE =====
@@ -1599,6 +2015,493 @@ async function loadTimetable(){
     html+='</tbody></table></div>';
     document.getElementById('ttContent').innerHTML=html;
   }catch(e){document.getElementById('ttContent').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+
+// ================================================================
+// ===== TEACHING MODULE (ระบบจัดการการสอน) =====
+// ================================================================
+var TSUB={subjects:[],groups:[]};   // subject search cache
+var ENR={assignId:null,classroomId:null,students:[],enrolled:{}};
+var TTSLOT={day:null,period:null,ttId:null};
+
+// ข้อความ error ที่เป็นมิตร — ตรวจจับกรณีตารางยังไม่ถูกสร้าง (ยังไม่รัน teaching_module.sql)
+function teachErrHTML(e){
+  var m=(e&&e.message)||'';
+  if(m.indexOf('Could not find the table')>=0||m.indexOf('schema cache')>=0||m.indexOf('PGRST205')>=0)
+    return '<div class="loading" style="color:#e65100;">⚠️ ยังไม่ได้ติดตั้งโมดูลการสอน<br><small>กรุณารันไฟล์ <b>teaching_module.sql</b> ใน Supabase SQL Editor ก่อนใช้งาน</small></div>';
+  return '<div class="loading" style="color:var(--red);">'+m+'</div>';
+}
+
+// สีประจำวิชา (hash subject_id -> สี)
+function subjColor(id){
+  var pal=['#e3f2fd|#0d47a1','#e8f5e9|#1b5e20','#fce4ec|#880e4f','#fff8e1|#e65100','#e0f2f1|#004d40','#f3e5f5|#4a148c','#fff3e0|#bf360c'];
+  return pal[(id||0)%pal.length].split('|');
+}
+
+// โหลดกลุ่มเรียนของครู (teaching_assignments) — ใช้ร่วมหลายหน้า
+async function loadMyAssigns(force){
+  if(G.myAssigns.length&&!force)return G.myAssigns;
+  var d=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&select=id,subject_id,classroom_id,group_no,semester,year,attendance_mode,subjects(subject_code,subject_name),classrooms(room_name)&order=subject_id,group_no');
+  G.myAssigns=d||[];
+  return G.myAssigns;
+}
+
+// ---------- หน้าเลือก/ค้นหารายวิชา ----------
+async function initTeachSubjects(){
+  // เติม dropdown กลุ่มสาระจากข้อมูลจริง
+  try{
+    var subs=await api('/rest/v1/subjects?select=subject_group');
+    var set={};(subs||[]).forEach(function(s){if(s.subject_group)set[s.subject_group]=1;});
+    var opts='<option value="">ทุกกลุ่มสาระ</option>'+Object.keys(set).map(function(g){return '<option>'+g+'</option>';}).join('');
+    document.getElementById('tsGroup1').innerHTML=opts;
+  }catch(e){}
+}
+
+async function searchTeachSubjects(mode){
+  var el=document.getElementById('tsResult');
+  el.innerHTML='<div class="loading">กำลังค้นหา...</div>';
+  var q='/rest/v1/subjects?select=id,subject_code,subject_name,subject_group,level,credits&order=subject_code';
+  if(mode==='code'){var v=document.getElementById('tsCode').value.trim();if(v)q+='&subject_code=ilike.*'+encodeURIComponent(v)+'*';}
+  else if(mode==='name'){var v=document.getElementById('tsName').value.trim();if(v)q+='&subject_name=ilike.*'+encodeURIComponent(v)+'*';}
+  else if(mode==='level'){var lv=document.getElementById('tsLevel').value,gr=document.getElementById('tsGroup1').value;if(lv)q+='&level=eq.'+encodeURIComponent(lv);if(gr)q+='&subject_group=eq.'+encodeURIComponent(gr);}
+  try{
+    var subs=await api(q);
+    TSUB.subjects=subs||[];
+    renderTeachSubjectsResult(subs||[]);
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+
+function renderTeachSubjectsResult(subs){
+  var el=document.getElementById('tsResult');
+  if(!subs.length){el.innerHTML='<div class="loading">ไม่พบรายวิชา · ลองกด "เพิ่มรายวิชาใหม่ในระบบ"</div>';return;}
+  var html='<div class="tbl-wrap"><table><thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>กลุ่มสาระ</th><th>ระดับชั้น</th><th>หน่วยกิต</th><th></th></tr></thead><tbody>';
+  subs.forEach(function(s){
+    html+='<tr><td class="bold" style="color:var(--blue);">'+s.subject_code+'</td><td>'+s.subject_name+'</td><td class="text-sm">'+(s.subject_group||'-')+'</td><td class="text-sm">'+(s.level||'-')+'</td><td style="text-align:center;">'+(s.credits||'-')+'</td>'+
+      '<td><button class="btn btn-green btn-xs" onclick="openAddGroup('+s.id+',\''+s.subject_code.replace(/'/g,"")+'\',\''+s.subject_name.replace(/'/g,"")+'\')">➕ เพิ่มกลุ่มสอน</button></td></tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+async function openAddGroup(subjId,code,name){
+  document.getElementById('agSubjInfo').textContent='📘 '+code+' '+name;
+  document.getElementById('agSubjInfo').dataset.subjid=subjId;
+  // โหลดห้องเรียน
+  try{
+    var rooms=await api('/rest/v1/classrooms?select=id,room_name,level,room_number&order=level,room_number');
+    document.getElementById('agRoom').innerHTML=(rooms||[]).map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
+  }catch(e){}
+  showModal('modalAddGroup');
+}
+
+async function saveAddGroup(){
+  var subjId=parseInt(document.getElementById('agSubjInfo').dataset.subjid);
+  var rec={subject_id:subjId,classroom_id:parseInt(document.getElementById('agRoom').value),teacher_id:G.user.id,
+    group_no:parseInt(document.getElementById('agGroup').value)||1,semester:parseInt(document.getElementById('agSem').value)||1,
+    year:parseInt(document.getElementById('agYear').value)||2569,attendance_mode:document.getElementById('agMode').value};
+  try{
+    await api('/rest/v1/teaching_assignments',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rec)});
+    toast('✅ เพิ่มกลุ่มเรียนแล้ว');closeModal('modalAddGroup');
+    await loadMyAssigns(true);openPage('pgManageSubjects');
+  }catch(e){toast(e.message.indexOf('duplicate')>=0?'❌ มีกลุ่มนี้อยู่แล้ว':'❌ '+e.message,'err');}
+}
+
+function openAddSubjectMaster(){showModal('modalAddSubj');}
+async function saveAddSubject(){
+  var rec={subject_code:document.getElementById('asCode').value.trim(),subject_name:document.getElementById('asName').value.trim(),
+    subject_group:document.getElementById('asGroup').value.trim(),level:document.getElementById('asLevel').value,credits:parseFloat(document.getElementById('asCredit').value)||1};
+  if(!rec.subject_code||!rec.subject_name){toast('กรอกรหัสและชื่อวิชา','err');return;}
+  try{
+    await api('/rest/v1/subjects',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rec)});
+    toast('✅ เพิ่มรายวิชาแล้ว');closeModal('modalAddSubj');searchTeachSubjects('all');
+  }catch(e){toast(e.message.indexOf('duplicate')>=0?'❌ รหัสวิชาซ้ำ':'❌ '+e.message,'err');}
+}
+
+// ---------- หน้าจัดการรายวิชาที่สอน ----------
+async function loadManageSubjects(){
+  var el=document.getElementById('msContent');
+  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    var assigns=await loadMyAssigns(true);
+    if(!assigns.length){el.innerHTML='<div class="loading">ยังไม่มีรายวิชาที่สอน<br><button class="btn btn-green btn-sm mt12" onclick="openPage(\'pgTeachSubjects\')">➕ เพิ่มรายวิชาที่สอน</button></div>';return;}
+    // นับนักเรียนแต่ละกลุ่ม
+    var aids=assigns.map(function(a){return a.id;}).join(',');
+    var enr=await api('/rest/v1/enrollments?assignment_id=in.('+aids+')&status=eq.active&select=assignment_id');
+    var cnt={};(enr||[]).forEach(function(e){cnt[e.assignment_id]=(cnt[e.assignment_id]||0)+1;});
+    var html='<div class="tbl-wrap"><table><thead><tr><th>ที่</th><th>รหัสวิชา</th><th>รายวิชา</th><th>กลุ่ม</th><th>ห้อง</th><th>นักเรียน</th><th>จัดการนักเรียน</th><th>ครูร่วม</th><th>เช็คชื่อ</th><th>ลบ</th></tr></thead><tbody>';
+    assigns.forEach(function(a,i){
+      var sc=a.subjects?a.subjects.subject_code:'-',sn=a.subjects?a.subjects.subject_name:'-',rn=a.classrooms?a.classrooms.room_name:'-';
+      html+='<tr><td>'+(i+1)+'</td><td class="bold" style="color:var(--blue);">'+sc+'</td><td>'+sn+'</td><td style="text-align:center;">'+a.group_no+'</td><td>'+rn+'</td>'+
+        '<td style="text-align:center;font-weight:700;">'+(cnt[a.id]||0)+' คน</td>'+
+        '<td><button class="btn btn-green btn-xs" onclick="openEnroll('+a.id+','+a.classroom_id+')">👥 เพิ่ม/แก้</button></td>'+
+        '<td><button class="btn btn-outline btn-xs" onclick="openInvite('+a.id+')">🤝 เชิญครู</button></td>'+
+        '<td><button class="btn btn-outline btn-xs" onclick="goToSubjectAtt('+a.id+')">📚 เช็คชื่อ</button></td>'+
+        '<td><button class="btn btn-red btn-xs" onclick="deleteGroup('+a.id+')">🗑️</button></td></tr>';
+    });
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=teachErrHTML(e);}
+}
+
+async function openEnroll(assignId,classroomId){
+  ENR={assignId:assignId,classroomId:classroomId,students:[],enrolled:{}};
+  document.getElementById('enrInfo').textContent='เลือกนักเรียนเข้ากลุ่มเรียนนี้';
+  document.getElementById('enrList').innerHTML='<div class="loading">กำลังโหลด...</div>';
+  document.getElementById('enrQ').value='';
+  showModal('modalEnroll');
+  try{
+    var stus=await api('/rest/v1/students?classroom_id=eq.'+classroomId+'&status=eq.active&select=id,student_code,fullname,order_no&order=order_no');
+    var enr=await api('/rest/v1/enrollments?assignment_id=eq.'+assignId+'&select=student_id,status');
+    ENR.students=stus||[];
+    (enr||[]).forEach(function(e){if(e.status==='active')ENR.enrolled[e.student_id]=1;});
+    renderEnrollList();
+  }catch(e){document.getElementById('enrList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+
+function renderEnrollList(){
+  var el=document.getElementById('enrList');
+  if(!ENR.students.length){el.innerHTML='<div class="loading">ไม่มีนักเรียนในห้องนี้</div>';return;}
+  el.innerHTML=ENR.students.map(function(s){
+    var ck=ENR.enrolled[s.id]?'checked':'';
+    return '<label class="flex gap8" style="padding:7px 8px;border-bottom:1px solid var(--bg);cursor:pointer;" data-name="'+s.fullname.toLowerCase()+'">'+
+      '<input type="checkbox" '+ck+' onchange="ENR.enrolled['+s.id+']=this.checked?1:0" style="width:18px;height:18px;">'+
+      '<span style="font-size:13px;">'+s.order_no+'. '+s.fullname+'</span></label>';
+  }).join('');
+}
+function filterEnrollList(){
+  var q=document.getElementById('enrQ').value.toLowerCase();
+  document.querySelectorAll('#enrList label').forEach(function(l){l.style.display=l.dataset.name.indexOf(q)>=0?'':'none';});
+}
+function toggleAllEnroll(v){ENR.students.forEach(function(s){ENR.enrolled[s.id]=v?1:0;});renderEnrollList();}
+
+async function saveEnroll(){
+  var add=[],del=[];
+  ENR.students.forEach(function(s){
+    if(ENR.enrolled[s.id])add.push({assignment_id:ENR.assignId,student_id:s.id,status:'active'});
+    else del.push(s.id);
+  });
+  try{
+    if(add.length)await api('/rest/v1/enrollments?on_conflict=assignment_id,student_id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(add)});
+    if(del.length)await api('/rest/v1/enrollments?assignment_id=eq.'+ENR.assignId+'&student_id=in.('+del.join(',')+')',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    toast('✅ บันทึกรายชื่อแล้ว ('+add.length+' คน)');closeModal('modalEnroll');loadManageSubjects();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
+async function openInvite(assignId){
+  document.getElementById('invInfo').textContent='เลือกครูที่จะร่วมสอนกลุ่มนี้';
+  document.getElementById('invTeacher').dataset.assign=assignId;
+  showModal('modalInvite');
+  try{
+    var ts=await api('/rest/v1/teachers?select=id,fullname&order=fullname');
+    document.getElementById('invTeacher').innerHTML=(ts||[]).filter(function(t){return t.id!==G.user.id;}).map(function(t){return '<option value="'+t.id+'">'+t.fullname+'</option>';}).join('');
+    var cur=await api('/rest/v1/assignment_teachers?assignment_id=eq.'+assignId+'&select=teacher_id,teachers(fullname)');
+    document.getElementById('invCurrent').innerHTML=(cur&&cur.length)?'ครูร่วมปัจจุบัน: '+cur.map(function(c){return (c.teachers&&c.teachers.fullname)||'';}).join(', '):'ยังไม่มีครูร่วม';
+  }catch(e){}
+}
+async function saveInvite(){
+  var assignId=parseInt(document.getElementById('invTeacher').dataset.assign),tid=parseInt(document.getElementById('invTeacher').value);
+  if(!tid){toast('เลือกครู','err');return;}
+  try{
+    await api('/rest/v1/assignment_teachers',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({assignment_id:assignId,teacher_id:tid,role:'co',invite_status:'accepted'})});
+    toast('✅ เชิญครูร่วมแล้ว');closeModal('modalInvite');
+  }catch(e){toast(e.message.indexOf('duplicate')>=0?'❌ เชิญครูคนนี้แล้ว':'❌ '+e.message,'err');}
+}
+
+async function deleteGroup(assignId){
+  if(!confirm('ลบกลุ่มเรียนนี้? (นักเรียนที่ลงทะเบียนจะถูกลบด้วย)'))return;
+  try{
+    await api('/rest/v1/teaching_assignments?id=eq.'+assignId,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    toast('✅ ลบกลุ่มเรียนแล้ว');await loadMyAssigns(true);loadManageSubjects();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ---------- ตารางสอนแก้ไขได้ ----------
+var TT_DAYS=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'],TT_PERIODS=[1,2,3,4,5,6,7];
+async function loadTeachTimetable(){
+  var el=document.getElementById('ttEditContent');
+  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    await loadMyAssigns(true);
+    var tt=await api('/rest/v1/timetable?teacher_id=eq.'+G.user.id+'&select=id,day_of_week,period,subject_id,assignment_id,subjects(subject_code),classrooms(room_name)&order=day_of_week,period');
+    var ttMap={};(tt||[]).forEach(function(t){ttMap[t.day_of_week+'_'+t.period]=t;});
+    var html='<div style="overflow-x:auto;"><table><thead><tr><th>วัน/คาบ</th>'+TT_PERIODS.map(function(p){return '<th>คาบ '+p+'</th>';}).join('')+'</tr></thead><tbody>';
+    TT_DAYS.forEach(function(day){
+      html+='<tr><td style="font-weight:700;background:var(--bluel);">'+day+'</td>'+TT_PERIODS.map(function(p){
+        var t=ttMap[day+'_'+p];
+        if(!t)return '<td style="text-align:center;cursor:pointer;color:var(--text3);" onclick="openTTSlot(\''+day+'\','+p+',null)">+</td>';
+        var c=subjColor(t.subject_id);
+        return '<td style="cursor:pointer;background:'+c[0]+';border-radius:6px;" onclick="goToSubjectAtt('+t.assignment_id+','+p+')" ondblclick="event.stopPropagation();openTTSlot(\''+day+'\','+p+','+t.id+')">'+
+          '<div style="font-weight:700;color:'+c[1]+';font-size:12px;">'+((t.subjects&&t.subjects.subject_code)||'-')+'</div>'+
+          '<div style="font-size:11px;color:'+c[1]+';">'+((t.classrooms&&t.classrooms.room_name)||'-')+'</div>'+
+          '<div style="font-size:10px;color:'+c[1]+';opacity:.7;">📚เช็คชื่อ · ดับเบิลคลิกแก้</div></td>';
+      }).join('');
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=teachErrHTML(e);}
+}
+
+function openTTSlot(day,period,ttId){
+  TTSLOT={day:day,period:period,ttId:ttId};
+  document.getElementById('ttSlotInfo').textContent='📅 '+day+' คาบ '+period;
+  var opts=G.myAssigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' · '+rn+' (กลุ่ม '+a.group_no+')</option>';}).join('');
+  document.getElementById('ttSlotAssign').innerHTML=opts||'<option value="">— ยังไม่มีกลุ่มเรียน เพิ่มที่หน้ารายวิชาที่สอน —</option>';
+  document.getElementById('ttSlotDel').style.display=ttId?'inline-flex':'none';
+  showModal('modalTTSlot');
+}
+
+async function saveTTSlot(){
+  var assignId=parseInt(document.getElementById('ttSlotAssign').value);
+  if(!assignId){toast('เลือกกลุ่มเรียน','err');return;}
+  var a=G.myAssigns.filter(function(x){return x.id===assignId;})[0];
+  if(!a){toast('ไม่พบกลุ่มเรียน','err');return;}
+  var rec={teacher_id:G.user.id,assignment_id:assignId,subject_id:a.subject_id,classroom_id:a.classroom_id,
+    day_of_week:TTSLOT.day,period:TTSLOT.period,semester:a.semester||1,year:a.year||2569};
+  try{
+    if(TTSLOT.ttId)await api('/rest/v1/timetable?id=eq.'+TTSLOT.ttId,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rec)});
+    else await api('/rest/v1/timetable',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rec)});
+    toast('✅ บันทึกคาบสอนแล้ว');closeModal('modalTTSlot');loadTeachTimetable();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+async function deleteTTSlot(){
+  if(!TTSLOT.ttId)return;
+  try{await api('/rest/v1/timetable?id=eq.'+TTSLOT.ttId,{method:'DELETE',headers:{'Prefer':'return=minimal'}});toast('✅ ลบคาบแล้ว');closeModal('modalTTSlot');loadTeachTimetable();}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ไปหน้าเช็คชื่อรายวิชาของกลุ่มที่เลือก
+async function goToSubjectAtt(assignId,period){
+  openPage('pgSubjectAtt');
+  await loadSubjectsForAtt();
+  var sel=document.getElementById('saAssign');
+  if(sel){sel.value=assignId;if(period&&document.getElementById('saPeriod'))document.getElementById('saPeriod').value=period;loadSubjectStudents();}
+}
+
+// ================================================================
+// ===== รายงานเวลาเรียน (รายวิชา + รายห้อง) =====
+// ================================================================
+var TH_MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var TH_DOW=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function thaiDateShort(ds){var d=new Date(ds+'T00:00:00');return d.getDate()+' '+TH_MONTHS[d.getMonth()]+(d.getFullYear()+543);}
+function thaiDOW(ds){var d=new Date(ds+'T00:00:00');return TH_DOW[d.getDay()];}
+
+// สัญลักษณ์สถานะในตารางรายงาน
+function attSym(status){
+  var m={present:['/','#2e7d32'],late:['(ส)','#e65100'],leave:['(ล)','#00695c'],absent:['(ข)','#c62828'],gone_home:['(กลับ)','#00695c'],special_leave:['(พ)','#6a1b9a']};
+  var x=m[status]||['-','#bbb'];
+  return '<span style="color:'+x[1]+';font-weight:700;">'+x[0]+'</span>';
+}
+
+// เปิดหน้าต่างพิมพ์ (ภาษาไทยคมชัด ใช้ฟอนต์จริง)
+function printReportHTML(title,bodyHTML){
+  var w=window.open('','_blank');
+  if(!w){toast('เปิดหน้าต่างพิมพ์ไม่ได้ (popup ถูกบล็อก)','err');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+title+'</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">'+
+    '<style>body{font-family:Sarabun,sans-serif;padding:14px;color:#222;}table{border-collapse:collapse;width:100%;}'+
+    'th,td{border:1px solid #888;padding:3px 5px;font-size:11.5px;text-align:center;}th{background:#1565c0;color:#fff;}'+
+    'td.l,th.l{text-align:left;}h2{font-size:17px;text-align:center;margin:2px 0;}.sub{font-size:13px;text-align:center;margin:2px 0;}'+
+    '@page{size:landscape;}</style></head><body>'+bodyHTML+
+    '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
+  w.document.close();
+}
+
+// ---------- รายงานเวลาเรียนรายวิชา ----------
+var SAR={tab:'detail',assignId:null,sessions:[],students:[],att:{},meta:{}};
+
+async function initSubjAttReport(){
+  try{
+    var assigns=await loadMyAssigns();
+    document.getElementById('sarAssign').innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+  }catch(e){}
+}
+function setSarTab(t){
+  SAR.tab=t;
+  document.getElementById('sarTabD').style.background=t==='detail'?'var(--blue)':'#fff';
+  document.getElementById('sarTabD').style.color=t==='detail'?'#fff':'var(--blue)';
+  document.getElementById('sarTabS').style.background=t==='summary'?'var(--blue)':'#fff';
+  document.getElementById('sarTabS').style.color=t==='summary'?'#fff':'var(--blue)';
+  document.getElementById('sarColWrap').style.display=t==='detail'?'flex':'none';
+  renderSubjAttReport();
+}
+async function loadSubjAttReport(){
+  var assignId=document.getElementById('sarAssign').value;
+  SAR.assignId=assignId;
+  if(!assignId){document.getElementById('sarContent').innerHTML='<div class="loading">เลือกกลุ่มเรียนก่อนครับ</div>';return;}
+  document.getElementById('sarContent').innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    SAR.meta=G.myAssigns.filter(function(a){return a.id==assignId;})[0]||{};
+    SAR.students=await loadEnrolledStudents(assignId);
+    var rows=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&select=student_id,att_date,period,status&order=att_date,period');
+    var sess={};SAR.att={};
+    (rows||[]).forEach(function(r){
+      var key=r.att_date+'#'+(r.period||1);sess[key]=1;
+      SAR.att[r.student_id+'_'+key]=r.status;
+    });
+    SAR.sessions=Object.keys(sess).sort();
+    renderSubjAttReport();
+  }catch(e){document.getElementById('sarContent').innerHTML=teachErrHTML(e);}
+}
+function sarHeaderHTML(){
+  var m=SAR.meta;var sc=m.subjects?m.subjects.subject_code:'-',sn=m.subjects?m.subjects.subject_name:'-',rn=m.classrooms?m.classrooms.room_name:'-';
+  return '<div style="text-align:center;margin-bottom:10px;">'+
+    '<div style="font-weight:800;color:var(--blue);font-size:15px;">รายงานการเช็คเวลาเรียน ชั้น '+rn+' จำนวน '+SAR.students.length+' คน ภาคเรียนที่ '+(m.semester||1)+' ปีการศึกษา '+(m.year||2569)+'</div>'+
+    '<div style="font-size:13px;">รายวิชา '+sn+' รหัสวิชา '+sc+'</div>'+
+    '<div style="font-size:12px;color:var(--text2);">ครูประจำวิชา '+(G.user?G.user.fullname:'')+'</div></div>';
+}
+function renderSubjAttReport(){
+  if(!SAR.assignId){return;}
+  var el=document.getElementById('sarContent');
+  if(!SAR.students.length){el.innerHTML=sarHeaderHTML()+'<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน</div>';return;}
+  if(!SAR.sessions.length){el.innerHTML=sarHeaderHTML()+'<div class="loading">ยังไม่มีข้อมูลการเช็คชื่อรายวิชานี้</div>';return;}
+  el.innerHTML=sarHeaderHTML()+(SAR.tab==='detail'?buildSarDetail():buildSarSummary());
+}
+function buildSarDetail(){
+  var maxCol=parseInt(document.getElementById('sarMaxCol').value)||15;
+  var sessions=SAR.sessions.slice(0,maxCol);
+  var more=SAR.sessions.length-sessions.length;
+  var h='<table><thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th>'+
+    sessions.map(function(k,i){var p=k.split('#');return '<th><button class="btn btn-xs btn-red" style="height:18px;padding:0 5px;font-size:10px;margin-bottom:2px;" onclick="deleteSession(\''+p[0]+'\','+p[1]+')">✕</button><br>'+thaiDateShort(p[0])+'<br>คาบ'+p[1]+'<br>('+(i+1)+')</th>';}).join('')+'</tr></thead><tbody>';
+  SAR.students.forEach(function(s,i){
+    h+='<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'')+'</td><td class="l">'+s.fullname+'</td>'+
+      sessions.map(function(k){return '<td>'+attSym(SAR.att[s.id+'_'+k])+'</td>';}).join('')+'</tr>';
+  });
+  // footer
+  var fAtt='<tr style="background:var(--bluel);font-weight:700;"><td colspan="3" class="l">จำนวนนักเรียนที่เข้าเรียน</td>';
+  var fPct='<tr style="background:var(--bluel);font-weight:700;"><td colspan="3" class="l">คิดเป็นเปอร์เซ็นต์การเข้าเรียน</td>';
+  sessions.forEach(function(k){
+    var att=0;SAR.students.forEach(function(s){var st=SAR.att[s.id+'_'+k];if(st==='present'||st==='late')att++;});
+    var pct=SAR.students.length?((att/SAR.students.length)*100).toFixed(1):'0.0';
+    fAtt+='<td>'+att+'</td>';fPct+='<td>'+pct+'</td>';
+  });
+  fAtt+='</tr>';fPct+='</tr>';
+  h+='</tbody><tfoot>'+fAtt+fPct+'</tfoot></table>';
+  h+='<div style="font-size:11px;color:var(--text3);margin-top:6px;">สัญลักษณ์: / = มาเรียน · (ส) = มาสาย · (ล) = ลา · (ข) = ขาด · - = ยังไม่เช็ค'+(more>0?(' · (ซ่อน '+more+' คาบ — เพิ่มจำนวนคอลัมน์เพื่อดูเพิ่ม)'):'')+'</div>';
+  return h;
+}
+function buildSarSummary(){
+  var total=SAR.sessions.length;
+  var h='<table><thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ครั้งเรียน</th><th>มา</th><th>มา%</th><th>สาย</th><th>สาย%</th><th>ลา</th><th>ลา%</th><th>ขาด</th><th>ขาด%</th><th>เข้าเรียน%</th></tr></thead><tbody>';
+  var pc=function(n){return total?((n/total)*100).toFixed(2):'0.00';};
+  SAR.students.forEach(function(s,i){
+    var c={present:0,late:0,leave:0,absent:0};
+    SAR.sessions.forEach(function(k){var st=SAR.att[s.id+'_'+k];if(c[st]!==undefined)c[st]++;});
+    var attended=c.present+c.late;var apct=total?((attended/total)*100):0;
+    h+='<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'')+'</td><td class="l">'+s.fullname+'</td>'+
+      '<td>'+total+'</td>'+
+      '<td style="color:#2e7d32;">'+c.present+'</td><td>'+pc(c.present)+'</td>'+
+      '<td style="color:#e65100;">'+c.late+'</td><td>'+pc(c.late)+'</td>'+
+      '<td style="color:#00695c;">'+c.leave+'</td><td>'+pc(c.leave)+'</td>'+
+      '<td style="color:#c62828;">'+c.absent+'</td><td>'+pc(c.absent)+'</td>'+
+      '<td style="font-weight:800;color:'+(apct>=80?'#2e7d32':'#c62828')+';">'+apct.toFixed(2)+'</td></tr>';
+  });
+  h+='</tbody></table><div style="font-size:11px;color:var(--text3);margin-top:6px;">เข้าเรียน% = (มา + สาย) / ครั้งเรียนทั้งหมด</div>';
+  return h;
+}
+async function deleteSession(date,period){
+  if(!confirm('ลบการเช็คชื่อของ '+thaiDateShort(date)+' คาบ '+period+' ทั้งหมด?'))return;
+  try{
+    await api('/rest/v1/subject_attendance?assignment_id=eq.'+SAR.assignId+'&att_date=eq.'+date+'&period=eq.'+period,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    toast('✅ ลบแล้ว');loadSubjAttReport();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+function printSubjAttReport(){
+  if(!SAR.assignId||!SAR.sessions.length){toast('ยังไม่มีข้อมูล','err');return;}
+  var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+(SAR.tab==='detail'?buildSarDetail():buildSarSummary());
+  printReportHTML('รายงานเวลาเรียนรายวิชา',body);
+}
+function excelSubjAttReport(){
+  if(!SAR.assignId||!SAR.sessions.length){toast('ยังไม่มีข้อมูล','err');return;}
+  var m=SAR.meta;var sc=m.subjects?m.subjects.subject_code+' '+m.subjects.subject_name:'';var rn=m.classrooms?m.classrooms.room_name:'';
+  var data=[['รายงานเวลาเรียน '+sc+' ชั้น '+rn],['ครูผู้สอน: '+(G.user?G.user.fullname:'')],[]];
+  if(SAR.tab==='detail'){
+    var head=['ที่','รหัส','ชื่อ-สกุล'].concat(SAR.sessions.map(function(k,i){var p=k.split('#');return thaiDateShort(p[0])+' คาบ'+p[1];}));
+    data.push(head);
+    SAR.students.forEach(function(s,i){
+      var sym={present:'มา',late:'สาย',leave:'ลา',absent:'ขาด'};
+      data.push([i+1,s.student_code||'',s.fullname].concat(SAR.sessions.map(function(k){return sym[SAR.att[s.id+'_'+k]]||'-';})));
+    });
+  }else{
+    var total=SAR.sessions.length;
+    data.push(['ที่','รหัส','ชื่อ-สกุล','ครั้งเรียน','มา','สาย','ลา','ขาด','เข้าเรียน%']);
+    SAR.students.forEach(function(s,i){
+      var c={present:0,late:0,leave:0,absent:0};SAR.sessions.forEach(function(k){var st=SAR.att[s.id+'_'+k];if(c[st]!==undefined)c[st]++;});
+      var ap=total?(((c.present+c.late)/total)*100).toFixed(2):'0';
+      data.push([i+1,s.student_code||'',s.fullname,total,c.present,c.late,c.leave,c.absent,ap]);
+    });
+  }
+  downloadCSV(data,'subj_att_'+(m.subjects?m.subjects.subject_code:'report')+'_'+today()+'.csv');
+}
+
+// ---------- รายงานเวลาเรียนรายห้อง ----------
+var RAR={room:null,date:null,roomName:'',cols:[],students:[],att:{},morning:{},evening:{}};
+async function initRoomAttReport(){
+  try{
+    if(!document.getElementById('rarDate').value)document.getElementById('rarDate').value=today();
+    var rooms=await api('/rest/v1/classrooms?select=id,room_name,level,room_number&order=level,room_number');
+    document.getElementById('rarRoom').innerHTML='<option value="">เลือกห้อง...</option>'+(rooms||[]).map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
+  }catch(e){}
+}
+async function loadRoomAttReport(){
+  var room=document.getElementById('rarRoom').value,date=document.getElementById('rarDate').value;
+  if(!room||!date){toast('เลือกห้องและวันที่','err');return;}
+  RAR.room=room;RAR.date=date;
+  RAR.roomName=document.getElementById('rarRoom').options[document.getElementById('rarRoom').selectedIndex].text;
+  document.getElementById('rarContent').innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    var dow=thaiDOW(date);
+    var tt=await api('/rest/v1/timetable?classroom_id=eq.'+room+'&day_of_week=eq.'+encodeURIComponent(dow)+'&select=period,assignment_id,subjects(subject_code)&order=period');
+    RAR.cols=(tt||[]).filter(function(t){return t.period;});
+    RAR.students=await api('/rest/v1/students?classroom_id=eq.'+room+'&status=eq.active&select=id,student_code,fullname,order_no&order=order_no')||[];
+    var ids=RAR.students.map(function(s){return s.id;}).join(',')||'0';
+    RAR.att={};
+    var aids=RAR.cols.map(function(c){return c.assignment_id;}).filter(Boolean);
+    if(aids.length){
+      var sa=await api('/rest/v1/subject_attendance?assignment_id=in.('+aids.join(',')+')&att_date=eq.'+date+'&select=student_id,period,status');
+      (sa||[]).forEach(function(r){RAR.att[r.student_id+'_'+r.period]=r.status;});
+    }
+    RAR.morning={};RAR.evening={};
+    var ma=await api('/rest/v1/morning_attendance?student_id=in.('+ids+')&att_date=eq.'+date+'&select=student_id,status');
+    (ma||[]).forEach(function(r){RAR.morning[r.student_id]=r.status;});
+    var ea=await api('/rest/v1/afternoon_attendance?student_id=in.('+ids+')&att_date=eq.'+date+'&select=student_id,status');
+    (ea||[]).forEach(function(r){RAR.evening[r.student_id]=r.status;});
+    renderRoomAttReport();
+  }catch(e){document.getElementById('rarContent').innerHTML=teachErrHTML(e);}
+}
+function rarHeaderHTML(){
+  return '<div style="text-align:center;margin-bottom:10px;"><div style="font-weight:800;color:var(--blue);font-size:15px;">รายงานการเช็คเวลาเรียน ชั้น '+RAR.roomName+' ประจำวัน'+thaiDOW(RAR.date)+'ที่ '+thaiDateShort(RAR.date)+'</div></div>';
+}
+function buildRarTable(){
+  var h='<table><thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ตอนเข้า</th>'+
+    RAR.cols.map(function(c){return '<th>'+((c.subjects&&c.subjects.subject_code)||'-')+'<br>(คาบ'+c.period+')</th>';}).join('')+'<th>ตอนเย็น</th></tr></thead><tbody>';
+  RAR.students.forEach(function(s,i){
+    h+='<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'')+'</td><td class="l">'+s.fullname+'</td>'+
+      '<td>'+attSym(RAR.morning[s.id])+'</td>'+
+      RAR.cols.map(function(c){return '<td>'+attSym(RAR.att[s.id+'_'+c.period])+'</td>';}).join('')+
+      '<td>'+attSym(RAR.evening[s.id])+'</td></tr>';
+  });
+  h+='</tbody></table><div style="font-size:11px;color:var(--text3);margin-top:6px;">/ = มา · (ส) = สาย · (ล) = ลา · (ข) = ขาด · (กลับ) = กลับบ้าน · (พ) = ลาพิเศษ · - = ยังไม่เช็ค</div>';
+  return h;
+}
+function renderRoomAttReport(){
+  var el=document.getElementById('rarContent');
+  if(!RAR.students.length){el.innerHTML=rarHeaderHTML()+'<div class="loading">ไม่พบนักเรียนในห้องนี้</div>';return;}
+  el.innerHTML=rarHeaderHTML()+(RAR.cols.length?'':'<div style="text-align:center;color:var(--text3);font-size:12px;margin-bottom:6px;">ℹ️ วันนี้ไม่มีคาบเรียนในตารางสอน (แสดงเฉพาะตอนเข้า/ตอนเย็น)</div>')+buildRarTable();
+}
+function printRoomAttReport(){
+  if(!RAR.students.length){toast('ยังไม่มีข้อมูล','err');return;}
+  printReportHTML('รายงานเวลาเรียนรายห้อง','<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+rarHeaderHTML()+buildRarTable());
+}
+function excelRoomAttReport(){
+  if(!RAR.students.length){toast('ยังไม่มีข้อมูล','err');return;}
+  var sym={present:'มา',late:'สาย',leave:'ลา',absent:'ขาด',gone_home:'กลับบ้าน',special_leave:'ลาพิเศษ'};
+  var head=['ที่','รหัส','ชื่อ-สกุล','ตอนเข้า'].concat(RAR.cols.map(function(c){return ((c.subjects&&c.subjects.subject_code)||'')+' คาบ'+c.period;})).concat(['ตอนเย็น']);
+  var data=[['รายงานเวลาเรียน ชั้น '+RAR.roomName+' วันที่ '+thaiDateShort(RAR.date)],[],head];
+  RAR.students.forEach(function(s,i){
+    data.push([i+1,s.student_code||'',s.fullname,sym[RAR.morning[s.id]]||'-'].concat(RAR.cols.map(function(c){return sym[RAR.att[s.id+'_'+c.period]]||'-';})).concat([sym[RAR.evening[s.id]]||'-']));
+  });
+  downloadCSV(data,'room_att_'+RAR.roomName.replace(/[^ก-๙\w]/g,'')+'_'+RAR.date+'.csv');
 }
 
 // ===== ATT REPORT PAGE =====
@@ -1919,6 +2822,7 @@ function openReport(type){
 
 async function generatePDF(){
   closeModal('modalReport');
+  if(G.currentReport==='papo5'){return generatePapo5PDF();}
   toast('กำลังสร้าง PDF...','info');
   var from=document.getElementById('rptFrom').value,to=document.getElementById('rptTo').value;
   var type=G.currentReport;
@@ -2000,6 +2904,66 @@ async function generatePDF(){
     pdf.save('report_'+type+'_'+today()+'.pdf');
     toast('✅ ดาวน์โหลด PDF แล้ว');
   }catch(e){toast('❌ สร้าง PDF ไม่สำเร็จ: '+e.message,'err');console.error(e);}
+}
+
+// ===== รายงาน ปพ.5 (PDF ภาษาไทย ผ่าน html2canvas) =====
+async function generatePapo5PDF(){
+  var assignId=document.getElementById('grAssign')?document.getElementById('grAssign').value:'';
+  if(!assignId){toast('เปิดหน้า "คะแนนรายวิชา" แล้วเลือกกลุ่มเรียนก่อนออก ปพ.5','err');openPage('pgGrades');return;}
+  toast('กำลังสร้าง ปพ.5...','info');
+  try{
+    await loadMyAssigns();
+    var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0]||{};
+    var stus=await loadEnrolledStudents(assignId);
+    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId+'&select=id,name,max_score,order_no&order=order_no');
+    structs=structs||[];
+    if(!structs.length){toast('ยังไม่มีโครงสร้างคะแนน','err');return;}
+    if(!stus.length){toast('กลุ่มนี้ยังไม่มีนักเรียน','err');return;}
+    var ids=stus.map(function(s){return s.id;}).join(',')||'0';
+    var sids=structs.map(function(s){return s.id;}).join(',')||'0';
+    var grades=await api('/rest/v1/grades?structure_id=in.('+sids+')&student_id=in.('+ids+')&select=structure_id,student_id,score');
+    var gmap={};(grades||[]).forEach(function(g){gmap[g.structure_id+'_'+g.student_id]=g.score;});
+    var maxTotal=structs.reduce(function(x,s){return x+parseFloat(s.max_score||0);},0);
+    var sc=a.subjects?a.subjects.subject_code+' '+a.subjects.subject_name:'-',rn=a.classrooms?a.classrooms.room_name:'-';
+
+    var th='<thead><tr style="background:#1565c0;color:#fff;"><th>เลขที่</th><th style="text-align:left;">ชื่อ-นามสกุล</th>'+structs.map(function(s){return '<th>'+s.name+'<br><small>('+s.max_score+')</small></th>';}).join('')+'<th>รวม<br><small>('+maxTotal+')</small></th><th>เกรด</th></tr></thead><tbody>';
+    var dist={};[4,3.5,3,2.5,2,1.5,1,0].forEach(function(g){dist[g]=0;});var sumTotal=0,sumGrade=0;
+    stus.forEach(function(s,i){
+      var total=0;
+      var cells=structs.map(function(st){var v=gmap[st.id+'_'+s.id];v=(v==null)?'':v;total+=parseFloat(v)||0;return '<td style="text-align:center;">'+(v===''?'-':v)+'</td>';}).join('');
+      var g=calcGrade(total,maxTotal);dist[g]++;sumTotal+=total;sumGrade+=g;
+      th+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';"><td style="text-align:center;">'+(s.order_no||(i+1))+'</td><td>'+s.fullname+'</td>'+cells+'<td style="text-align:center;font-weight:700;color:#1565c0;">'+total.toFixed(1)+'</td><td style="text-align:center;font-weight:800;color:'+(g>=1?'#2e7d32':'#c62828')+';">'+g.toFixed(1)+'</td></tr>';
+    });
+    th+='</tbody>';
+    var n=stus.length;
+    var distRow=[4,3.5,3,2.5,2,1.5,1,0].map(function(g){return 'เกรด '+g+' = '+dist[g]+' คน';}).join(' · ');
+    var summary='<div style="margin-top:14px;font-size:12px;"><b>สรุป:</b> นักเรียน '+n+' คน · คะแนนเฉลี่ย '+(sumTotal/n).toFixed(1)+'/'+maxTotal+' · GPA เฉลี่ย <b>'+(sumGrade/n).toFixed(2)+'</b><br><span style="color:#555;">'+distRow+'</span></div>';
+
+    var el=document.createElement('div');
+    el.style.cssText='position:fixed;left:-9999px;top:0;width:1050px;background:#fff;font-family:Sarabun,sans-serif;padding:30px 34px;';
+    el.innerHTML='<div style="text-align:center;margin-bottom:14px;">'+
+      '<div style="font-size:20px;font-weight:800;color:#1565c0;">แบบบันทึกผลการเรียน (ปพ.5)</div>'+
+      '<div style="font-size:14px;font-weight:700;">โรงเรียนนายางกลักพิทยาคม · สพม.ชัยภูมิ</div>'+
+      '<div style="font-size:13px;margin-top:6px;">รายวิชา '+sc+' · ชั้น '+rn+' · ภาคเรียน '+(a.semester||1)+'/'+(a.year||2569)+'</div>'+
+      '<div style="font-size:12px;color:#555;">ครูผู้สอน: '+(G.user?G.user.fullname:'')+'</div>'+
+      '<div style="border-bottom:2px solid #1565c0;margin-top:10px;"></div></div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">'+th+'</table>'+summary+
+      '<div style="margin-top:36px;display:flex;justify-content:space-around;font-size:12px;text-align:center;">'+
+        '<div>ลงชื่อ...........................<br>('+(G.user?G.user.fullname:'')+')<br>ครูผู้สอน</div>'+
+        '<div>ลงชื่อ...........................<br>(...........................)<br>หัวหน้ากลุ่มสาระ</div>'+
+        '<div>ลงชื่อ...........................<br>(...........................)<br>ผู้อำนวยการ</div></div>';
+    el.querySelectorAll('th,td').forEach(function(c){c.style.padding='6px 8px';c.style.border='1px solid #ccc';});
+    document.body.appendChild(el);
+    var canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff'});
+    document.body.removeChild(el);
+    var imgData=canvas.toDataURL('image/jpeg',0.95);
+    var {jsPDF}=window.jspdf;
+    var pdf=new jsPDF('l','mm','a4');var pageW=297,pageH=210;
+    var imgH=(canvas.height/canvas.width)*pageW;var y=0;
+    while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(imgData,'JPEG',0,-(y),pageW,imgH);y+=pageH;}
+    pdf.save('papo5_'+(a.subjects?a.subjects.subject_code:'grade')+'_'+today()+'.pdf');
+    toast('✅ ดาวน์โหลด ปพ.5 แล้ว');
+  }catch(e){toast('❌ สร้าง ปพ.5 ไม่สำเร็จ: '+e.message,'err');console.error(e);}
 }
 
 // ================================================================

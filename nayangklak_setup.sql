@@ -1,0 +1,1117 @@
+-- ================================================================
+-- ระบบดูแลช่วยเหลือนักเรียน โรงเรียนนายางกลักพิทยาคม
+-- สพม.ชัยภูมิ | ภาคเรียนที่ 1/2569
+-- วิธีใช้: Copy ทั้งหมดไปวางใน Supabase > SQL Editor > Run
+-- ================================================================
+
+-- เปิดใช้ extension pgcrypto สำหรับ hash password
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ================================================================
+-- ตารางที่ 1: ครู (teachers)
+-- ================================================================
+DROP TABLE IF EXISTS teachers CASCADE;
+CREATE TABLE teachers (
+  id          SERIAL PRIMARY KEY,
+  username    TEXT UNIQUE NOT NULL,
+  password    TEXT NOT NULL,
+  fullname    TEXT NOT NULL,
+  role        TEXT DEFAULT 'teacher' CHECK (role IN ('admin','teacher')),
+  active      BOOLEAN DEFAULT true,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ตารางที่ 2: ห้องเรียน (classrooms)
+-- ================================================================
+DROP TABLE IF EXISTS classrooms CASCADE;
+CREATE TABLE classrooms (
+  id           SERIAL PRIMARY KEY,
+  room_name    TEXT UNIQUE NOT NULL,  -- เช่น ม.5/1
+  level        INTEGER NOT NULL,      -- 1-6
+  room_number  INTEGER NOT NULL,      -- 1-4
+  year         INTEGER DEFAULT 2569,
+  semester     INTEGER DEFAULT 1
+);
+
+-- ================================================================
+-- ตารางที่ 3: ครูที่ปรึกษา-ห้องเรียน (room_teachers)
+-- ================================================================
+DROP TABLE IF EXISTS room_teachers CASCADE;
+CREATE TABLE room_teachers (
+  id           SERIAL PRIMARY KEY,
+  teacher_id   INTEGER REFERENCES teachers(id),
+  classroom_id INTEGER REFERENCES classrooms(id),
+  is_primary   BOOLEAN DEFAULT true
+);
+
+-- ================================================================
+-- ตารางที่ 4: นักเรียน (students)
+-- ================================================================
+DROP TABLE IF EXISTS students CASCADE;
+CREATE TABLE students (
+  id            SERIAL PRIMARY KEY,
+  student_code  TEXT UNIQUE NOT NULL,  -- เลขประจำตัว
+  fullname      TEXT NOT NULL,
+  classroom_id  INTEGER REFERENCES classrooms(id),
+  order_no      INTEGER,               -- เลขที่ในห้อง
+  gender        TEXT,
+  birthdate     DATE,
+  parent_phone  TEXT,
+  status        TEXT DEFAULT 'active' CHECK (status IN ('active','leave','transfer')),
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ตารางที่ 5: วิชา (subjects)
+-- ================================================================
+DROP TABLE IF EXISTS subjects CASCADE;
+CREATE TABLE subjects (
+  id           SERIAL PRIMARY KEY,
+  subject_code TEXT UNIQUE NOT NULL,
+  subject_name TEXT NOT NULL,
+  subject_group TEXT,
+  level        TEXT,
+  credits      NUMERIC(3,1)
+);
+
+-- ================================================================
+-- ตารางที่ 6: ตารางสอน (timetable)
+-- ================================================================
+DROP TABLE IF EXISTS timetable CASCADE;
+CREATE TABLE timetable (
+  id           SERIAL PRIMARY KEY,
+  teacher_id   INTEGER REFERENCES teachers(id),
+  subject_id   INTEGER REFERENCES subjects(id),
+  classroom_id INTEGER REFERENCES classrooms(id),
+  day_of_week  TEXT CHECK (day_of_week IN ('จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์')),
+  period       INTEGER CHECK (period BETWEEN 1 AND 8),
+  semester     INTEGER DEFAULT 1,
+  year         INTEGER DEFAULT 2569
+);
+
+-- ================================================================
+-- ตารางที่ 7: เช็คชื่อเช้า (morning_attendance)
+-- ================================================================
+DROP TABLE IF EXISTS morning_attendance CASCADE;
+CREATE TABLE morning_attendance (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  att_date     DATE NOT NULL,
+  status       TEXT DEFAULT 'present' CHECK (status IN ('present','late','absent','leave')),
+  remark       TEXT,
+  recorded_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE UNIQUE INDEX ON morning_attendance(student_id, att_date);
+
+-- ================================================================
+-- ตารางที่ 8: เช็คชื่อตอนเย็น (afternoon_attendance)
+-- ================================================================
+DROP TABLE IF EXISTS afternoon_attendance CASCADE;
+CREATE TABLE afternoon_attendance (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  att_date     DATE NOT NULL,
+  status       TEXT DEFAULT 'present' CHECK (status IN ('present','late','absent','leave')),
+  remark       TEXT,
+  recorded_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE UNIQUE INDEX ON afternoon_attendance(student_id, att_date);
+
+-- ================================================================
+-- ตารางที่ 9: บันทึกความดี (good_deeds)
+-- ================================================================
+DROP TABLE IF EXISTS good_deeds CASCADE;
+CREATE TABLE good_deeds (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  deed_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+  category     TEXT,
+  description  TEXT NOT NULL,
+  score        INTEGER DEFAULT 1,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ตารางที่ 10: บันทึกพฤติกรรม (behavior_records)
+-- ================================================================
+DROP TABLE IF EXISTS behavior_records CASCADE;
+CREATE TABLE behavior_records (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  record_date  DATE NOT NULL DEFAULT CURRENT_DATE,
+  category     TEXT,
+  description  TEXT NOT NULL,
+  score        INTEGER DEFAULT -1,
+  action_taken TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ตารางที่ 11: ข้อมูล SDQ
+-- ================================================================
+DROP TABLE IF EXISTS sdq_records CASCADE;
+CREATE TABLE sdq_records (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  record_date  DATE NOT NULL DEFAULT CURRENT_DATE,
+  total_score  INTEGER,
+  emotion_score INTEGER,
+  conduct_score INTEGER,
+  hyperactive_score INTEGER,
+  peer_score   INTEGER,
+  prosocial_score INTEGER,
+  remark       TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- ตารางที่ 12: บันทึกเยี่ยมบ้าน (home_visit)
+-- ================================================================
+DROP TABLE IF EXISTS home_visits CASCADE;
+CREATE TABLE home_visits (
+  id           SERIAL PRIMARY KEY,
+  student_id   INTEGER REFERENCES students(id),
+  teacher_id   INTEGER REFERENCES teachers(id),
+  visit_date   DATE NOT NULL,
+  summary      TEXT,
+  photo_url    TEXT,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ================================================================
+-- INSERT: ห้องเรียนทั้งหมด
+-- ================================================================
+INSERT INTO classrooms (room_name, level, room_number) VALUES
+('ม.1/1',1,1),('ม.1/2',1,2),('ม.1/3',1,3),('ม.1/4',1,4),
+('ม.2/1',2,1),('ม.2/2',2,2),('ม.2/3',2,3),('ม.2/4',2,4),
+('ม.3/1',3,1),('ม.3/2',3,2),('ม.3/3',3,3),('ม.3/4',3,4),
+('ม.4/1',4,1),('ม.4/2',4,2),('ม.4/3',4,3),('ม.4/4',4,4),
+('ม.5/1',5,1),('ม.5/2',5,2),('ม.5/3',5,3),('ม.5/4',5,4),
+('ม.6/1',6,1),('ม.6/2',6,2),('ม.6/3',6,3),('ม.6/4',6,4);
+
+-- ================================================================
+-- INSERT: ครู 46 คน (password เริ่มต้น = 1234)
+-- ================================================================
+INSERT INTO teachers (username, password, fullname, role) VALUES
+('admin',    crypt('admin1234', gen_salt('bf')), 'ผู้ดูแลระบบ', 'admin'),
+('adisak',   crypt('1234', gen_salt('bf')), 'นายอดิศักดิ์ วนาใส', 'teacher'),
+('noppamas', crypt('1234', gen_salt('bf')), 'นางนพมาศ ศรีระทัต', 'teacher'),
+('malinee',  crypt('1234', gen_salt('bf')), 'นางมาลินี อาบสุวรรณ์', 'teacher'),
+('jantiwaporn', crypt('1234', gen_salt('bf')), 'นางสาวจันทิวาพร ภูมิโคกรักษ์', 'teacher'),
+('chayaphat', crypt('1234', gen_salt('bf')), 'นางสาวชญาพัฏฐ์ วรภรไพศาล', 'teacher'),
+('napat',    crypt('1234', gen_salt('bf')), 'นางสาวณภัทร ทานะสุข', 'teacher'),
+('tikamporn', crypt('1234', gen_salt('bf')), 'นางสาวทิฆัมพร บุตรทิพย์', 'teacher'),
+('tananya',  crypt('1234', gen_salt('bf')), 'นางสาวธนัญญา จูหมื่นไวย์', 'teacher'),
+('theerisa', crypt('1234', gen_salt('bf')), 'นางสาวธีริศรา แสงเงิน', 'teacher'),
+('priyakorn', crypt('1234', gen_salt('bf')), 'นางสาวปริยากร ครูทำนา', 'teacher'),
+('phantong', crypt('1234', gen_salt('bf')), 'นางสาวพานทอง มนตรี', 'teacher'),
+('lakkika',  crypt('1234', gen_salt('bf')), 'นางสาวลักขิกา พูที', 'teacher'),
+('wanichaya', crypt('1234', gen_salt('bf')), 'นางสาววนิชยา กลิ่นสุมาลย์', 'teacher'),
+('warangkana', crypt('1234', gen_salt('bf')), 'นางสาววรางคณา จันทร์งาม', 'teacher'),
+('anong',    crypt('1234', gen_salt('bf')), 'นางสาวอนงค์ สิงห์สนั่น', 'teacher'),
+('ananya',   crypt('1234', gen_salt('bf')), 'นางสาวอนัญญา จรรยา', 'teacher'),
+('amonrat',  crypt('1234', gen_salt('bf')), 'นางสาวอมรรัตน์ เทียมจัตุรัส', 'teacher'),
+('ariya',    crypt('1234', gen_salt('bf')), 'นางสาวอาริยา เจียกกระโทก', 'teacher'),
+('uthumporn', crypt('1234', gen_salt('bf')), 'นางสาวอุทุมพร พลธรรม', 'teacher'),
+('sujitra',  crypt('1234', gen_salt('bf')), 'นางสุจิตรา นามพิมล', 'teacher'),
+('amora',    crypt('1234', gen_salt('bf')), 'นางอมรา ศึกขุนทด', 'teacher'),
+('koraphat', crypt('1234', gen_salt('bf')), 'นายกรภัทร์ สิริทรัพย์พัฒนา', 'teacher'),
+('jatuporn', crypt('1234', gen_salt('bf')), 'นายจตุพร บุตรเจริญ', 'teacher'),
+('jaturong', crypt('1234', gen_salt('bf')), 'นายจตุรงค์ ชัยพัฒน์', 'teacher'),
+('jittipong', crypt('1234', gen_salt('bf')), 'นายจิตติพงศ์ เคียงจัตุรัส', 'teacher'),
+('chatchai', crypt('1234', gen_salt('bf')), 'นายชัชชัย มุ่งปั่นกลาง', 'teacher'),
+('disnon',   crypt('1234', gen_salt('bf')), 'นายดิศนนท์ อุเทนสุด', 'teacher'),
+('tanakom',  crypt('1234', gen_salt('bf')), 'นายธนาคม กางทา', 'teacher'),
+('theerapong', crypt('1234', gen_salt('bf')), 'นายธีรพงษ์ พิมเคณา', 'teacher'),
+('bodin',    crypt('1234', gen_salt('bf')), 'นายบดินทร์ พินิจมนตรี', 'teacher'),
+('bunsong',  crypt('1234', gen_salt('bf')), 'นายบุญส่ง ผาสุขมูล', 'teacher'),
+('patiwat',  crypt('1234', gen_salt('bf')), 'นายปฏิวัติ ศรสุรินทร์', 'teacher'),
+('pongsakorn', crypt('1234', gen_salt('bf')), 'นายพงศกร กุลดิษฐ์', 'teacher'),
+('pongtep',  crypt('1234', gen_salt('bf')), 'นายพงษ์เทพ ชาคาร', 'teacher'),
+('palop',    crypt('1234', gen_salt('bf')), 'นายพัลลภ แก้วจัตุรัส', 'teacher'),
+('phubet',   crypt('1234', gen_salt('bf')), 'นายภูเบศ ฝาชัยภูมิ', 'teacher'),
+('wittawat.kh', crypt('1234', gen_salt('bf')), 'นายวิทวัช คำหา', 'teacher'),
+('wittawat.wg', crypt('1234', gen_salt('bf')), 'นายวิทวัช วงค์บุตดี', 'teacher'),
+('songkran', crypt('1234', gen_salt('bf')), 'นายสงกรานต์ อาบสุวรรณ์', 'teacher'),
+('sanchai',  crypt('1234', gen_salt('bf')), 'นายสันต์ชัย มานิมนต์', 'teacher'),
+('satit',    crypt('1234', gen_salt('bf')), 'นายสาธิต สิทธิวงศ์', 'teacher'),
+('surachai', crypt('1234', gen_salt('bf')), 'นายสุรชัย วุฒิมาก', 'teacher'),
+('hannarong', crypt('1234', gen_salt('bf')), 'นายหาญณรงค์ ศรีระทัต', 'teacher'),
+('ittiporn', crypt('1234', gen_salt('bf')), 'นายอิทธิพร เฝ้าทรัพย์', 'teacher'),
+('chalermpol', crypt('1234', gen_salt('bf')), 'นายเฉลิมพล แสงบำรุง', 'teacher'),
+('siriporn', crypt('1234', gen_salt('bf')), 'ว่าที่ร้อยตรีหญิงศิริพร วันทา', 'teacher');
+
+-- ================================================================
+-- INSERT: ครูที่ปรึกษา-ห้อง
+-- ================================================================
+INSERT INTO room_teachers (teacher_id, classroom_id, is_primary)
+SELECT t.id, c.id, true FROM teachers t, classrooms c
+WHERE (t.username='sanchai'    AND c.room_name='ม.1/1')
+OR    (t.username='palop'      AND c.room_name='ม.1/1')
+OR    (t.username='ariya'      AND c.room_name='ม.1/2')
+OR    (t.username='wittawat.wg' AND c.room_name='ม.1/2')
+OR    (t.username='jaturong'   AND c.room_name='ม.1/3')
+OR    (t.username='tanakom'    AND c.room_name='ม.1/4')
+OR    (t.username='warangkana' AND c.room_name='ม.1/4')
+OR    (t.username='priyakorn'  AND c.room_name='ม.2/1')
+OR    (t.username='bodin'      AND c.room_name='ม.2/1')
+OR    (t.username='tikamporn'  AND c.room_name='ม.2/2')
+OR    (t.username='bunsong'    AND c.room_name='ม.2/2')
+OR    (t.username='chalermpol' AND c.room_name='ม.2/3')
+OR    (t.username='pongsakorn' AND c.room_name='ม.2/3')
+OR    (t.username='lakkika'    AND c.room_name='ม.2/4')
+OR    (t.username='pongtep'    AND c.room_name='ม.2/4')
+OR    (t.username='chatchai'   AND c.room_name='ม.3/1')
+OR    (t.username='satit'      AND c.room_name='ม.3/1')
+OR    (t.username='sujitra'    AND c.room_name='ม.3/2')
+OR    (t.username='ittiporn'   AND c.room_name='ม.3/2')
+OR    (t.username='jantiwaporn' AND c.room_name='ม.3/3')
+OR    (t.username='noppamas'   AND c.room_name='ม.3/3')
+OR    (t.username='chayaphat'  AND c.room_name='ม.3/4')
+OR    (t.username='patiwat'    AND c.room_name='ม.3/4')
+OR    (t.username='siriporn'   AND c.room_name='ม.4/1')
+OR    (t.username='koraphat'   AND c.room_name='ม.4/1')
+OR    (t.username='theerapong' AND c.room_name='ม.4/2')
+OR    (t.username='amonrat'    AND c.room_name='ม.4/2')
+OR    (t.username='surachai'   AND c.room_name='ม.4/3')
+OR    (t.username='phubet'     AND c.room_name='ม.4/3')
+OR    (t.username='uthumporn'  AND c.room_name='ม.4/4')
+OR    (t.username='songkran'   AND c.room_name='ม.4/4')
+OR    (t.username='adisak'     AND c.room_name='ม.5/1')
+OR    (t.username='disnon'     AND c.room_name='ม.5/1')
+OR    (t.username='ananya'     AND c.room_name='ม.5/2')
+OR    (t.username='anong'      AND c.room_name='ม.5/3')
+OR    (t.username='theerisa'   AND c.room_name='ม.5/3')
+OR    (t.username='jatuporn'   AND c.room_name='ม.5/4')
+OR    (t.username='tananya'    AND c.room_name='ม.5/4')
+OR    (t.username='malinee'    AND c.room_name='ม.6/1')
+OR    (t.username='jittipong'  AND c.room_name='ม.6/1')
+OR    (t.username='hannarong'  AND c.room_name='ม.6/2')
+OR    (t.username='wanichaya'  AND c.room_name='ม.6/2')
+OR    (t.username='wittawat.kh' AND c.room_name='ม.6/3')
+OR    (t.username='phantong'   AND c.room_name='ม.6/3')
+OR    (t.username='amora'      AND c.room_name='ม.6/4')
+OR    (t.username='napat'      AND c.room_name='ม.6/4');
+
+-- ================================================================
+-- function สำหรับ Login (ใช้ใน application)
+-- ================================================================
+CREATE OR REPLACE FUNCTION login(p_username TEXT, p_password TEXT)
+RETURNS TABLE(id INT, username TEXT, fullname TEXT, role TEXT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT t.id, t.username, t.fullname, t.role
+  FROM teachers t
+  WHERE t.username = p_username
+    AND t.password = crypt(p_password, t.password)
+    AND t.active = true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ================================================================
+-- INSERT: นักเรียน 796 คน (แก้ไขเลขซ้ำแล้ว)
+-- ================================================================
+INSERT INTO students (student_code, fullname, classroom_id, order_no, gender) VALUES
+,  ('07958', 'เด็กชายชยพล โมบขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 1, 'ชาย')
+  ('07959', 'เด็กชายฐิติพงศ์ เหมือดขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 2, 'ชาย')
+  ('07960', 'เด็กชายธนยศ พรมดี', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 3, 'ชาย')
+  ('07961', 'เด็กชายธนวัฒน์ คุ้มสุววรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 4, 'ชาย')
+  ('07962', 'เด็กชายนนท์ฐชา บัวภา', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 5, 'ชาย')
+  ('07963', 'เด็กชายน่านนที จรกรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 6, 'ชาย')
+  ('07964', 'เด็กชายนาวิน สมพงษ์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 7, 'ชาย')
+  ('07965', 'เด็กชายบารมี กล้ารอด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 8, 'ชาย')
+  ('07966', 'เด็กชายพงศกร พืมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 9, 'ชาย')
+  ('07967', 'เด็กชายภานุพงษ์ พงษ์โอสถ', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 10, 'ชาย')
+  ('07968', 'เด็กชายภูมิชัย บุญชำนาญ', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 11, 'ชาย')
+  ('07969', 'เด็กชายสิทธิพล วีระโชติสกุล', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 12, 'ชาย')
+  ('07970', 'เด็กหญิงกชณภา อยู่สูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 13, 'หญิง')
+  ('07971', 'เด็กหญิงกนกพร แนบกระโทก', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 14, 'หญิง')
+  ('07972', 'เด็กหญิงกมลพัชร ปลั่งศรี', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 15, 'หญิง')
+  ('07973', 'เด็กหญิงกรกนก หวังแนบกลาง', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 16, 'หญิง')
+  ('07974', 'เด็กหญิงกัญญาณัฐ หึกขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 17, 'หญิง')
+  ('07975', 'เด็กหญิงกันยาวีร์ กลมค้างพูล', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 18, 'หญิง')
+  ('07976', 'เด็กหญิงกานต์ธิดา ปะมะคัง', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 19, 'หญิง')
+  ('07977', 'เด็กหญิงชาลิสา สุพรม', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 20, 'หญิง')
+  ('07978', 'เด็กหญิงฐานิกา ทามี', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 21, 'หญิง')
+  ('07979', 'เด็กหญิงณัฐชานันท์ วงษ์ตะกูล', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 22, 'หญิง')
+  ('07980', 'เด็กหญิงนิราภรณ์ พรมมา', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 23, 'หญิง')
+  ('07981', 'เด็กหญิงปพิชญา อินทจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 24, 'หญิง')
+  ('07982', 'เด็กหญิงปัญจรัตน์ อุ่นศรี', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 25, 'หญิง')
+  ('07983', 'เด็กหญิงปิยะพร วิชัย', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 26, 'หญิง')
+  ('07984', 'เด็กหญิงฟ้าใส มนต์ทินอาสน์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 27, 'หญิง')
+  ('07985', 'เด็กหญิงภัทรวดี อาบสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 28, 'หญิง')
+  ('07986', 'เด็กหญิงภิชานันต์ วะบังลับ', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 29, 'หญิง')
+  ('07987', 'เด็กหญิงมิถุนา บำรุงนอก', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 30, 'หญิง')
+  ('07988', 'เด็กหญิงรัชนก อินทะกูล', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 31, 'หญิง')
+  ('07989', 'เด็กหญิงวชิราภรณ์ โตนสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 32, 'หญิง')
+  ('07990', 'เด็กหญิงสิราวรรณ บริบูรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 33, 'หญิง')
+  ('07991', 'เด็กหญิงสุนันทา อุ่นสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 34, 'หญิง')
+  ('07992', 'เด็กหญิงสุนิสา บักชัยภูมิ', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 35, 'หญิง')
+  ('07993', 'เด็กหญิงสุภาวดี พาระแพน', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 36, 'หญิง')
+  ('07994', 'เด็กหญิงสุภาวรินทร์ ทับทิมใส', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 37, 'หญิง')
+  ('07995', 'เด็กหญิงสุวารีย์ เจิมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 38, 'หญิง')
+  ('07996', 'เด็กหญิงโสภิดา ชัยราช', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 39, 'หญิง')
+  ('07997', 'เด็กหญิงอัญรินทร์ นารินทร์', (SELECT id FROM classrooms WHERE room_name='ม.1/1'), 40, 'หญิง')
+  ('07998', 'เด็กชายกฤษณภัค พรมคำภา', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 1, 'ชาย')
+  ('07999', 'เด็กชายกิตติศักดิ์ หะขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 2, 'ชาย')
+  ('08000', 'เด็กชายจุลจักร ธรรมมานอก', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 3, 'ชาย')
+  ('08001', 'เด็กชายฉัตรมงคล ตะโส', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 4, 'ชาย')
+  ('08002', 'เด็กชายชนวีร์ สุขดา', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 5, 'ชาย')
+  ('08003', 'เด็กชายชยพล กาชัย', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 6, 'ชาย')
+  ('08004', 'เด็กชายฐิติวัฒน์ พิศนอก', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 7, 'ชาย')
+  ('08005', 'เด็กชายณัฐวุฒิ ปัญญาแจ้ง', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 8, 'ชาย')
+  ('08006', 'เด็กชายณัฐวุฒิ เสียงเลิศ', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 9, 'ชาย')
+  ('08007', 'เด็กชายธนกฤต มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 10, 'ชาย')
+  ('08008', 'เด็กชายธีรศิลป์ เขตนอก', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 11, 'ชาย')
+  ('08009', 'เด็กชายพงษ์พัฒน์ ลีรัตนมงคล', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 12, 'ชาย')
+  ('08010', 'เด็กชายพิชิตชัย อินทะสะ', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 13, 'ชาย')
+  ('08011', 'เด็กชายภคพงศ์ กือสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 14, 'ชาย')
+  ('08012', 'เด็กชายรชต นามปรานิล', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 15, 'ชาย')
+  ('08013', 'เด็กชายรัชชานนท์ ปะการะถัง', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 16, 'ชาย')
+  ('08014', 'เด็กชายวิชิตชัย โสภา', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 17, 'ชาย')
+  ('08015', 'เด็กชายวิษณุ ไพรวัลย์', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 18, 'ชาย')
+  ('08016', 'เด็กชายอดิเทพ สาสุข', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 19, 'ชาย')
+  ('08017', 'เด็กชายอติโรจน์ พูนทาทอง', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 20, 'ชาย')
+  ('08018', 'เด็กชายอิทธิกร ภูมลา', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 21, 'ชาย')
+  ('08019', 'เด็กหญิงกมลวรรณ มารศรี', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 22, 'หญิง')
+  ('08020', 'เด็กหญิงกัลยารัตน์ ไชยเชษฐ์', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 23, 'หญิง')
+  ('08021', 'เด็กหญิงกุลกัลยา เกาะกลาง', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 24, 'หญิง')
+  ('08022', 'เด็กหญิงเกฎฑวดี กาลสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 25, 'หญิง')
+  ('08023', 'เด็กหญิงจุฑามาศ พวงละคอน', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 26, 'หญิง')
+  ('08024', 'เด็กหญิงฉัตรลดา จันทร์บัว', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 27, 'หญิง')
+  ('08025', 'เด็กหญิงชญานิศ ศิลปสม', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 28, 'หญิง')
+  ('08026', 'เด็กหญิงชนัฐกานต์ ชนะผล', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 29, 'หญิง')
+  ('08027', 'เด็กหญิงชัญญานุช ทองสาย', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 30, 'หญิง')
+  ('08028', 'เด็กหญิงญาณิน อินทรศร', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 31, 'หญิง')
+  ('08029', 'เด็กหญิงณัฐริณีย์ วิชัยเเสง', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 32, 'หญิง')
+  ('08030', 'เด็กหญิงณธิดา หน่านโพธิ์ศรี', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 33, 'หญิง')
+  ('08031', 'เด็กหญิงณิชานันท์ นาคเสนีย์', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 34, 'หญิง')
+  ('08032', 'เด็กหญิงธนาภรณ์ นพสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 35, 'หญิง')
+  ('08033', 'เด็กหญิงพิรดา เขตสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 36, 'หญิง')
+  ('08034', 'เด็กหญิงภูริชญา พลทวี', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 37, 'หญิง')
+  ('08035', 'เด็กหญิงมณฑิตา อินทร์สกูล', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 38, 'หญิง')
+  ('08036', 'เด็กหญิงวิภาวี ยกจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 39, 'หญิง')
+  ('08037', 'เด็กหญิงอรุณลักษณ์ สุขปราบ', (SELECT id FROM classrooms WHERE room_name='ม.1/2'), 40, 'หญิง')
+  ('07830', 'เด็กชายธนดล ครูทำสวน', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 1, 'ชาย')
+  ('08038', 'เด็กชายกฤษฎา กล้ามสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 2, 'ชาย')
+  ('08039', 'เด็กชายกิตติพงษ์ ธงภักดิ์', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 3, 'ชาย')
+  ('08040', 'เด็กชายจิรายุ ตระกูลศิลา', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 4, 'ชาย')
+  ('08041', 'เด็กชายชินพัชร ลาดพา', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 5, 'ชาย')
+  ('08042', 'เด็กชายไชยภัทร กลิ่นศรีสุข', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 6, 'ชาย')
+  ('08043', 'เด็กชายณัฐพล ทับทอง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 7, 'ชาย')
+  ('08045', 'เด็กชายธนดล พลชาลี', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 8, 'ชาย')
+  ('08046', 'เด็กชายธนดล นาคเสนีย์', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 9, 'ชาย')
+  ('08047', 'เด็กชายธนพัต พรัมมา', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 10, 'ชาย')
+  ('08048', 'เด็กชายธนภัทร ตุ้มสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 11, 'ชาย')
+  ('08049', 'เด็กชายนันทิภัทร แซ่ฟุ้ง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 12, 'ชาย')
+  ('08050', 'เด็กชายภูดิศ บุญเลี้ยง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 13, 'ชาย')
+  ('08051', 'เด็กชายยศพัทธ์ เศรษฐกุญชร', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 14, 'ชาย')
+  ('08052', 'เด็กชายรุ่งโรจน์ พุกการะเวก', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 15, 'ชาย')
+  ('08053', 'เด็กชายศิริศักดิ์ แฉ่งโสภา', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 16, 'ชาย')
+  ('08054', 'เด็กชายสากล มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 17, 'ชาย')
+  ('08055', 'เด็กชายสาธิก พูมศิลา', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 18, 'ชาย')
+  ('08056', 'เด็กชายสุชาครีย์ ชานุชิด', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 19, 'ชาย')
+  ('08057', 'เด็กชายอดิเทพ หาญมะโน', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 20, 'ชาย')
+  ('08058', 'เด็กชายอนุชา แจ่มใส', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 21, 'ชาย')
+  ('08059', 'เด็กชายอนุพงศ์ ชัยหมัด', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 22, 'ชาย')
+  ('08060', 'เด็กชายอินทัช โคตะริยะ', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 23, 'ชาย')
+  ('08061', 'เด็กชายอัศราวุธ ทั่งพรม', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 24, 'ชาย')
+  ('08062', 'เด็กหญิงกนกกาญจน์ จันทร์บัว', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 25, 'หญิง')
+  ('08063', 'เด็กหญิงกานต์พิชา มีเพ็ชร', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 26, 'หญิง')
+  ('08064', 'เด็กหญิงขนิษฐี ศรีหาวัตร', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 27, 'หญิง')
+  ('08065', 'เด็กหญิงโจฮาน่า ร็อฟ', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 28, 'หญิง')
+  ('08066', 'เด็กหญิงชนาภา มะลิวงษ์', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 29, 'หญิง')
+  ('08067', 'เด็กหญิงดรุณี สุวรรณแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 30, 'หญิง')
+  ('08068', 'เด็กหญิงธนิกา ผ่อนกลาง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 31, 'หญิง')
+  ('08069', 'เด็กหญิงน้ำมนต์ ดงแสง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 32, 'หญิง')
+  ('08070', 'เด็กหญิงนุชจรีย์ ถีสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 33, 'หญิง')
+  ('08071', 'เด็กหญิงพรญาณี พลทวี', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 34, 'หญิง')
+  ('08072', 'เด็กหญิงมณชญา ทองจิตร', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 35, 'หญิง')
+  ('08073', 'เด็กหญิงสมิตา โพธิ์หนองคูณ', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 36, 'หญิง')
+  ('08074', 'เด็กหญิงสุพรรณี สุขแสวง', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 37, 'หญิง')
+  ('08075', 'เด็กหญิงสุรีวรรณ คำราช', (SELECT id FROM classrooms WHERE room_name='ม.1/3'), 38, 'หญิง')
+  ('07839', 'เด็กชายศุภกิจ ยึดพวก', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 1, 'ชาย')
+  ('08076', 'เด็กชายกฤษฎา ยอดขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 2, 'ชาย')
+  ('08077', 'เด็กชายกฤษฎา มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 3, 'ชาย')
+  ('08078', 'เด็กชายกิตติคุณ เผ่าน้อย', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 4, 'ชาย')
+  ('08079', 'เด็กชายคุณาวิชญ์ รักษาชนม์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 5, 'ชาย')
+  ('08080', 'เด็กชายเจนต์ภพ นาชีวะ', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 6, 'ชาย')
+  ('08081', 'เด็กชายณัฐดนัย สากุล', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 7, 'ชาย')
+  ('08082', 'เด็กชายดนัษ โชติฤทธิรงค์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 8, 'ชาย')
+  ('08083', 'เด็กชายธนกฤต ยุ้มจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 9, 'ชาย')
+  ('08084', 'เด็กชายธนพงษ์ เยาวบุตร', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 10, 'ชาย')
+  ('08085', 'เด็กชายธนภัทร ศูนย์พันธ์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 11, 'ชาย')
+  ('08086', 'เด็กชายธนภูมิ ศรีพลัง', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 12, 'ชาย')
+  ('08087', 'เด็กชายนพรัตน์ ชัยเวียง', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 13, 'ชาย')
+  ('08088', 'เด็กชายนันทกรณ์ มังกร', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 14, 'ชาย')
+  ('08089', 'เด็กชายพีรณัฐ เสืออุดม', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 15, 'ชาย')
+  ('08090', 'เด็กชายไพโรจน์ โย้จัตุรัต', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 16, 'ชาย')
+  ('08091', 'เด็กชายภคพร สิงวงษา', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 17, 'ชาย')
+  ('08092', 'เด็กชายภัทฐรพงศ์ แสงจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 18, 'ชาย')
+  ('08093', 'เด็กชายภานุสรณ์ อยู่ทองหลาง', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 19, 'ชาย')
+  ('08094', 'เด็กชายลักษกร อำทองหลาง', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 20, 'ชาย')
+  ('08095', 'เด็กชายวัฒนา แก้วพรม', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 21, 'ชาย')
+  ('08097', 'เด็กชายศราวุฒิ ศรีคุณ', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 22, 'ชาย')
+  ('08098', 'เด็กชายสิรศักดิ์ ถนอมธรรม', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 23, 'ชาย')
+  ('08099', 'เด็กชายอติรุจ พูนทาทอง', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 24, 'ชาย')
+  ('08100', 'เด็กชายไอดิน ดัดถุยาวัต', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 25, 'ชาย')
+  ('08101', 'เด็กหญิงกัญญาณัฐ ธรรมวิเศษ', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 26, 'หญิง')
+  ('08102', 'เด็กหญิงกัญญาพัชร ยืนจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 27, 'หญิง')
+  ('08103', 'เด็กหญิงธิติมา ลอยวงษ์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 28, 'หญิง')
+  ('08104', 'เด็กหญิงนิธิศา สงจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 29, 'หญิง')
+  ('08105', 'เด็กหญิงเบจมาศ กลิ่นศรีสุข', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 30, 'หญิง')
+  ('08106', 'เด็กหญิงภัทรปภา ตะกรุดพน', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 31, 'หญิง')
+  ('08107', 'เด็กหญิงระพีภา อาบสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 32, 'หญิง')
+  ('08108', 'เด็กหญิงศุกัญญา มือขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 33, 'หญิง')
+  ('08109', 'เด็กหญิงศุภาพิชญ์ เขียวสนุก', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 34, 'หญิง')
+  ('08110', 'เด็กหญิงสิริยาพร อิ่มศิล', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 35, 'หญิง')
+  ('08111', 'เด็กหญิงสุนิสา ทิพวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 36, 'หญิง')
+  ('08112', 'เด็กหญิงเสาวภา ประสมทรัพย์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 37, 'หญิง')
+  ('08113', 'เด็กหญิงอรอุมา ศรีครานุรักษ์', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 38, 'หญิง')
+  ('08114', 'เด็กหญิงอรุณนภา นพสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.1/4'), 39, 'หญิง')
+  ('07743', 'เด็กชายกฤษฎา สากุล', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 1, 'ชาย')
+  ('07744', 'เด็กชายเจตน์ จูหมื่นไวย์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 2, 'ชาย')
+  ('07745', 'เด็กชายธนกฤต ฝางชัยภูมิ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 3, 'ชาย')
+  ('07746', 'เด็กชายธนเดช วิเศษอักษร', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 4, 'ชาย')
+  ('07747', 'เด็กชายพิชาภพ โปดหอม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 5, 'ชาย')
+  ('07748', 'เด็กชายนัฐพงษ์ อยู่พนม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 6, 'ชาย')
+  ('07749', 'เด็กชายภูตะวัน ศรีบรม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 7, 'ชาย')
+  ('07750', 'เด็กชายภูวเดช อุ่นสมัย', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 8, 'ชาย')
+  ('07751', 'เด็กชายนวภูมิ พึบขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 9, 'ชาย')
+  ('07752', 'เด็กชายนวพล นนทฤทธิ์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 10, 'ชาย')
+  ('07753', 'เด็กชายวงษ์ศกร มัสธุรส', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 11, 'ชาย')
+  ('07754', 'เด็กชายสิทธิชัย ศรีสังข์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 12, 'ชาย')
+  ('07755', 'เด็กหญิงกชพร ยุวะ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 13, 'หญิง')
+  ('07756', 'เด็กหญิงกนกวรรณ คำสาวงศ์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 14, 'หญิง')
+  ('07757', 'เด็กหญิงกัลยรัตน์ พลเสน', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 15, 'หญิง')
+  ('07758', 'เด็กหญิงกนกลดา ปัดภัย', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 16, 'หญิง')
+  ('07759', 'เด็กหญิงกนกภรณ์ จตุรงค์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 17, 'หญิง')
+  ('07760', 'เด็กหญิงกรกนก จันทร์จุลเจิม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 18, 'หญิง')
+  ('07761', 'เด็กหญิงข้าวหอม เสาโกมุท', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 19, 'หญิง')
+  ('07762', 'เด็กหญิงชนกวนันท์ ชินนอก', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 20, 'หญิง')
+  ('07763', 'เด็กหญิงจิรัชญา ตุ้มสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 21, 'หญิง')
+  ('07764', 'เด็กหญิงฐิติพร ภูนาเมือง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 22, 'หญิง')
+  ('07765', 'เด็กหญิงณัฐณิชา เทียบกลึง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 23, 'หญิง')
+  ('07767', 'เด็กหญิงชนัญธร เชิดโชคศรี', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 24, 'หญิง')
+  ('07768', 'เด็กหญิงธิติมา หลวงปราบ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 25, 'หญิง')
+  ('07769', 'เด็กหญิงนารากร เลิศไธสง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 26, 'หญิง')
+  ('07770', 'เด็กหญิงนิตยา ปานนอก', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 27, 'หญิง')
+  ('07771', 'เด็กหญิงเบญจมาศ ฤทธิ์กำลัง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 28, 'หญิง')
+  ('07772', 'เด็กหญิงปริตา เทียบประทุม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 29, 'หญิง')
+  ('07773', 'เด็กหญิงปศิตา ชัยธรรมวงศ์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 30, 'หญิง')
+  ('07774', 'เด็กหญิงพิมภาลัย เป้าไธสง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 31, 'หญิง')
+  ('07775', 'เด็กหญิงพิมพ์ประภา พูนเพ็ง', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 32, 'หญิง')
+  ('07776', 'เด็กหญิงพิชนาฎ นิมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 33, 'หญิง')
+  ('07777', 'เด็กหญิงศนันธฉัตร บุญเพียร', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 34, 'หญิง')
+  ('07778', 'เด็กหญิงศุนิศา อยู่พนม', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 35, 'หญิง')
+  ('07779', 'เด็กหญิงศิริภัทร งอกคำ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 36, 'หญิง')
+  ('07780', 'เด็กหญิงสุกัญญา ครูทำนา', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 37, 'หญิง')
+  ('07781', 'เด็กหญิงอริสรา เจนใจ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 38, 'หญิง')
+  ('07782', 'เด็กหญิงอินธิรา เจริญรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 39, 'หญิง')
+  ('07927', 'เด็กชายภัทรนันท์  วันทา', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 40, 'ชาย')
+  ('07957', 'เด็กหญิงปาลิตา อ่างคำ', (SELECT id FROM classrooms WHERE room_name='ม.2/1'), 41, 'หญิง')
+  ('07783', 'เด็กชายเกียงไกร แสงสิงห์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 1, 'ชาย')
+  ('07784', 'เด็กชายจิรายุ เนาขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 2, 'ชาย')
+  ('07785', 'เด็กชายชินพัฒน์ ปะมะฆัง', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 3, 'ชาย')
+  ('07786', 'เด็กชายณัฐวุฒิ มะยม', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 4, 'ชาย')
+  ('07787', 'เด็กชายธีรภัทร ชัยขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 5, 'ชาย')
+  ('07788', 'เด็กชายธีรกาญจน์ เย็นรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 6, 'ชาย')
+  ('07789', 'เด็กชายธีรเมธ พรมนัส', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 7, 'ชาย')
+  ('07790', 'เด็กชายนรินทร์ฤทธิ์ น้อยเสลา', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 8, 'ชาย')
+  ('07791', 'เด็กชายปภังกร ศิลา', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 9, 'ชาย')
+  ('07793', 'เด็กชายเพชรน้ำหนึ่ง ละเอียด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 10, 'ชาย')
+  ('07794', 'เด็กชายภูมิพัฒน์ ธุระพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 11, 'ชาย')
+  ('07795', 'เด็กชายมงคล แสงแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 12, 'ชาย')
+  ('07796', 'เด็กชายลิฟปิกร ทับทิมใส', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 13, 'ชาย')
+  ('07797', 'เด็กชายวีรยุทธ กอสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 14, 'ชาย')
+  ('07798', 'เด็กชายสงกรานต์ ผลพิมาย', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 15, 'ชาย')
+  ('07799', 'เด็กชายสุเมธ รานอก', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 16, 'ชาย')
+  ('07800', 'เด็กหญิงกุลรดา แสนโคตร', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 17, 'หญิง')
+  ('07801', 'เด็กหญิงเจนจิรา บัวทอง', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 18, 'หญิง')
+  ('07802', 'เด็กหญิงดาวิกา เขตสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 19, 'หญิง')
+  ('07803', 'เด็กหญิงตรีรัตน์ ศรีคัฒนาม', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 20, 'หญิง')
+  ('07804', 'เด็กหญิงทิพวรรณ ศิริรวง', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 21, 'หญิง')
+  ('07805', 'เด็กหญิงนัทธ์ชนัน เชิดขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 22, 'หญิง')
+  ('07806', 'เด็กหญิงนวรัตน์ ใจยุติธรรม', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 23, 'หญิง')
+  ('07807', 'เด็กหญิงผกามาศ อินทะไชย', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 24, 'หญิง')
+  ('07808', 'เด็กหญิงพิชญ์สินี มีจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 25, 'หญิง')
+  ('07809', 'เด็กหญิงมิวลดา ธงภักดิ์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 26, 'หญิง')
+  ('07810', 'เด็กหญิงเมธาวี บุญทอง', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 27, 'หญิง')
+  ('07811', 'เด็กหญิงมัญชุพร หวังโนนสูง', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 28, 'หญิง')
+  ('07812', 'เด็กหญิงรุ่งราตรี จงนอก', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 29, 'หญิง')
+  ('07813', 'เด็กหญิงรุ่งทิวา ญาติรัก', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 30, 'หญิง')
+  ('07814', 'เด็กหญิงลักษิกา เดนโม', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 31, 'หญิง')
+  ('07815', 'เด็กหญิงวรัญญา ประสานญาติ', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 32, 'หญิง')
+  ('07816', 'เด็กหญิงวริษรดา มั่งจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 33, 'หญิง')
+  ('07817', 'เด็กหญิงศิรประภา เนาขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 34, 'หญิง')
+  ('07818', 'เด็กหญิงศิริวรรณวิภา ศรีเกื้อกลิ่น', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 35, 'หญิง')
+  ('07819', 'เด็กหญิงสุชาวลี เหลื่อมศรีจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 36, 'หญิง')
+  ('07820', 'เด็กหญิงสุวิสา ทันการ', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 37, 'หญิง')
+  ('07821', 'เด็กหญิงอริสา ขาวกลางดอน', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 38, 'หญิง')
+  ('07822', 'เด็กหญิงอิรวดี ปิดสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 39, 'หญิง')
+  ('07951', 'เด็กหญิงเกตุน์นิภา  คำแอด', (SELECT id FROM classrooms WHERE room_name='ม.2/2'), 40, 'หญิง')
+  ('07742', 'เด็กหญิงอริญาพร หม้อทอง', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 1, 'หญิง')
+  ('07823', 'เด็กชายกมลภูมิ ตะโส', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 2, 'ชาย')
+  ('07824', 'เด็กชายแก่นคูณ  มับสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 3, 'ชาย')
+  ('07825', 'เด็กชายไชยภพ ขิงขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 4, 'ชาย')
+  ('07826', 'เด็กชายณรงค์ฤทธิ์  ดวงดารา', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 5, 'ชาย')
+  ('07827', 'เด็กชายณัฐกานต์ สัทธะประโคน', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 6, 'ชาย')
+  ('07828', 'เด็กชายณัฐนนท์ บัวทอง', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 7, 'ชาย')
+  ('07829', 'เด็กชายทองภูมิ  ถอยกระโทก', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 8, 'ชาย')
+  ('07831', 'เด็กชายธีระโชค คานไธสง', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 9, 'ชาย')
+  ('07832', 'เด็กชายธนกฤต ถาวรกาย', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 10, 'ชาย')
+  ('07833', 'เด็กชายธนพล  เบียนสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 11, 'ชาย')
+  ('07834', 'เด็กชายพัชรพล เกตุแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 12, 'ชาย')
+  ('07835', 'เด็กชายพงษ์เพชร สุขดี', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 13, 'ชาย')
+  ('07836', 'เด็กชายพลกฤต พูนสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 14, 'ชาย')
+  ('07837', 'เด็กชายภูริ อินทร์โก', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 15, 'ชาย')
+  ('07838', 'เด็กชายสุรัล บ้ำสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 16, 'ชาย')
+  ('07840', 'เด็กชายอภิรัตน์ เสิงขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 17, 'ชาย')
+  ('07842', 'เด็กชายอนุชา พิผ่วนนอก', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 18, 'ชาย')
+  ('07843', 'เด็กชายอนิรุช ดินจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 19, 'ชาย')
+  ('07845', 'เด็กหญิงเชปวี้ มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 20, 'หญิง')
+  ('07846', 'เด็กหญิงชนิดาภา  บุญศรี', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 21, 'หญิง')
+  ('07847', 'เด็กหญิงฑิฆัมพร สีธร', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 22, 'หญิง')
+  ('07848', 'เด็กหญิงแพรวา ชมชื่น', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 23, 'หญิง')
+  ('07849', 'เด็กหญิงพิมพ์วิภา  จันทร์พิมพ์', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 24, 'หญิง')
+  ('07851', 'เด็กหญิงรัตน์ติกาล น้อยเสลา', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 25, 'หญิง')
+  ('07852', 'เด็กหญิงศรีสกุล ศรีวิเชียร', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 26, 'หญิง')
+  ('07853', 'เด็กหญิงสถิรดา สายโคกสูง', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 27, 'หญิง')
+  ('07943', 'เด็กหญิงนาฏนารี  ดีแจ่ม', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 28, 'หญิง')
+  ('07947', 'เด็กชายธนวัฒน์  อุ่นอก', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 29, 'ชาย')
+  ('07950', 'เด็กหญิงสุรัตนา  จันทร์เพ็ญ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 30, 'หญิง')
+  ('07954', 'เด็กหญิงนิชกาณต์  มีชำนาญ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 31, 'หญิง')
+  ('07955', 'เด็กหญิงศิลามณี  กุสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 32, 'หญิง')
+  ('08166', 'เด็กหญิงพรรณฑิพา  ยางกลาง', (SELECT id FROM classrooms WHERE room_name='ม.2/3'), 33, 'หญิง')
+  ('07667', 'เด็กชายอิทธิกรณ์  พูนทางทอง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 1, 'ชาย')
+  ('07841', 'เด็กชายอนุชา  ร้อยกรอง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 2, 'ชาย')
+  ('07855', 'เด็กชายกุลโรจน์ พาลขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 3, 'ชาย')
+  ('07856', 'เด็กชายกีรติ  ทาอุสาห์', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 4, 'ชาย')
+  ('07857', 'เด็กชายจักรกฤษ มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 5, 'ชาย')
+  ('07858', 'เด็กชายณัฐชนนท์ ธรรมธุระ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 6, 'ชาย')
+  ('07859', 'เด็กชายณัฐกิตต์ จันทะดวง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 7, 'ชาย')
+  ('07860', 'เด็กชายธนวัฒน์ แจ้งสวัสดิ์', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 8, 'ชาย')
+  ('07861', 'เด็กชายธาราพงษ์ ทาบคำ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 9, 'ชาย')
+  ('07862', 'เด็กชายธนวิชญ์  ยิ้มจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 10, 'ชาย')
+  ('07863', 'เด็กชายธีรภัทร  พงศ์ศรี', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 11, 'ชาย')
+  ('07864', 'เด็กชายพุฒิภัทร  ปัจจัย', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 12, 'ชาย')
+  ('07865', 'เด็กชายพงศ์พัฒน์ ครองตาดโตน', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 13, 'ชาย')
+  ('07866', 'เด็กชายพีรพัฒน์ วันศรี', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 14, 'ชาย')
+  ('07867', 'เด็กชายพัชลพล ชอมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 15, 'ชาย')
+  ('07868', 'เด็กชายภรันยู บุดดีคง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 16, 'ชาย')
+  ('07869', 'เด็กชายวัชรวิชญ์ วะบังลับ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 17, 'ชาย')
+  ('07870', 'เด็กชายวายุ  ภักดิ์คำเก่ง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 18, 'ชาย')
+  ('07871', 'เด็กชายวีรภัทร เล้กเมือง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 19, 'ชาย')
+  ('07873', 'เด็กชายศักดิ์ชัย  ประทีตานัง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 20, 'ชาย')
+  ('07874', 'เด็กชายศิวะกร ยึดพวก', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 21, 'ชาย')
+  ('07875', 'เด็กชายอัศวิน ศรีพุฒ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 22, 'ชาย')
+  ('07876', 'เด็กชายฤทธิเดช เฟื่องฟู', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 23, 'ชาย')
+  ('07877', 'เด็กหญิงกวินธิดา หาญสุด', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 24, 'หญิง')
+  ('07878', 'เด็กหญิงแก้วตา จันทร์ทาน', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 25, 'หญิง')
+  ('07879', 'เด็กหญิงญาณวิภา  พึมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 26, 'หญิง')
+  ('07880', 'เด็กหญิงณัฏฐา ดวงเกตุ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 27, 'หญิง')
+  ('07881', 'เด็กหญิงเพชรัตน์  โม่งปราณีต', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 28, 'หญิง')
+  ('07882', 'เด็กหญิงมิญณรัตน์ ฆ้องวง', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 29, 'หญิง')
+  ('07883', 'เด็กหญิงละอองดาว  จรครบุรี', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 30, 'หญิง')
+  ('07884', 'เด็กหญิงศิริณทิพย์ แสงนวล', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 31, 'หญิง')
+  ('07885', 'เด็กหญิงสุภาพิชญ์ บุรภักดิ์', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 32, 'หญิง')
+  ('07886', 'เด็กชายคุณากร  พาสุข', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 33, 'ชาย')
+  ('07887', 'เด็กชายธันวา  พาหา', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 34, 'ชาย')
+  ('07888', 'เด็กชายปภัสชล  ทันการ', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 35, 'ชาย')
+  ('07944', 'เด็กชายพุฒิพงศ์  ศรีภุมมา', (SELECT id FROM classrooms WHERE room_name='ม.2/4'), 36, 'ชาย')
+  ('07560', 'เด็กชายกษิด์เดช นิลเกตุ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 1, 'ชาย')
+  ('07561', 'เด็กชายกษิดินทร์ ธุยวัตร', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 2, 'ชาย')
+  ('07562', 'เด็กชายชุณหกาญจน์ ถาวรชาติ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 3, 'ชาย')
+  ('07563', 'เด็กชายเตชิต ภูพวก', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 4, 'ชาย')
+  ('07564', 'เด็กชายนวพล บุญวงศ์ษา', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 5, 'ชาย')
+  ('07565', 'เด็กชายปฐพี ทักษิณ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 6, 'ชาย')
+  ('07566', 'เด็กชายภูริวัฒน์ เคียงสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 7, 'ชาย')
+  ('07567', 'เด็กชายศิลา นวลอิ่ม', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 8, 'ชาย')
+  ('07568', 'เด็กชายศุภกิตติ์ โคตะริยะ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 9, 'ชาย')
+  ('07570', 'เด็กหญิงกวินทรา โพธิ์แก้ว', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 10, 'หญิง')
+  ('07572', 'เด็กหญิงกุลนิภา นารถเหนือ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 11, 'หญิง')
+  ('07573', 'เด็กหญิงจันจิรา นุกาศรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 12, 'หญิง')
+  ('07574', 'เด็กหญิงจันฑิมาพร คำศักดา', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 13, 'หญิง')
+  ('07575', 'เด็กหญิงชญาดา ทิพย์ศรี', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 14, 'หญิง')
+  ('07576', 'เด็กหญิงณัฏฐนิชา เกียรติยศ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 15, 'หญิง')
+  ('07578', 'เด็กหญิงนภัทร วินาสันตุ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 16, 'หญิง')
+  ('07579', 'เด็กหญิงนฤมล ดัดถุยาวัตร์', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 17, 'หญิง')
+  ('07580', 'เด็กหญิงนิภาพร ฉ่ำท่วม', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 18, 'หญิง')
+  ('07582', 'เด็กหญิงพัณณิตา สงรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 19, 'หญิง')
+  ('07583', 'เด็กหญิงพิชญากร โสขันตี', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 20, 'หญิง')
+  ('07584', 'เด็กหญิงมุทิตา ฝุ่งพิลา', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 21, 'หญิง')
+  ('07585', 'เด็กหญิงยิ่งลักษณ์ กลิ่นสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 22, 'หญิง')
+  ('07586', 'เด็กหญิงวรรวิสา หลีทองคำ', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 23, 'หญิง')
+  ('07588', 'เด็กหญิงศิริกาญจน์ กอกัน', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 24, 'หญิง')
+  ('07589', 'เด็กหญิงศิรินทิพย์ บุญเทา', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 25, 'หญิง')
+  ('07590', 'เด็กหญิงศิรินภา เซ็นปักธงชัย', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 26, 'หญิง')
+  ('07591', 'เด็กหญิงสราญรัตน์ นิลสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 27, 'หญิง')
+  ('07592', 'เด็กหญิงสุดารัตน์ โค้งสำโรง', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 28, 'หญิง')
+  ('07594', 'เด็กหญิงสุพิชชา พันธ์ภักดี', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 29, 'หญิง')
+  ('07595', 'เด็กหญิงสุวิษา กลางจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 30, 'หญิง')
+  ('07596', 'เด็กหญิงอรณิชา ยมหล้า', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 31, 'หญิง')
+  ('07597', 'เด็กหญิงอรพรรณ เพียมะลัง', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 32, 'หญิง')
+  ('07598', 'เด็กหญิงอัยลดา ปิ่นขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 33, 'หญิง')
+  ('07599', 'เด็กหญิงอินทิรา บวชขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 34, 'หญิง')
+  ('07936', 'เด็กหญิงกมลนันท์ แสนโคตร', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 35, 'หญิง')
+  ('07937', 'เด็กหญิงกมลนัทธ์ แสนโคตร', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 36, 'หญิง')
+  ('07952', 'เด็กหญิงวรัมพร กลางจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/1'), 37, 'หญิง')
+  ('07601', 'เด็กชายจิรวัฒน์ พิศนอก', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 1, 'ชาย')
+  ('07603', 'เด็กชายธนวัฒน์ สัทธะประโคน', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 2, 'ชาย')
+  ('07604', 'เด็กชายธีรเดช สมปัญญา', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 3, 'ชาย')
+  ('07605', 'เด็กชายธีรนัย บุญเกิด', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 4, 'ชาย')
+  ('07606', 'เด็กชายนนทนัตถ์ กุมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 5, 'ชาย')
+  ('07607', 'เด็กชายนวิน สัมประจิตร', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 6, 'ชาย')
+  ('07608', 'เด็กชายปิยะวัฒน์ สิงห์โต', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 7, 'ชาย')
+  ('07609', 'เด็กชายภานุวัฒน์ ภูผาลอย', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 8, 'ชาย')
+  ('07610', 'เด็กชายวายุ มูลไธสง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 9, 'ชาย')
+  ('07611', 'เด็กชายสรวิชญ์ สอนศรี', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 10, 'ชาย')
+  ('07612', 'เด็กชายสิงหนาท ปุ๋ยแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 11, 'ชาย')
+  ('07613', 'เด็กชายสุภัทโท ฤทธิ์กำลัง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 12, 'ชาย')
+  ('07615', 'เด็กหญิงเกตุศินี พาขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 13, 'หญิง')
+  ('07616', 'เด็กหญิงกตัญญ์ทิตา มารศรี', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 14, 'หญิง')
+  ('07617', 'เด็กหญิงกรรณิกา ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 15, 'หญิง')
+  ('07618', 'เด็กหญิงกฤษณา เทียบชิง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 16, 'หญิง')
+  ('07619', 'เด็กหญิงกัญญารัตน์ โตทิม', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 17, 'หญิง')
+  ('07620', 'เด็กหญิงกาญจนาพร ฤทธิสิงห์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 18, 'หญิง')
+  ('07621', 'เด็กหญิงงามจิต อาบสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 19, 'หญิง')
+  ('07622', 'เด็กหญิงณัฐชา โชติฤทธิรงค์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 20, 'หญิง')
+  ('07623', 'เด็กหญิงธิชานันท์ ยิ้มจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 21, 'หญิง')
+  ('07624', 'เด็กหญิงนิชานาถ ดาทอง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 22, 'หญิง')
+  ('07626', 'เด็กหญิงพัทธีรา โพธา', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 23, 'หญิง')
+  ('07627', 'เด็กหญิงพิชญา ทวดสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 24, 'หญิง')
+  ('07628', 'เด็กหญิงพิชญากร ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 25, 'หญิง')
+  ('07629', 'เด็กหญิงพิมพ์พิศา สุขแดง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 26, 'หญิง')
+  ('07630', 'เด็กหญิงมนพร ไทยนนท์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 27, 'หญิง')
+  ('07631', 'เด็กหญิงมาริศา สุขจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 28, 'หญิง')
+  ('07632', 'เด็กหญิงยิ่งรักษ์ พุดมะลัง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 29, 'หญิง')
+  ('07633', 'เด็กหญิงรจนา ตั้งพล', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 30, 'หญิง')
+  ('07635', 'เด็กหญิงลลิตา ชานุชิด', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 31, 'หญิง')
+  ('07636', 'เด็กหญิงวริศรา สงรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 32, 'หญิง')
+  ('07637', 'เด๊กหญิงศิริกัญญา โหลทา', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 33, 'หญิง')
+  ('07638', 'เด็กหญิงศิริกานดา ชัยเพ็ง', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 34, 'หญิง')
+  ('07639', 'เด็กหญิงหัทยา ขันตี', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 35, 'หญิง')
+  ('07640', 'เด็กหญิงอลิสรา ทิสุข', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 36, 'หญิง')
+  ('07732', 'เด็กชายปภังกร แควภูเขียว', (SELECT id FROM classrooms WHERE room_name='ม.3/2'), 37, 'ชาย')
+  ('07641', 'เด็กชายเกียรติศักดิ์ เกาะม่วงหมู่', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 1, 'ชาย')
+  ('07644', 'เด็กชายณภัทร กำลา', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 2, 'ชาย')
+  ('07645', 'เด็กชายณัฐวุฒิ พลขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 3, 'ชาย')
+  ('07646', 'เด็กชายดนุเดช มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 4, 'ชาย')
+  ('07648', 'เด็กชายธนกร มับสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 5, 'ชาย')
+  ('07649', 'เด็กชายปราชญ์ปริญ เมื่อจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 6, 'ชาย')
+  ('07650', 'เด็กชายพงศกร นามวะราช', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 7, 'ชาย')
+  ('07651', 'เด็กชายพิชญดล อยู่พนม', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 8, 'ชาย')
+  ('07652', 'เด็กชายพิษณุ จันทะดวง', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 9, 'ชาย')
+  ('07653', 'เด็กชายภานุวัฒน์ เรืองศักดิ์', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 10, 'ชาย')
+  ('07656', 'เด็กชายรชานนท์ สุขสำราญ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 11, 'ชาย')
+  ('07657', 'เด็กชายวายุ สงจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 12, 'ชาย')
+  ('07659', 'เด็กชายวีระศักดิ์ ผิวหนองอ่าง', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 13, 'ชาย')
+  ('07660', 'เด็กชายสรวิชญ์ จันทร์พิมพ์', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 14, 'ชาย')
+  ('07661', 'เด็กชายสิทธิเดช อุปชิด', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 15, 'ชาย')
+  ('07662', 'เด็กชายสิทธิกร กลางจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 16, 'ชาย')
+  ('07663', 'เด็กชายสุขประโชค ช่องจอหอ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 17, 'ชาย')
+  ('07664', 'เด็กชายอดิศร ขนาดกลาง', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 18, 'ชาย')
+  ('07666', 'เด็กชายอดิศักดิ์ มีธรรม', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 19, 'ชาย')
+  ('07669', 'เด็กหญิงกัญญาวีร์ ฉะช้างรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 20, 'หญิง')
+  ('07670', 'เด็กหญิงกาญจนา สุขนา', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 21, 'หญิง')
+  ('07671', 'เด็กหญิงกิจฤดี พืบขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 22, 'หญิง')
+  ('07672', 'เด็กหญิงปริยากร ศรีดาแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 23, 'หญิง')
+  ('07673', 'เด็กหญิงเมษา มีเพ็ชร', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 24, 'หญิง')
+  ('07674', 'เด็กหญิงมินตรา สินสำโรง', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 25, 'หญิง')
+  ('07676', 'เด็กหญิงสายธาร มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 26, 'หญิง')
+  ('07677', 'เด็กหญิงอารดา ภาคสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 27, 'หญิง')
+  ('07731', 'เด็กหญิงมินตรา ยืนจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 28, 'หญิง')
+  ('07739', 'เด็กชายมนัสขวัญ ปรีดี', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 29, 'ชาย')
+  ('07929', 'เด็กหญิงนภัสภรณ์ ฉิมสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 30, 'หญิง')
+  ('07930', 'เด็กชายเตชินท์ ภิญโญรัตนโชติ', (SELECT id FROM classrooms WHERE room_name='ม.3/3'), 31, 'ชาย')
+  ('07678', 'เด็กชายกฤษฎา สิงห์กระโจม', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 1, 'ชาย')
+  ('07679', 'เด็กชายคณิศร สีดา', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 2, 'ชาย')
+  ('07681', 'เด็กชายไตรภูมิ เจินธรรม', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 3, 'ชาย')
+  ('07683', 'เด็กชายณฐกร อุไรวรณ์', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 4, 'ชาย')
+  ('07684', 'เด็กชายณภัทร มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 5, 'ชาย')
+  ('07686', 'เด็กชายณัฐพงษ์ กองเงินนอก', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 6, 'ชาย')
+  ('07687', 'เด็กชายธนกร ยิ้มพังเทียม', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 7, 'ชาย')
+  ('07689', 'เด็กชายธนภัทร มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 8, 'ชาย')
+  ('07691', 'เด็กชายธนากร ปะภาษา', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 9, 'ชาย')
+  ('07692', 'เด็กชายปพนธีร์ จันทราช', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 10, 'ชาย')
+  ('07693', 'เด็กชายปัณณวิชญ์ มิตรสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 11, 'ชาย')
+  ('07696', 'เด็กชายภานุวัฒน์ แถวเพชร', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 12, 'ชาย')
+  ('07697', 'เด็กชายภูวภัทร ประภาสโนบล', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 13, 'ชาย')
+  ('07698', 'เด็กชายมานัส คลายน้อย', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 14, 'ชาย')
+  ('07702', 'เด็กชายสิงหา กอบัว', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 15, 'ชาย')
+  ('07703', 'เด็กชายสุแสน ศรีครานุรักษ์', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 16, 'ชาย')
+  ('07704', 'เด็กชายอธิปกรณ์ ภาคสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 17, 'ชาย')
+  ('07705', 'เด็กชายอัสนี ขาวดี', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 18, 'ชาย')
+  ('07709', 'เด็กชายกิติพิชญ์ ก่องนอก', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 19, 'ชาย')
+  ('07710', 'เด็กหญิงชนรดา โคกเกษม', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 20, 'หญิง')
+  ('07711', 'เด็กหญิงนันทิชา กาสสันทียะ', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 21, 'หญิง')
+  ('07713', 'เด็กหญิงวริษฐา ยุ้มจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 22, 'หญิง')
+  ('07714', 'เด็กหญิงศิภาพร สาอุตม์', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 23, 'หญิง')
+  ('07720', 'เด็กชายศุภสิทธิ์ จันทร์หล่ม', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 24, 'ชาย')
+  ('07949', 'เด็กชายระพีพัฒน์ ศิลปชัย', (SELECT id FROM classrooms WHERE room_name='ม.3/4'), 25, 'ชาย')
+  ('07339', 'นายธนกฤต ก่องนอก', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 1, 'หญิง')
+  ('07346', 'นายศุภกร วาระศรี', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 2, 'หญิง')
+  ('07350', 'นางสาวจีรนันท์ ทำทอง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 3, 'หญิง')
+  ('07353', 'นางสาวเดือนนภา พลชาลี', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 4, 'หญิง')
+  ('07356', 'นางสาวธาราทิพย์ บุญขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 5, 'หญิง')
+  ('07357', 'นางสาวนภสร ดีขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 6, 'หญิง')
+  ('07358', 'นางสาวนันทิพร พิทักษ์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 7, 'หญิง')
+  ('07359', 'นางสาวปรารถนา ปัดถา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 8, 'หญิง')
+  ('07362', 'นางสาวพรพิมล ดาวงษ์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 9, 'หญิง')
+  ('07363', 'นางสาวพรมศิริลักษณ์ หวังอิงกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 10, 'หญิง')
+  ('07364', 'นางสาวพรสินี พูนทาทอง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 11, 'หญิง')
+  ('07365', 'นางสาวพัชริดา โพธิ์ทอง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 12, 'หญิง')
+  ('07373', 'นางสาวสุกัญญา จันทรางศุ', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 13, 'หญิง')
+  ('07381', 'นายเด่นชัย นามเสาร์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 14, 'หญิง')
+  ('07385', 'นายปรีชา พาหา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 15, 'หญิง')
+  ('07394', 'นางสาวณัฐกาญจน์ ธนกิตตินันท์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 16, 'หญิง')
+  ('07397', 'นางสาวธารทิพย์ สีทน', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 17, 'หญิง')
+  ('07406', 'นางสาวอนุรดี ธุระพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 18, 'หญิง')
+  ('07420', 'นายสรวิชณ์ สุทธาภรณ์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 19, 'หญิง')
+  ('07428', 'นางสาวฐานิตา ปาคำ', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 20, 'หญิง')
+  ('07472', 'นางสาวสุริสา สมวงค์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 21, 'หญิง')
+  ('07474', 'นางสาวอรจิรา ไชยขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 22, 'หญิง')
+  ('07520', 'นางสาวธิติรัตน์ ผลชิงชัย', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 23, 'หญิง')
+  ('08115', 'นายกิตติพงษ์ ทองดุลย์', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 24, 'หญิง')
+  ('08116', 'นายปฏิภาณ ดอกนางแย้ม', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 25, 'หญิง')
+  ('08117', 'นายพีรพงษ์ อยู่พนม', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 26, 'หญิง')
+  ('08118', 'นายวิทยา จินา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 27, 'หญิง')
+  ('08119', 'นางสาวก่อรัก บุญเกิด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 28, 'หญิง')
+  ('08120', 'นางสาวกัญญารัตน์ ปัสสา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 29, 'หญิง')
+  ('08121', 'นางสาวธนาภา สุพัตรา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 30, 'หญิง')
+  ('08122', 'นางสาวธิดารัตน์ ทดแทน', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 31, 'หญิง')
+  ('08123', 'นางสาวนฤมล นาคช่วย', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 32, 'หญิง')
+  ('08124', 'นางสาวนันทิดา ชื่นชุมแสง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 33, 'หญิง')
+  ('08125', 'นางสาวพรพิมล ประจันบาล', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 34, 'หญิง')
+  ('08126', 'นางสาววิไลรัตน์ เมืองน้อย', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 35, 'หญิง')
+  ('08127', 'นางสาวศศิกมล สายทอง', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 36, 'หญิง')
+  ('08128', 'นางสาวอชิรญา ภูหัวตลาด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 37, 'หญิง')
+  ('08129', 'นางสาวอภิชญา หินขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 38, 'หญิง')
+  ('08130', 'นางสาวไอรินทร์ โสภา', (SELECT id FROM classrooms WHERE room_name='ม.4/1'), 39, 'หญิง')
+  ('07347', 'นายอนาวิน สุขสำราญ', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 1, 'หญิง')
+  ('07366', 'นางสาวพัชรินทร์ บุญคง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 2, 'หญิง')
+  ('07368', 'นางสาวรุ้งตะวัน แสนวัง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 3, 'หญิง')
+  ('07371', 'นางสาวศิรินภา หวังปรุงกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 4, 'หญิง')
+  ('07396', 'นางสาวทิพย์วาริน สีตุ้ยเลิง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 5, 'หญิง')
+  ('07401', 'นางสาวเรวดี เพ็งวัน', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 6, 'หญิง')
+  ('07402', 'นางสาวลีลาวดี ดั้งขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 7, 'หญิง')
+  ('07430', 'นางสาวณัฐมน สีธร', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 8, 'หญิง')
+  ('07433', 'นางสาวธัญญาภรณ์ บริบูรณ์', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 9, 'หญิง')
+  ('07465', 'นางสาวโฉมฉาย เซ็นปักธงชัย', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 10, 'หญิง')
+  ('07466', 'นางสาวณัฏฐณิชา กลับสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 11, 'หญิง')
+  ('07475', 'นางสาวอาริษา ชิดขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 12, 'หญิง')
+  ('07516', 'นางสาวธัญญพร พูนทาทอง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 13, 'หญิง')
+  ('07512', 'นางสาวณัฐิดา สุขนา', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 14, 'หญิง')
+  ('07721', 'นางสาวภคพร ศักดานุศาสน์', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 15, 'หญิง')
+  ('07471', 'นางสาววันวิสา ทานาม', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 16, 'หญิง')
+  ('07423', 'นางสาวกชกร บุญยะใบ', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 17, 'หญิง')
+  ('08131', 'นายธนภูมิ คำปิ่น', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 18, 'หญิง')
+  ('08132', 'นายอนุรักษ์ จันทร์ดี', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 19, 'หญิง')
+  ('08133', 'นางสาวกัณณิการ์ ยิ่งกล้า', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 20, 'หญิง')
+  ('08134', 'นางสาวกุลธิดา ไขขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 21, 'หญิง')
+  ('08135', 'นางสาวจิดาภา จิตรกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 22, 'หญิง')
+  ('08136', 'นางสาวชนาภัทร นามภูษา', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 23, 'หญิง')
+  ('08137', 'นางสาวธิดารัตน์ เท้าเฮ้า', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 24, 'หญิง')
+  ('08138', 'นางสาวปาริตา คำรัตน์', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 25, 'หญิง')
+  ('08139', 'นางสาวปิยธิดา เล็กมณี', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 26, 'หญิง')
+  ('08140', 'นางสาวพานิชชา ภูหัวตลาด', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 27, 'หญิง')
+  ('08141', 'นางสาวภัทรศญาวรรณ สีนามบุรี', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 28, 'หญิง')
+  ('08142', 'นางสาววรัญญา สอนภู', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 29, 'หญิง')
+  ('08143', 'นางสาวสาวิตรี นันทะจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 30, 'หญิง')
+  ('08144', 'นางสาวสิริลภัส พรมโพธิ์', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 31, 'หญิง')
+  ('08145', 'นางสาวสุธิมา ไพรดีพะเนา', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 32, 'หญิง')
+  ('08146', 'นางสาวเสาวลักษณ์ หวังจุลกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 33, 'หญิง')
+  ('08147', 'นางสาวอชรายุ มั่งจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 34, 'หญิง')
+  ('08148', 'นางสาวอณิชดา หินขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 35, 'หญิง')
+  ('08149', 'นางสาวอารีญา สังวาลย์เพชร', (SELECT id FROM classrooms WHERE room_name='ม.4/2'), 36, 'หญิง')
+  ('07337', 'นายดาราสรรค์ อุดมสี', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 1, 'หญิง')
+  ('07338', 'นายเดชพล สีพันดร', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 2, 'หญิง')
+  ('07342', 'นายนนทพัทธ์ หมื่นวินาท', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 3, 'หญิง')
+  ('07343', 'นายปรัชญา ผลช่วย', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 4, 'หญิง')
+  ('07345', 'นายยศกร ปิ่นปั้น', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 5, 'หญิง')
+  ('07351', 'นางสาวจีรารัตน์ หวังกกกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 6, 'หญิง')
+  ('07367', 'นางสาวยุพิน เพียมะลัง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 7, 'หญิง')
+  ('07372', 'นางสาวศิริประภา แสวงชัย', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 8, 'หญิง')
+  ('07374', 'นายกรวิชญ์ ชาญณรงค์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 9, 'หญิง')
+  ('07375', 'นายกิตติศักดิ์ อินทจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 10, 'หญิง')
+  ('07391', 'นายอลิช เจริญรัตน์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 11, 'หญิง')
+  ('07398', 'นางสาวพลอยใส แถวเพชร', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 12, 'หญิง')
+  ('07403', 'นางสาววารุณี ระหาญนอก', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 13, 'หญิง')
+  ('07404', 'นางสาวสุนิสา เภาจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 14, 'หญิง')
+  ('07412', 'นายณัฐภัทร บุญพูล', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 15, 'หญิง')
+  ('07413', 'นายธนโชติ เลื่อยไธสง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 16, 'หญิง')
+  ('07415', 'นายบุณมี หนูประโคน', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 17, 'หญิง')
+  ('07425', 'นางสาวจุฑามาศ ดรุณพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 18, 'หญิง')
+  ('07427', 'นางสาวชยานันต์ เรืองฤทธิ์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 19, 'หญิง')
+  ('07429', 'นางสาวณัชชา สานุสันต์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 20, 'หญิง')
+  ('07432', 'นางสาวธัญชนิต อินทจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 21, 'หญิง')
+  ('07436', 'นางสาวเมธิณี บัวจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 22, 'หญิง')
+  ('07440', 'นางสาวอุษา กุลสำโรง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 23, 'หญิง')
+  ('07444', 'นายไกรเศรษฐ์ คงคารวิวรรณ', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 24, 'หญิง')
+  ('07445', 'นายชิติพัทธ์ ประสานญาติ', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 25, 'หญิง')
+  ('07460', 'นางสาวกรรณิกา กล้ารอด', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 26, 'หญิง')
+  ('07467', 'นางสาวนันทิยา ครูทำนา', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 27, 'หญิง')
+  ('07484', 'นายอนาวิน ผ่องกลาง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 28, 'หญิง')
+  ('07491', 'นายอนุวัฒน์ ยางคำ', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 29, 'หญิง')
+  ('07504', 'นายธีรภัทร ไผ่ไร่', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 30, 'หญิง')
+  ('07718', 'นางสาวฐิณัฐฎา ยิ่งแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 31, 'หญิง')
+  ('07956', 'นายนันทวัฒน์ เชื้ออิ่ม', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 32, 'หญิง')
+  ('08150', 'นางสาวลักษิกา ขานสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 33, 'หญิง')
+  ('08151', 'นางสาวเอมมิกา โพธิ์นอก', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 34, 'หญิง')
+  ('08152', 'นางสาวกัญชพร พูลภิรมย์', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 35, 'หญิง')
+  ('08153', 'นายรัชชานนท์ มารอด', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 36, 'หญิง')
+  ('08154', 'นายพีรพัฒน์ อยู่พนม', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 37, 'หญิง')
+  ('08155', 'นายยุทธพล ธรรมมานอก', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 38, 'หญิง')
+  ('08156', 'นางสาวชญารินทร์ เกี้ยวไธสง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 39, 'หญิง')
+  ('08157', 'นายอาทิตย์ อินทร์ม่วง', (SELECT id FROM classrooms WHERE room_name='ม.4/3'), 40, 'หญิง')
+  ('07172', 'นายภาณุพงศ์ จิตต์โต', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 1, 'หญิง')
+  ('07204', 'นายปิยะพงษ์ วินาสันตุ', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 2, 'หญิง')
+  ('07340', 'นายธนภัทร ชัยขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 3, 'หญิง')
+  ('07354', 'นางสาวธนพร กลัดทรัพย์', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 4, 'หญิง')
+  ('07377', 'นายคุณภัทร อยู่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 5, 'หญิง')
+  ('07383', 'นายธนวัชร์ ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 6, 'หญิง')
+  ('07388', 'นายวิทวัตร เกรียบขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 7, 'หญิง')
+  ('07392', 'นางสาวกันต์กมล ญาติรักษ์', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 8, 'หญิง')
+  ('07409', 'นายเจษฎา ศรีโนนยาง', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 9, 'หญิง')
+  ('07410', 'นายฉัตรมงคล วัดเทพ', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 10, 'หญิง')
+  ('07414', 'นายนัทพงษ์ สิงห์เหล็ก', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 11, 'หญิง')
+  ('07437', 'นางสาวศุภาดา สัญจรโคกสูง', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 12, 'หญิง')
+  ('07456', 'นายเศรษฐรัตน์ แก้วจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 13, 'หญิง')
+  ('07519', 'นางสาวปรารถนา ศิริชาติ', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 14, 'หญิง')
+  ('07571', 'นายจตุพร บัวแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 15, 'หญิง')
+  ('07680', 'นางสาวชนิกานต์ เหมือนคล้าย', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 16, 'หญิง')
+  ('07938', 'นายธนพนธ์ จรรยา', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 17, 'หญิง')
+  ('08158', 'นายศราวุฒิ มามาก', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 18, 'หญิง')
+  ('08159', 'นายสันติชัย มังจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 19, 'หญิง')
+  ('08160', 'นายเจตนิพัทธ์ มลิวรรณ', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 20, 'หญิง')
+  ('08161', 'นายเมธิญ มาตย์วิเศษ', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 21, 'หญิง')
+  ('08162', 'นายขวัญข้าว นิราราช', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 22, 'หญิง')
+  ('08163', 'นายจรูญวิทย์ อักษรนา', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 23, 'หญิง')
+  ('08164', 'นายพลาธิป แก้วยอดยาง', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 24, 'หญิง')
+  ('08165', 'นายชัยชนะ เพชรจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.4/4'), 25, 'หญิง')
+  ('07128', 'นายนนทพัทธ์ ยินขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 1, 'หญิง')
+  ('07142', 'นางสาวนภัสรา โพธิ์ชะนัง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 2, 'หญิง')
+  ('07147', 'นางสาวแพรไพลิน โพธิ์นอก', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 3, 'หญิง')
+  ('07149', 'นางสาวศิริพร  จำปาคำ', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 4, 'หญิง')
+  ('07151', 'นางสาวสิริยาภาณ์ มีสมบัติประเสริฐ', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 5, 'หญิง')
+  ('07162', 'นายณัฐวุฒิ  ทิมผุด', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 6, 'หญิง')
+  ('07171', 'นายพีรพัฒน์  สังวิบุตร', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 7, 'หญิง')
+  ('07178', 'นายอัคคเดช รอบแคว้น', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 8, 'หญิง')
+  ('07179', 'นายอินทวิชญ์ อินทรักษา', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 9, 'หญิง')
+  ('07181', 'นางสาวธนภรภัทร เนื้อทอง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 10, 'หญิง')
+  ('07184', 'นางสาวปิยะรักษ์ ล้ออุทัย', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 11, 'หญิง')
+  ('07186', 'นางสาวยุวดี  ม่วงพูล', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 12, 'หญิง')
+  ('07187', 'นางสาวศิริญญา แสนแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 13, 'หญิง')
+  ('07217', 'นางสาวจิณณพัต  เพียซ้าย', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 14, 'หญิง')
+  ('07223', 'นางสาวธิชานันท์ ทองวิเศษ', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 15, 'หญิง')
+  ('07226', 'นางสาวมลระพี บัวทอง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 16, 'หญิง')
+  ('07229', 'นางสาววฤทธิ์ษา จันทะดวง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 17, 'หญิง')
+  ('07231', 'นางสาวสุชานันท์  เท้าทอง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 18, 'หญิง')
+  ('07252', 'นายอาทิตย์ ภิรมย์ชม', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 19, 'หญิง')
+  ('07658', 'นางสาวชวัลลักษณ์ ละพิมาย', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 20, 'หญิง')
+  ('07889', 'นางสาวณัชชา ทันขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 21, 'หญิง')
+  ('07891', 'นายพุธกร  โคกสำโรง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 22, 'หญิง')
+  ('07892', 'นางสาวภานิภัทร เอกกลาง', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 23, 'หญิง')
+  ('07893', 'นางสาวมินตรา สวัสดิ์รักษา', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 24, 'หญิง')
+  ('07894', 'นางสาวยุภาภรณ์ กิ่งนอก', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 25, 'หญิง')
+  ('07895', 'นางสาววริศรา พรัมมา', (SELECT id FROM classrooms WHERE room_name='ม.5/1'), 26, 'หญิง')
+  ('07143', 'นางสาวพรพิมล ยาดี', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 1, 'หญิง')
+  ('07156', 'นางสาวดารากร สุเพ็ญ', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 2, 'หญิง')
+  ('07161', 'นายณัฐวร สุนุรัตน์', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 3, 'หญิง')
+  ('07182', 'นางสาวนิภาพร ปราบนอก', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 4, 'หญิง')
+  ('07215', 'นางสาวกัลยาณี  ไชยเชษฐ์', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 5, 'หญิง')
+  ('07218', 'นางสาวจิราภา ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 6, 'หญิง')
+  ('07220', 'นางสาวชลิตา รั่วไธสง', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 7, 'หญิง')
+  ('07224', 'นางสาวปฐมาวดี  แควภูเขียว', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 8, 'หญิง')
+  ('07259', 'นางสาวพิมพิศา วงค์คำจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 9, 'หญิง')
+  ('07897', 'นางสาวณัฐิดาภรณ์  พวงลำเจียก', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 10, 'หญิง')
+  ('07898', 'นางสาวทิพปภา สายทอง', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 11, 'หญิง')
+  ('07899', 'นางสาวทิพรดา สายทอง', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 12, 'หญิง')
+  ('07900', 'นางสาวนาราภัทร ชาติเผือก', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 13, 'หญิง')
+  ('07901', 'นางสาวนุชรินทร์ โขขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 14, 'หญิง')
+  ('07902', 'นางสาวพรพรรษา ไขขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 15, 'หญิง')
+  ('07903', 'นางสาวภัทรศญา ชื่นโชติ', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 16, 'หญิง')
+  ('07904', 'นายสิทธิเดช แก้วกัลยา', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 17, 'หญิง')
+  ('07905', 'นายสุกฤษฎิ์ โกสุมภ์', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 18, 'หญิง')
+  ('07906', 'นางสาวไอวรินทร์ เกี้ยวไธสง', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 19, 'หญิง')
+  ('07907', 'นางสาวอริสรา ดอนงัน', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 20, 'หญิง')
+  ('07934', 'นายธนพล  คมพุดซา', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 21, 'หญิง')
+  ('07948', 'นางสาวชุติมา  แสงจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 22, 'หญิง')
+  ('07953', 'นางสาวชนน์นิภา  สุขสำราญ', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 23, 'หญิง')
+  ('08167', 'นางสาวนิลาวรรณ  ปะมะคัง', (SELECT id FROM classrooms WHERE room_name='ม.5/2'), 24, 'หญิง')
+  ('07137', 'นางสาวกชพร เชาว์ขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 1, 'หญิง')
+  ('07138', 'นางสาวกุลณัฐธิดา นารี', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 2, 'หญิง')
+  ('07148', 'นางสาวภาสินี ศรีจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 3, 'หญิง')
+  ('07150', 'นางสาวสายน้ำ หาญโงน', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 4, 'หญิง')
+  ('07152', 'นางสาวสุชานันท์ พระจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 5, 'หญิง')
+  ('07176', 'นายอดิเทพ  จันทร์กลาง', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 6, 'หญิง')
+  ('07185', 'นางสาวพธิรา  คำแสนพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 7, 'หญิง')
+  ('07189', 'นางสาวศุภาพิช  โยธา', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 8, 'หญิง')
+  ('07201', 'นายธันวา ใจรักษา', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 9, 'หญิง')
+  ('07203', 'นายปรัชญา มูลอาษา', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 10, 'หญิง')
+  ('07205', 'นายพงษ์อนันท์ ตามสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 11, 'หญิง')
+  ('07254', 'นางสาวณัฐณิชา  ใจดีเย็น', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 12, 'หญิง')
+  ('07258', 'นางสาวพรสุดา  โหวดตะขบ', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 13, 'หญิง')
+  ('07261', 'นางสาววาสนา แยกจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 14, 'หญิง')
+  ('07908', 'นางสาวอันธิยา นวมโคกสูง', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 15, 'หญิง')
+  ('07909', 'นางสาวกัญญาณัฐ  พงพันนา', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 16, 'หญิง')
+  ('07910', 'นายกฤษณพงศ์  หอพิกลาง', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 17, 'หญิง')
+  ('07911', 'นางสาวจุฬาลักษณ์ มีเพชร์', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 18, 'หญิง')
+  ('07912', 'นางสาวชลดา  อินสุ่ม', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 19, 'หญิง')
+  ('07914', 'นายวงศกร  ชัยภูธร', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 20, 'หญิง')
+  ('07915', 'นางสาวสุธิดา  เย็นชัยภูมิ', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 21, 'หญิง')
+  ('07916', 'นายเกียรติดำรงค์  ประเสริฐกุล', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 22, 'หญิง')
+  ('07919', 'นางสาวธีราอร มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 23, 'หญิง')
+  ('07921', 'นางสาวพีรยา อาชีวพฤกษากิจ', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 24, 'หญิง')
+  ('07926', 'นางสาวอภิญญา หาญกล้า', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 25, 'หญิง')
+  ('07939', 'นางสาวพิยธิดา  พิพิธกุล', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 26, 'หญิง')
+  ('07940', 'นางสาวพัชริญา  ศิริอาสน์', (SELECT id FROM classrooms WHERE room_name='ม.5/3'), 27, 'หญิง')
+  ('07130', 'นายเปรมณัฐ ธุยวัตร', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 1, 'หญิง')
+  ('07131', 'นายพงศ์ศุลี  พระจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 2, 'หญิง')
+  ('07135', 'นายศุภกรณ์ พานขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 3, 'หญิง')
+  ('07144', 'นางสาวพสิกา มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 4, 'หญิง')
+  ('07157', 'นายกฤฎาพร  ภู่จุ้ย', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 5, 'หญิง')
+  ('07160', 'นายณภัทร ตระกูลศิลา', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 6, 'หญิง')
+  ('07163', 'นายทัศน์เทพ สุระภี', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 7, 'หญิง')
+  ('07170', 'นายพิสิษฐ์ ใจยุติธรรม', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 8, 'หญิง')
+  ('07175', 'นายหาญชนะ ศรีพุต', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 9, 'หญิง')
+  ('07192', 'นางสาวอธิญา  มะโนมัย', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 10, 'หญิง')
+  ('07200', 'นายตะวัน กันเม่น', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 11, 'หญิง')
+  ('07208', 'นายวรวิทย์  รุ่งเรือง', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 12, 'หญิง')
+  ('07210', 'นายอนุพัฒน์  คุ้มสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 13, 'หญิง')
+  ('07211', 'นายอาดิเทพ  ดวงอินทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 14, 'หญิง')
+  ('07214', 'นางสาวกัญญ์ณัชชา กือสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 15, 'หญิง')
+  ('07228', 'นางสาววราภรณ์  เซ็นปักธงชัย', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 16, 'หญิง')
+  ('07232', 'นายปัณณทัต  จันทร์นพคุณ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 17, 'หญิง')
+  ('07234', 'นายจีรศักดิ์  เนาขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 18, 'หญิง')
+  ('07237', 'นายธนากร  รานอก', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 19, 'หญิง')
+  ('07238', 'นายธนิสร  เหลืองอร่าม', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 20, 'หญิง')
+  ('07240', 'นายพิชญะ จันทะดวง', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 21, 'หญิง')
+  ('07242', 'นายมงคล โคตรสมบัติ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 22, 'หญิง')
+  ('07245', 'นายวรวิทย์  จงใจรัก', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 23, 'หญิง')
+  ('07248', 'นายสถาปนิก อุ่นสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 24, 'หญิง')
+  ('07266', 'นางสาวหงส์ฟ้า กุหลาบศรี', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 25, 'หญิง')
+  ('07292', 'นางสาวณิชาพัชร์ เทียนทองดี', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 26, 'หญิง')
+  ('07593', 'นางสาวเพชราภรณ์ มีชำนาญ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 27, 'หญิง')
+  ('07479', 'นางสาวฐานิกา  ธรรมวิเศษ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 28, 'หญิง')
+  ('07917', 'นายกนกพล อินทะนนท์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 29, 'หญิง')
+  ('07918', 'นางสาวกวีนันท์ มีเพชร', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 30, 'หญิง')
+  ('07922', 'นายรพีภัทร วงศ์จันทร์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 31, 'หญิง')
+  ('07924', 'นายศิรศักดิ์ นนทะสิงห์', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 32, 'หญิง')
+  ('07931', 'นายธนากรณ์  ยศจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 33, 'หญิง')
+  ('07291', 'นายกิตติพงศ์  สิงห์คำ', (SELECT id FROM classrooms WHERE room_name='ม.5/4'), 34, 'หญิง')
+  ('06864', 'นายกฤษฎา บีกขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 1, 'หญิง')
+  ('06871', 'นายณัฐกานต์ หมอนพังเทียม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 2, 'หญิง')
+  ('06874', 'นายตะวัน สาระคาม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 3, 'หญิง')
+  ('06875', 'นายธนภัทร ลิยี่เก', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 4, 'หญิง')
+  ('06877', 'นายปริญญา เทียบประทุม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 5, 'หญิง')
+  ('06883', 'น.ส.กัญญ์วรา มาละอินทร์', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 6, 'หญิง')
+  ('06885', 'น.ส.ณภัสวรรณ สิงหะนาม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 7, 'หญิง')
+  ('06887', 'น.ส.ธนกาญจน์ ธนกิตตินันท์', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 8, 'หญิง')
+  ('06888', 'น.ส.ธีราภรณ์ เฉลียวฉลาด', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 9, 'หญิง')
+  ('06895', 'น.ส.วรวรรณ สาระคาม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 10, 'หญิง')
+  ('06900', 'นายณัฐภัทร บุญเทา', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 11, 'หญิง')
+  ('06904', 'นายธาวิน อุไรวรณ์', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 12, 'หญิง')
+  ('06905', 'นายนบดินทร์ ศรีระทัต', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 13, 'หญิง')
+  ('06906', 'นายพรพิพัฒน์ ทุตา', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 14, 'หญิง')
+  ('06913', 'นายอัคเรศ เพียรประจำ', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 15, 'หญิง')
+  ('06921', 'น.ส.ประนิตา อยู่ลอง', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 16, 'หญิง')
+  ('06922', 'น.ส.ปวันรัตน์ ทานบำเพ็ญ', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 17, 'หญิง')
+  ('06924', 'น.ส.พรรวินท์ จีนคง', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 18, 'หญิง')
+  ('06932', 'นายกฤษฎา เทอมสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 19, 'หญิง')
+  ('06945', 'นายวีรพล เสิงขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 20, 'หญิง')
+  ('06952', 'น.ส.ณัฐณิชา บุ้มกระโทก', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 21, 'หญิง')
+  ('06965', 'น.ส.อุษณีร์ ย้ายถิ่น', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 22, 'หญิง')
+  ('06974', 'นายปฐวี ชัยธรรมวงศ์', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 23, 'หญิง')
+  ('06993', 'น.ส.พิมพ์รัตน์ดา ประภาสโนบล', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 24, 'หญิง')
+  ('07272', 'นายธรรมนูญ เพลงสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 25, 'หญิง')
+  ('07522', 'นายป่านคม ทับทิม', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 26, 'หญิง')
+  ('07524', 'น.ส.รันนิดา มากเขียนไป', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 27, 'หญิง')
+  ('07525', 'น.ส.สิรัญญา แอบอุ่น', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 28, 'หญิง')
+  ('07526', 'น.ส.สุชาฎา แนมขุนทด', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 29, 'หญิง')
+  ('07527', 'น.ส.สุทธิดา ปัตกาลี', (SELECT id FROM classrooms WHERE room_name='ม.6/1'), 30, 'หญิง')
+  ('06865', 'นายจินลพันธ์ อุ่นสวัสดิ์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 1, 'หญิง')
+  ('06869', 'นายชนะศิลป์ พัวพัน', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 2, 'หญิง')
+  ('06876', 'นายนิติกร โพธิ์แก้ว', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 3, 'หญิง')
+  ('06893', 'น.ส.รัตนาภรณ์ ระหาญนอก', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 4, 'หญิง')
+  ('06899', 'นายณัฐณภณต์ โพธิ์หนองคูณ', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 5, 'หญิง')
+  ('06941', 'นายพีรพัฒ ปัญญาแก้ว', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 6, 'หญิง')
+  ('06949', 'น.ส.กนกพร พิผ่วนนอก', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 7, 'หญิง')
+  ('06951', 'นางสาวณัฐชา ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 8, 'หญิง')
+  ('06954', 'น.ส.บุญญิสา สงรัมย์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 9, 'หญิง')
+  ('06956', 'น.ส.พัณณิตา ยี่จัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 10, 'หญิง')
+  ('06957', 'น.ส.พีรณัฐ พิมพ์รัมย์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 11, 'หญิง')
+  ('06960', 'น.ส.สิรินทรา สิริสาขา', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 12, 'หญิง')
+  ('06963', 'น.ส.สุวรรณา พิมอินทร์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 13, 'หญิง')
+  ('06966', 'นายจิรายุ กล้ามสันเทียะ', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 14, 'หญิง')
+  ('06991', 'น.ส.ปัญฑิตา กอแห้วกลาง', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 15, 'หญิง')
+  ('06992', 'น.ส.พิชญาภา ญาดี', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 16, 'หญิง')
+  ('07274', 'น.ส.ณัฐชา ตุ้มแสงทอง', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 17, 'หญิง')
+  ('07531', 'นางสาวธนกรร ทะเลดอน', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 18, 'หญิง')
+  ('07534', 'นายวรวุฒิ วิถี', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 19, 'หญิง')
+  ('07535', 'นายสุเมธ ประจันบาล', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 20, 'หญิง')
+  ('07536', 'นายอิศรา ภายไธสง', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 21, 'หญิง')
+  ('07537', 'น.ส.กนกวรรณ ริมหนองเรือ', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 22, 'หญิง')
+  ('07538', 'น.ส.ธนิษฐา แย้มประดิษฐ์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 23, 'หญิง')
+  ('07540', 'น.ส.ฐิติพร ภูมิสนิท', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 24, 'หญิง')
+  ('07541', 'น.ส.พรทิพา เอกกลาง', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 25, 'หญิง')
+  ('07542', 'น.ส.พิยดา พิพิธกุล', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 26, 'หญิง')
+  ('07549', 'น.ส.วราภรณ์ ยิ้มจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 27, 'หญิง')
+  ('07685', 'นายพีรวิชญ์ เจริญศิลป์', (SELECT id FROM classrooms WHERE room_name='ม.6/2'), 28, 'หญิง')
+  ('06770', 'นายปัญญากร ผากูล', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 1, 'หญิง')
+  ('06884', 'น.ส.ณปภัสร์ สานุสันต์', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 2, 'หญิง')
+  ('06889', 'น.ส.นิตยา จันทร์เมฆา', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 3, 'หญิง')
+  ('06890', 'น.ส.ปพิชญา ชัยพิทักษ์', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 4, 'หญิง')
+  ('06896', 'น.ส.ศรัญญา กาจกระโทก', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 5, 'หญิง')
+  ('06897', 'น.ส.สลิลทิพย์ อัตถากร', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 6, 'หญิง')
+  ('06907', 'นายพัชรพล สุขากาศ', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 7, 'หญิง')
+  ('06910', 'นายรัฐศาสตร์ แสวงชัย', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 8, 'หญิง')
+  ('06911', 'นายศุกลวรรธ อาบสุวรรณ์', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 9, 'หญิง')
+  ('06914', 'นายอุดมศักดิ์ อุ่นสูงเนิน', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 10, 'หญิง')
+  ('06930', 'น.ส.อภัสรา เหลาชัย', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 11, 'หญิง')
+  ('06940', 'นายธนกฤต ตึกสันโดด', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 12, 'หญิง')
+  ('06942', 'นายภัทรพงษ์ โพธิ์นอก', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 13, 'หญิง')
+  ('06946', 'นายอนุพงษ์ อินทะกูล', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 14, 'หญิง')
+  ('06947', 'นายอนุวัชร อินทะกูล', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 15, 'หญิง')
+  ('06959', 'น.ส.สายธาร แสนธิมุง', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 16, 'หญิง')
+  ('06982', 'นายศิวกร บุราคร', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 17, 'หญิง')
+  ('06989', 'น.ส.นัทภัทร จันทร์สุข', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 18, 'หญิง')
+  ('06990', 'น.ส.ปทิตตา จันทร์ทาน', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 19, 'หญิง')
+  ('06997', 'น.ส.สุพรธิตา โบราณผาย', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 20, 'หญิง')
+  ('07066', 'น.ส.แพรวา หันอาสา', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 21, 'หญิง')
+  ('07539', 'น.ส.จตุพัตรน์ เป้าไธสงค์', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 22, 'หญิง')
+  ('07544', 'นายนพัฒน์ คณาโจด', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 23, 'หญิง')
+  ('07545', 'นายภาคิน ยศจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 24, 'หญิง')
+  ('07548', 'น.ส.มีนา เลพันดุง', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 25, 'หญิง')
+  ('07550', 'น.ส.เสาวภา จันทร์จอหอ', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 26, 'หญิง')
+  ('07551', 'น.ส.สิริวิมลรัตน์ บำรุงนา', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 27, 'หญิง')
+  ('07941', 'นางสาวกัญญานี บุญจริง', (SELECT id FROM classrooms WHERE room_name='ม.6/3'), 28, 'หญิง')
+  ('06868', 'นายชนะภัย พัวพัน', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 1, 'หญิง')
+  ('06870', 'นายชวัลกร สุขปราบ', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 2, 'หญิง')
+  ('06880', 'นายสตางค์ ไปปอด', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 3, 'หญิง')
+  ('06898', 'น.ส.อภิชญา ฆ้องนอก', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 4, 'หญิง')
+  ('06903', 'นายธนพล แถวเพชร', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 5, 'หญิง')
+  ('06926', 'น.ส.เยาวรัตน์ คำพิลา', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 6, 'หญิง')
+  ('06931', 'นายกฤษฎ์ ปลอดกระโทก', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 7, 'หญิง')
+  ('06936', 'นายณัฐกิตติ์ วงค์เวียน', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 8, 'หญิง')
+  ('06937', 'นายณัฐพงษ์ แสงจันทร์', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 9, 'หญิง')
+  ('06943', 'นายรัฐศาสตร์ กลางจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 10, 'หญิง')
+  ('06944', 'นายรัตติกาล ทรัพย์ธรรมชาติ', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 11, 'หญิง')
+  ('06975', 'นายภัทรพล จุมพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 12, 'หญิง')
+  ('06980', 'นายศราวุธ ญาติดีพันธ์', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 13, 'หญิง')
+  ('06983', 'นายสุรศักดิ์ จันทีนอก', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 14, 'หญิง')
+  ('06996', 'น.ส.ศิรินภา ศรีคูณ', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 15, 'หญิง')
+  ('07000', 'น.ส.อารียา ศรศักดา', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 16, 'หญิง')
+  ('07069', 'นายธนพล จันทร์หอม', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 17, 'หญิง')
+  ('07553', 'นายภาคภูมิ โพธิเกตุ', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 18, 'หญิง')
+  ('07556', 'น.ส.หรรษธร ปัจจัยตา', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 19, 'หญิง')
+  ('07557', 'นายบารมี หาญณรงค์', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 20, 'หญิง')
+  ('07558', 'นายธนพล วันสีดา', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 21, 'หญิง')
+  ('07723', 'นายจีรพงษ์ มดจัตุรัส', (SELECT id FROM classrooms WHERE room_name='ม.6/4'), 22, 'หญิง');

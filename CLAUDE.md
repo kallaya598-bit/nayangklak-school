@@ -113,16 +113,34 @@ fetch(SB + '/rest/v1/students?select=id&classroom_id=eq.5', {
 - Dashboard แสดงสถิติ
 - UI ธีมฟ้าขาว ใช้งานบน iPhone ได้
 - Deploy บน GitHub Pages
+- **โมดูลระบบจัดการการสอนครู (เพิ่มใหม่):**
+  - เลือก/ค้นหารายวิชาที่สอน (รหัส/ชื่อ/ระดับชั้น/กลุ่มสาระ) + เพิ่มรายวิชาใหม่
+  - จัดการรายวิชาที่สอน: สร้างกลุ่มเรียน, เพิ่ม/ลบนักเรียน (enrollments), เชิญครูร่วม, ลบกลุ่ม
+  - ตารางสอนแก้ไขได้ (คลิกช่อง→กำหนดคาบ, สีตามวิชา, คลิก→เช็คชื่อ)
+  - เช็คชื่อรายวิชา ผูก enrollments + คาบ + วันที่ (มา/ขาด/สาย/ลา + เช็คทั้งหมด)
+  - คะแนนรายวิชา: ตั้งโครงสร้างคะแนนเอง, เกรด 0–4 อัตโนมัติ, สรุป GPA/การกระจายเกรด
+  - รายงาน ปพ.5 (PDF ภาษาไทย ผ่าน html2canvas, แนวนอน) + Export Excel (CSV UTF-8 BOM)
+  - **รายงานเวลาเรียนรายวิชา** (pgSubjAttReport): ตารางรายครั้งทั้งภาคเรียน (ลบรายคาบได้) + สรุป % รายคน · พิมพ์ (window ใหม่ ฟอนต์จริง) + Excel
+  - **รายงานเวลาเรียนรายห้อง** (pgRoomAttReport): เลือกห้อง+วัน → ตอนเข้า/ทุกคาบ/ตอนเย็น ของทั้งห้อง (ข้อมูลจาก subject_attendance + morning/afternoon) · พิมพ์ + Excel
+
+## ⚠️ ต้องทำก่อนใช้โมดูลการสอน
+รัน `teaching_module.sql` ใน Supabase SQL Editor ก่อน (สร้างตาราง teaching_assignments,
+enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_structures
++ INSERT วิชาตัวอย่าง) — ตอนนี้ตารางยังไม่ถูกสร้าง (API จะ 404 จนกว่าจะรัน SQL)
+
+## ตารางใหม่ (จาก teaching_module.sql)
+| ตาราง | รายละเอียด |
+|-------|-----------|
+| `teaching_assignments` | กลุ่มเรียนรายวิชา (วิชา+ห้อง+ครู+กลุ่มที่) |
+| `enrollments` | นักเรียนที่ลงทะเบียนแต่ละกลุ่มเรียน |
+| `assignment_teachers` | ครูร่วมสอน/คำเชิญ |
+| (ALTER) | timetable.assignment_id, subject_attendance.assignment_id+period, grade_structures.assignment_id |
 
 ## สิ่งที่ยังค้างอยู่ ⏳
-- [ ] บันทึกความดี (UI ยังไม่ perfect)
-- [ ] บันทึกพฤติกรรม (UI ยังไม่ perfect)
-- [ ] คะแนนสุทธิ (ความดีหักลบพฤติกรรม)
-- [ ] คะแนนรายวิชา
-- [ ] ตารางสอน
-- [ ] PDF รายงาน ภาษาไทย (ใช้ html2canvas)
+- [ ] รัน teaching_module.sql บน Supabase + ทดสอบ end-to-end กับข้อมูลจริง
+- [ ] Deploy index.html เวอร์ชันใหม่ขึ้น GitHub Pages
 - [ ] Admin Panel เต็มรูปแบบ
-- [ ] ยังไม่มีข้อมูลรายวิชา (subjects table ว่าง)
+- [ ] รายงานเช็คชื่อรายวิชา รายเดือน/% (ตอนนี้มีเฉพาะเสาธง/เย็น)
 
 ## กฎการแก้ไขโค้ด (สำคัญมาก)
 1. **ห้ามเขียนระบบใหม่ทั้งหมด** — ต่อยอดจากโค้ดเดิมเสมอ
