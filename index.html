@@ -2130,6 +2130,7 @@ function subjColor(id){
 
 // โหลดกลุ่มเรียนของครู (teaching_assignments) — ใช้ร่วมหลายหน้า
 async function loadMyAssigns(force){
+  if(!G.myAssigns)G.myAssigns=[];
   if(G.myAssigns.length&&!force)return G.myAssigns;
   var d=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&select=id,subject_id,classroom_id,group_no,semester,year,attendance_mode,subjects(subject_code,subject_name),classrooms(room_name)&order=subject_id,group_no');
   G.myAssigns=d||[];
@@ -3665,7 +3666,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(function(n){
 
 // LOGOUT
 document.getElementById('logoutBtn').addEventListener('click',function(){
-  G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null};
+  G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[]};
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
   document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='🔐 เข้าสู่ระบบ';
   document.getElementById('app').style.display='none';document.getElementById('loginPage').style.display='flex';
