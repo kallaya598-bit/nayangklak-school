@@ -1334,7 +1334,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
     <div class="modal-head">🔄 เปลี่ยนครูผู้สอน <button class="modal-close" onclick="closeModal('modalReassign')">✕</button></div>
     <div id="raInfo" style="background:var(--bluel);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-weight:700;color:var(--blue);"></div>
     <div class="form-group"><label class="form-label">เลือกครูผู้สอนคนใหม่ (เจ้าของกลุ่ม)</label><select class="form-control" id="raTeacher"></select></div>
-    <div style="background:var(--greenl);border:1px solid #a5d6a7;border-radius:8px;padding:8px 10px;font-size:12px;color:var(--green);">✅ ข้อมูลเช็คชื่อ คะแนน และรายชื่อนักเรียนทั้งหมดจะโอนไปยังครูคนใหม่อัตโนมัติ (เพราะผูกกับกลุ่มเรียน ไม่ใช่ตัวครู)</div>
+    <div style="background:var(--greenl);border:1px solid #a5d6a7;border-radius:8px;padding:8px 10px;font-size:12px;color:var(--green);">✅ เช็คชื่อ + คะแนน + รายชื่อนักเรียนเดิม โอนไปครูใหม่ครบ (ผูกกับกลุ่มเรียน ไม่ใช่ตัวครู)<br>📅 คาบสอนเดิมจะถูกล้าง — <b>ครูใหม่ไปจัดคาบเอง</b>ที่เมนู "จัดการตารางสอน" (เลือกกลุ่มนี้จากช่องว่าง +)</div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalReassign')">ยกเลิก</button><button class="btn btn-green" onclick="saveReassign()">💾 ยืนยันโอน</button></div>
   </div>
 </div>
@@ -3702,9 +3702,9 @@ async function saveReassign(){
   if(!tid){toast('เลือกครู','err');return;}
   try{
     await api('/rest/v1/teaching_assignments?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({teacher_id:tid})});
-    // โอนตารางสอนของกลุ่มนี้ไปครูใหม่ด้วย
-    await api('/rest/v1/timetable?assignment_id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({teacher_id:tid})});
-    toast('✅ โอนรายวิชาให้ครูใหม่แล้ว — ข้อมูลเช็คชื่อ/คะแนนเดิมครบ');
+    // ลบคาบเดิมออกจากตารางครูเก่า (ครูใหม่ไปจัดคาบเองในตารางสอน)
+    await api('/rest/v1/timetable?assignment_id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    toast('✅ โอนแล้ว — เช็คชื่อ/คะแนนเดิมครบ · ครูใหม่ไปจัดคาบสอนเองในเมนู "จัดการตารางสอน"');
     closeModal('modalReassign');admAssignments();
   }catch(e){toast('❌ '+e.message,'err');}
 }
