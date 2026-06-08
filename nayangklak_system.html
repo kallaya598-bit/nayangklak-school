@@ -310,6 +310,21 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
 #grContent thead .cNo,#grContent thead .cName{background:var(--blue);}
 #grContent tbody tr:hover .cNo,#grContent tbody tr:hover .cName{background:var(--bluel);}
 @media(max-width:600px){#grContent input[type=number]{width:30px!important;}#grContent .cName{max-width:78px;}}
+
+/* ===== ตารางเช็คชื่อแบบเรดิโอ (ใช้ร่วมทุกหน้าเช็คชื่อ) ===== */
+.att-grid{width:100%;border-collapse:collapse;font-size:13px;background:#fff;}
+.att-grid th,.att-grid td{border:1px solid var(--border);padding:5px 4px;text-align:center;vertical-align:middle;}
+.att-grid thead th{background:var(--blue);color:#fff;position:sticky;top:54px;z-index:3;}
+.att-grid th.l,.att-grid td.l{text-align:left;}
+.att-grid .agNo{width:32px;}
+.att-grid .agName{min-width:120px;}
+.att-grid tbody td.l{font-weight:600;color:var(--text);line-height:1.15;}
+.att-grid .ag-no{font-size:10.5px;color:var(--text3);font-weight:400;}
+.att-grid thead input[type=checkbox]{width:18px;height:18px;cursor:pointer;}
+.ag-radio{display:inline-block;width:23px;height:23px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
+.ag-radio:hover{border-color:var(--c);transform:scale(1.1);}
+.ag-radio.on{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 3px #fff;}
+@media(max-width:560px){.att-grid{font-size:12px;}.att-grid th,.att-grid td{padding:4px 2px;}.att-grid .agName{min-width:90px;}.ag-radio{width:21px;height:21px;}.att-grid thead th{top:0;}}
 </style>
 </head>
 <body>
@@ -1523,81 +1538,57 @@ async function loadEvening(){
   }catch(e){document.getElementById('eaList').innerHTML='<div class="loading" style="color:var(--red);">โหลดไม่สำเร็จ</div>';}
 }
 
+// ================= ATT GRID (ตารางเช็คชื่อแบบเรดิโอ ใช้ร่วมทุกหน้า) =================
+var ATTGRID={};
+var ATT_DEFS={
+  morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#e8f5e9'},{k:'late',label:'สาย',c:'#e65100',bg:'#fff3e0'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'leave',label:'ลา',c:'#00695c',bg:'#e0f2f1'}],
+  evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#e8f5e9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#e0f2f1'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'special_leave',label:'พิเศษ',c:'#6a1b9a',bg:'#f3e5f5'}],
+  subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#e8f5e9'},{k:'late',label:'สาย',c:'#e65100',bg:'#fff3e0'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'leave',label:'ลา',c:'#00695c',bg:'#e0f2f1'}]
+};
+function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap){
+  ATTGRID[gridId]={elId:elId,students:students,att:att,type:type,statsFn:statsFn,entryMap:entryMap};
+  var defs=ATT_DEFS[type],el=document.getElementById(elId);
+  if(statsFn)statsFn();
+  if(!students.length){el.innerHTML='<div class="loading">ไม่พบนักเรียน</div>';return;}
+  var hasEntry=!!entryMap;
+  var allChk=defs.map(function(d){return students.length>0&&students.every(function(s){return att[s.id]&&att[s.id].status===d.k;});});
+  var h='<div style="overflow-x:auto;padding-bottom:70px;"><table class="att-grid"><thead><tr><th class="agNo">ที่</th><th class="agName l">ชื่อ-สกุล</th>'+(hasEntry?'<th>ตอนเข้า</th>':'')+
+    defs.map(function(d,di){return '<th><div style="margin-bottom:3px;">'+d.label+'</div><input type="checkbox" '+(allChk[di]?'checked':'')+' title="เลือก'+d.label+'ทั้งหมด" onclick="attGridMarkAll(\''+gridId+'\',\''+d.k+'\',this.checked)"></th>';}).join('')+'</tr></thead><tbody>';
+  students.forEach(function(s,i){
+    var cur=att[s.id]&&att[s.id].status,def=null;defs.forEach(function(d){if(d.k===cur)def=d;});
+    h+='<tr style="background:'+(def?def.bg:'#fff')+';">'+
+      '<td class="agNo">'+(s.order_no||i+1)+'</td>'+
+      '<td class="agName l">'+s.fullname+'<div class="ag-no">'+(s.student_code||'')+'</div></td>'+
+      (hasEntry?'<td>'+(entryMap[s.id]?attSym(entryMap[s.id]):'-')+'</td>':'')+
+      defs.map(function(d){return '<td><span class="ag-radio'+(cur===d.k?' on':'')+'" style="--c:'+d.c+';" onclick="attGridSet(\''+gridId+'\','+s.id+',\''+d.k+'\')"></span></td>';}).join('')+
+    '</tr>';
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+function attGridSet(gridId,sid,k){var g=ATTGRID[gridId];if(!g.att[sid])g.att[sid]={};g.att[sid].status=(g.att[sid].status===k?'':k);buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap);}
+function attGridMarkAll(gridId,k,checked){var g=ATTGRID[gridId];g.students.forEach(function(s){if(!g.att[s.id])g.att[s.id]={};if(checked)g.att[s.id].status=k;else if(g.att[s.id].status===k)g.att[s.id].status='';});buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap);}
+
 function renderEveningAtt(list){
-  var el=document.getElementById('eaList');
-  if(!list.length){el.innerHTML='<div class="loading">ไม่พบนักเรียน</div>';return;}
-  var p=0,gone=0,ab=0;
-  list.forEach(function(s){var st=G.eveningAtt[s.id]&&G.eveningAtt[s.id].status;if(st==='present')p++;else if(st==='gone_home')gone++;else if(st)ab++;});
-  document.getElementById('eaAll').textContent=list.length;
-  document.getElementById('eaP').textContent=p;
-  document.getElementById('eaL').textContent=gone;
-  document.getElementById('eaA').textContent=ab;
-  el.innerHTML=list.map(function(s,i){
-    var av=AV[i%AV.length].split('|');
-    var a=G.eveningAtt[s.id]||{status:'',remark:''};
-    var init=s.fullname.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('');
-    return '<div class="stu-item">'+
-      '<div class="flex gap8 mb8"><div class="stu-avatar" style="background:'+av[0]+';color:'+av[1]+';">'+init+'</div>'+
-      '<div class="stu-name">'+s.fullname+'<div class="stu-no">เลขที่ '+s.order_no+' · '+s.student_code+'</div></div></div>'+
-      '<div class="status-btns">'+
-      '<button class="stbtn stbtn-p'+(a.status==='present'?' active':'')+'" onclick="setEveAtt('+s.id+',\'present\',this)">อยู่ครบ</button>'+
-      '<button class="stbtn stbtn-lv'+(a.status==='gone_home'?' active':'')+'" onclick="setEveAtt('+s.id+',\'gone_home\',this)">กลับบ้าน</button>'+
-      '<button class="stbtn stbtn-l'+(a.status==='absent'?' active':'')+'" onclick="setEveAtt('+s.id+',\'absent\',this)">ขาด</button>'+
-      '<button class="stbtn stbtn-a'+(a.status==='special_leave'?' active':'')+'" onclick="setEveAtt('+s.id+',\'special_leave\',this)">พิเศษ</button>'+
-      '</div></div>';
-  }).join('');
+  buildAttGrid('evening','eaList',list,G.eveningAtt,'evening',function(){
+    var p=0,gh=0,o=0;list.forEach(function(s){var st=G.eveningAtt[s.id]&&G.eveningAtt[s.id].status;if(st==='present')p++;else if(st==='gone_home')gh++;else if(st==='absent'||st==='special_leave')o++;});
+    setTxt('eaAll',list.length);setTxt('eaP',p);setTxt('eaL',gh);setTxt('eaA',o);
+  });
 }
+function setEveAtt(sid,status){if(!G.eveningAtt[sid])G.eveningAtt[sid]={};G.eveningAtt[sid].status=status;renderEveningAtt(G.students);}
 
-function setEveAtt(sid,status,btn){
-  btn.closest('.stu-item').querySelectorAll('.stbtn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  G.eveningAtt[sid]=G.eveningAtt[sid]||{};G.eveningAtt[sid].status=status;
-  var p=0,gone=0,ab=0;
-  G.students.forEach(function(s){var st=G.eveningAtt[s.id]&&G.eveningAtt[s.id].status;if(st==='present')p++;else if(st==='gone_home')gone++;else if(st)ab++;});
-  document.getElementById('eaP').textContent=p;document.getElementById('eaL').textContent=gone;document.getElementById('eaA').textContent=ab;
-}
-
-// RENDER GENERIC ATT
+// RENDER MORNING (ใช้ grid กลาง)
 function renderAtt(elId,list,attObj,type){
-  var el=document.getElementById(elId);
-  if(!list.length){el.innerHTML='<div class="loading">ไม่พบนักเรียน</div>';return;}
-  var present=0,absent=0,latleave=0;
-  list.forEach(function(s){var st=attObj[s.id]&&attObj[s.id].status;if(st==='present')present++;else if(st==='absent')absent++;else if(st==='late'||st==='leave')latleave++;});
-  var allId=type==='morning'?'maAll':'saAll',pId=type==='morning'?'maP':'saP',lId=type==='morning'?'maL':'saL',aId=type==='morning'?'maA':'saA';
-  document.getElementById(allId)&&(document.getElementById(allId).textContent=list.length);
-  document.getElementById(pId)&&(document.getElementById(pId).textContent=present); // มาเรียน
-  document.getElementById(lId)&&(document.getElementById(lId).textContent=absent);  // ขาด
-  document.getElementById(aId)&&(document.getElementById(aId).textContent=latleave);// ลา/สาย
-  el.innerHTML=list.map(function(s,i){
-    var av=AV[i%AV.length].split('|');
-    var a=attObj[s.id]||{status:'',remark:''};
-    var init=s.fullname.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('');
-    return '<div class="stu-item">'+
-      '<div class="flex gap8 mb8"><div class="stu-avatar" style="background:'+av[0]+';color:'+av[1]+';">'+init+'</div>'+
-      '<div class="stu-name">'+s.fullname+'<div class="stu-no">เลขที่ '+s.order_no+' · '+s.student_code+'</div></div></div>'+
-      '<div class="status-btns">'+
-      '<button class="stbtn stbtn-p'+(a.status==='present'?' active':'')+'" onclick="setAttStatus('+s.id+',\'present\',this,\''+type+'\')">มาเรียน</button>'+
-      '<button class="stbtn stbtn-l'+(a.status==='absent'?' active':'')+'" onclick="setAttStatus('+s.id+',\'absent\',this,\''+type+'\')">ขาด</button>'+
-      '<button class="stbtn stbtn-a'+(a.status==='late'?' active':'')+'" onclick="setAttStatus('+s.id+',\'late\',this,\''+type+'\')">สาย</button>'+
-      '<button class="stbtn stbtn-lv'+(a.status==='leave'?' active':'')+'" onclick="setAttStatus('+s.id+',\'leave\',this,\''+type+'\')">ลา</button>'+
-      '</div>'+
-      '<textarea class="stu-note" placeholder="หมายเหตุ..." onchange="setAttRemark('+s.id+',this.value,\''+type+'\')" rows="1">'+a.remark+'</textarea>'+
-    '</div>';
-  }).join('');
+  buildAttGrid('morning',elId,list,attObj,'morning',function(){
+    var p=0,ab=0,ll=0;list.forEach(function(s){var st=attObj[s.id]&&attObj[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
+    setTxt('maAll',list.length);setTxt('maP',p);setTxt('maL',ab);setTxt('maA',ll);
+  });
 }
-
-function setAttStatus(sid,status,btn,type){
-  btn.closest('.stu-item').querySelectorAll('.stbtn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-  var obj=type==='morning'?G.att:G.eveningAtt;
-  if(!obj[sid])obj[sid]={};obj[sid].status=status;
-  updateAttCount(type);
-}
-function setAttRemark(sid,val,type){var obj=G.att;if(!obj[sid])obj[sid]={};obj[sid].remark=val;}
-function updateAttCount(type){
-  var present=0,absent=0,latleave=0;
-  G.students.forEach(function(s){var st=G.att[s.id]&&G.att[s.id].status;if(st==='present')present++;else if(st==='absent')absent++;else if(st==='late'||st==='leave')latleave++;});
-  if(type==='morning'){document.getElementById('maP').textContent=present;document.getElementById('maL').textContent=absent;document.getElementById('maA').textContent=latleave;}
-}
+// stubs เผื่อโค้ดเดิมเรียก
+function setAttStatus(sid,status,btn,type){var o=type==='morning'?G.att:G.eveningAtt;if(!o[sid])o[sid]={};o[sid].status=status;}
+function setAttRemark(sid,val){if(!G.att[sid])G.att[sid]={};G.att[sid].remark=val;}
+function updateAttCount(){}
 
 // MARK ALL
 function markAllAs(status){G.students.forEach(function(s){G.att[s.id]={status:status,remark:G.att[s.id]?G.att[s.id].remark||'':''};});renderAtt('maList',G.students,G.att,'morning');}
@@ -1640,7 +1631,7 @@ document.getElementById('eaBtnSave').addEventListener('click',async function(){
 
 // ===== SUBJECT ATT =====
 // ===== เช็คชื่อรายวิชา (ผูกกลุ่มเรียน + คาบ) =====
-var SA={stus:[],att:{}};
+var SA={stus:[],att:{},entry:{}};
 
 // โหลดนักเรียนที่ลงทะเบียนในกลุ่มเรียน
 async function loadEnrolledStudents(assignId){
@@ -1668,12 +1659,14 @@ async function loadSubjectStudents(){
   document.getElementById('saList').innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
     var stus=await loadEnrolledStudents(assignId);
-    SA.stus=stus;SA.att={};
+    SA.stus=stus;SA.att={};SA.entry={};
     if(!stus.length){hide();document.getElementById('saList').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่หน้า "จัดการรายวิชา"</div>';return;}
     if(dt){
       var ids=stus.map(function(s){return s.id;}).join(',');
       var ad=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&att_date=eq.'+dt+'&period=eq.'+period+'&student_id=in.('+ids+')&select=student_id,status');
       (ad||[]).forEach(function(a){SA.att[a.student_id]={status:a.status};});
+      // ตอนเข้า (เสาธงเช้า) ใช้เป็นข้อมูลอ้างอิง
+      try{var ma=await api('/rest/v1/morning_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status');(ma||[]).forEach(function(a){SA.entry[a.student_id]=a.status;});}catch(e){}
     }
     document.getElementById('saStats').style.display='';
     document.getElementById('saBulk').style.display='flex';
@@ -1689,27 +1682,10 @@ async function loadSubjectStudents(){
 }
 
 function renderSubjectAtt(){
-  var el=document.getElementById('saList'),list=SA.stus;
-  var p=0,ab=0,ll=0;
-  list.forEach(function(s){var st=SA.att[s.id]&&SA.att[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
-  document.getElementById('saAll').textContent=list.length;
-  document.getElementById('saP').textContent=p;
-  document.getElementById('saAb').textContent=ab;
-  document.getElementById('saLt').textContent=ll;
-  el.innerHTML=list.map(function(s,i){
-    var av=AV[i%AV.length].split('|');
-    var a=SA.att[s.id]||{status:''};
-    var init=s.fullname.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('');
-    return '<div class="stu-item">'+
-      '<div class="flex gap8 mb8"><div class="stu-avatar" style="background:'+av[0]+';color:'+av[1]+';">'+init+'</div>'+
-      '<div class="stu-name">'+s.fullname+'<div class="stu-no">เลขที่ '+s.order_no+' · '+s.student_code+'</div></div></div>'+
-      '<div class="status-btns">'+
-      '<button class="stbtn stbtn-p'+(a.status==='present'?' active':'')+'" onclick="saSet('+s.id+',\'present\')">มาเรียน</button>'+
-      '<button class="stbtn stbtn-l'+(a.status==='absent'?' active':'')+'" onclick="saSet('+s.id+',\'absent\')">ขาด</button>'+
-      '<button class="stbtn stbtn-a'+(a.status==='late'?' active':'')+'" onclick="saSet('+s.id+',\'late\')">สาย</button>'+
-      '<button class="stbtn stbtn-lv'+(a.status==='leave'?' active':'')+'" onclick="saSet('+s.id+',\'leave\')">ลา</button>'+
-      '</div></div>';
-  }).join('');
+  buildAttGrid('subject','saList',SA.stus,SA.att,'subject',function(){
+    var p=0,ab=0,ll=0;SA.stus.forEach(function(s){var st=SA.att[s.id]&&SA.att[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
+    setTxt('saAll',SA.stus.length);setTxt('saP',p);setTxt('saAb',ab);setTxt('saLt',ll);
+  },SA.entry);
 }
 function saSet(sid,status){if(!SA.att[sid])SA.att[sid]={};SA.att[sid].status=status;renderSubjectAtt();}
 function saSetAll(status){SA.stus.forEach(function(s){SA.att[s.id]={status:status};});renderSubjectAtt();}
