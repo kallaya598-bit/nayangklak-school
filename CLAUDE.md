@@ -140,6 +140,8 @@ enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_stru
 - จัดการนักเรียน: เลือกห้อง → เพิ่ม/แก้ไข/ลบ (ลบไม่ได้ถ้ามีประวัติ → เปลี่ยนเป็นพ้นสภาพ)
 - จัดการครู: เพิ่มครู, แก้ username/ชื่อ/บทบาท/เปิด-ปิด, **รีเซ็ตรหัสผ่าน**, เลือกครูที่ปรึกษาหลายห้อง
 - ดูรายงานทุกห้อง: ปุ่ม "ดูห้องนี้" (adminViewRoom) → set G.room → เข้าถึงเช็คชื่อ/ความดี/คะแนน/รายงานของห้องนั้น
+- **โอนรายวิชา/เปลี่ยนครูผู้สอน** (admAssignments): ครูย้าย→โอนเจ้าของกลุ่ม เช็คชื่อ/คะแนน/รายชื่อเดิมตามไปครบ (ผูก assignment_id)
+- **สอนร่วม (co-teacher):** loadMyAssigns รวมกลุ่มจาก assignment_teachers → ครูที่ถูกเชิญเห็นกลุ่ม (badge "ร่วมสอน")
 - **ต้องรัน `admin_rpc.sql` ก่อน** (RPC admin_create_teacher / admin_set_password — รหัสผ่าน bcrypt)
 
 ## สิ่งที่ยังค้างอยู่ ⏳

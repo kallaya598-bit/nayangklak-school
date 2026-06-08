@@ -979,10 +979,10 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
               <div style="font-weight:700;color:var(--blue);">จัดการห้องเรียน</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">ครูที่ปรึกษา</div>
             </div>
-            <div class="card" style="cursor:pointer;" onclick="openAdmin('subjects')">
-              <div style="font-size:24px;margin-bottom:6px;">📚</div>
-              <div style="font-weight:700;color:var(--blue);">จัดการวิชา</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:3px;">รหัส ชื่อ กลุ่มสาระ</div>
+            <div class="card" style="cursor:pointer;" onclick="openAdmin('assignments')">
+              <div style="font-size:24px;margin-bottom:6px;">🔄</div>
+              <div style="font-weight:700;color:var(--blue);">โอนรายวิชา</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">เปลี่ยนครูผู้สอน (ครูย้าย)</div>
             </div>
             <div class="card" style="cursor:pointer;" onclick="openAdmin('good_categories')">
               <div style="font-size:24px;margin-bottom:6px;">❤️</div>
@@ -1326,6 +1326,17 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
   </div>
   <button class="btn btn-xs btn-outline" style="width:100%;margin-top:5px;" onclick="setCellStatus('clear')">🗑️ ลบสถานะ</button>
   <button class="btn btn-xs" style="width:100%;margin-top:3px;color:#999;border:none;background:none;" onclick="closeCellEdit()">ปิด</button>
+</div>
+
+<!-- MODAL: โอนรายวิชา/เปลี่ยนครูผู้สอน -->
+<div class="modal-bg" id="modalReassign">
+  <div class="modal">
+    <div class="modal-head">🔄 เปลี่ยนครูผู้สอน <button class="modal-close" onclick="closeModal('modalReassign')">✕</button></div>
+    <div id="raInfo" style="background:var(--bluel);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-weight:700;color:var(--blue);"></div>
+    <div class="form-group"><label class="form-label">เลือกครูผู้สอนคนใหม่ (เจ้าของกลุ่ม)</label><select class="form-control" id="raTeacher"></select></div>
+    <div style="background:var(--greenl);border:1px solid #a5d6a7;border-radius:8px;padding:8px 10px;font-size:12px;color:var(--green);">✅ ข้อมูลเช็คชื่อ คะแนน และรายชื่อนักเรียนทั้งหมดจะโอนไปยังครูคนใหม่อัตโนมัติ (เพราะผูกกับกลุ่มเรียน ไม่ใช่ตัวครู)</div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalReassign')">ยกเลิก</button><button class="btn btn-green" onclick="saveReassign()">💾 ยืนยันโอน</button></div>
+  </div>
 </div>
 
 <!-- MODAL: จัดการครู (admin) -->
@@ -2132,8 +2143,20 @@ function subjColor(id){
 async function loadMyAssigns(force){
   if(!G.myAssigns)G.myAssigns=[];
   if(G.myAssigns.length&&!force)return G.myAssigns;
-  var d=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&select=id,subject_id,classroom_id,group_no,semester,year,attendance_mode,subjects(subject_code,subject_name),classrooms(room_name)&order=subject_id,group_no');
-  G.myAssigns=d||[];
+  var sel='id,subject_id,classroom_id,group_no,semester,year,attendance_mode,teacher_id,subjects(subject_code,subject_name),classrooms(room_name)';
+  // กลุ่มที่ตัวเองเป็นเจ้าของ
+  var owned=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&select='+sel+'&order=subject_id,group_no')||[];
+  var map={};owned.forEach(function(a){a._role='owner';map[a.id]=a;});
+  // กลุ่มที่ถูกเชิญให้สอนร่วม (co-teacher)
+  try{
+    var at=await api('/rest/v1/assignment_teachers?teacher_id=eq.'+G.user.id+'&select=assignment_id');
+    var ids=(at||[]).map(function(x){return x.assignment_id;}).filter(Boolean);
+    if(ids.length){
+      var co=await api('/rest/v1/teaching_assignments?id=in.('+ids.join(',')+')&select='+sel)||[];
+      co.forEach(function(a){if(!map[a.id]){a._role='co';map[a.id]=a;}});
+    }
+  }catch(e){}
+  G.myAssigns=Object.keys(map).map(function(k){return map[k];});
   return G.myAssigns;
 }
 
@@ -2222,7 +2245,8 @@ async function loadManageSubjects(){
     var html='<div class="tbl-wrap"><table><thead><tr><th>ที่</th><th>รหัสวิชา</th><th>รายวิชา</th><th>กลุ่ม</th><th>ห้อง</th><th>นักเรียน</th><th>จัดการนักเรียน</th><th>ครูร่วม</th><th>เช็คชื่อ</th><th>ลบ</th></tr></thead><tbody>';
     assigns.forEach(function(a,i){
       var sc=a.subjects?a.subjects.subject_code:'-',sn=a.subjects?a.subjects.subject_name:'-',rn=a.classrooms?a.classrooms.room_name:'-';
-      html+='<tr><td>'+(i+1)+'</td><td class="bold" style="color:var(--blue);">'+sc+'</td><td>'+sn+'</td><td style="text-align:center;">'+a.group_no+'</td><td>'+rn+'</td>'+
+      var coTag=a._role==='co'?' <span class="badge badge-gold" style="font-size:9px;">ร่วมสอน</span>':'';
+      html+='<tr><td>'+(i+1)+'</td><td class="bold" style="color:var(--blue);">'+sc+'</td><td>'+sn+coTag+'</td><td style="text-align:center;">'+a.group_no+'</td><td>'+rn+'</td>'+
         '<td style="text-align:center;font-weight:700;">'+(cnt[a.id]||0)+' คน</td>'+
         '<td><button class="btn btn-green btn-xs" onclick="openEnroll('+a.id+','+a.classroom_id+')">👥 เพิ่ม/แก้</button></td>'+
         '<td><button class="btn btn-outline btn-xs" onclick="openInvite('+a.id+')">🤝 เชิญครู</button></td>'+
@@ -3476,6 +3500,7 @@ async function openAdmin(section){
   try{
     if(section==='students')return admStudents();
     if(section==='teachers')return admTeachers();
+    if(section==='assignments')return admAssignments();
     if(section==='classrooms')return admClassrooms();
     if(section==='good_categories')return admCats('good');
     if(section==='behave_categories')return admCats('behave');
@@ -3643,6 +3668,45 @@ function adminViewRoom(rid,rname){
   setTxt('topRole','ผู้ดูแลระบบ · ห้อง '+rname);
   toast('✅ สลับมาดูห้อง '+rname+' — เปิดเช็คชื่อ/รายงานได้แล้ว');
   loadDashStats();populateStudentSelects();openPage('pgDash');
+}
+
+// ---------- โอนรายวิชา / เปลี่ยนครูผู้สอน (กรณีครูย้าย/สอนแทน) ----------
+async function admAssignments(){
+  var el=document.getElementById('adminContent');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  var data=await api('/rest/v1/teaching_assignments?select=id,group_no,teacher_id,subjects(subject_code,subject_name),classrooms(room_name),teachers(fullname)&order=subject_id,group_no')||[];
+  ADM.assigns=data;
+  if(!ADM.teachers.length)ADM.teachers=await api('/rest/v1/teachers?select=id,fullname,role&active=eq.true&order=fullname')||[];
+  var h='<h3 style="font-weight:800;color:var(--blue);margin-bottom:4px;">🔄 โอนรายวิชา / เปลี่ยนครูผู้สอน</h3>'+
+    '<div class="text-sm text-gray mb12">ใช้เมื่อครูย้าย/สอนแทน — เปลี่ยนเจ้าของกลุ่มแล้ว <b>เช็คชื่อ + คะแนน + รายชื่อนักเรียนเดิมโอนตามทั้งหมด</b> ครูใหม่รับช่วงต่อได้ทันที</div>';
+  if(!data.length){el.innerHTML=h+'<div class="loading">ยังไม่มีกลุ่มเรียนในระบบ</div>';return;}
+  h+='<div class="tbl-wrap"><table><thead><tr><th>รหัสวิชา</th><th>รายวิชา</th><th>ห้อง/กลุ่ม</th><th>ครูผู้สอนปัจจุบัน</th><th>จัดการ</th></tr></thead><tbody>';
+  data.forEach(function(a){
+    h+='<tr><td class="bold" style="color:var(--blue);">'+(a.subjects?a.subjects.subject_code:'-')+'</td><td>'+(a.subjects?a.subjects.subject_name:'-')+'</td>'+
+      '<td>'+(a.classrooms?a.classrooms.room_name:'-')+' / กลุ่ม '+a.group_no+'</td><td>'+(a.teachers?a.teachers.fullname:'-')+'</td>'+
+      '<td><button class="btn btn-primary btn-xs" onclick="openReassign('+a.id+')">🔄 เปลี่ยนครู</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+async function openReassign(id){
+  var a=ADM.assigns.filter(function(x){return x.id==id;})[0]||{};
+  var info=document.getElementById('raInfo');
+  info.innerHTML='📘 '+(a.subjects?a.subjects.subject_code+' '+a.subjects.subject_name:'')+' · '+(a.classrooms?a.classrooms.room_name:'')+' กลุ่ม '+a.group_no+'<br><span style="font-weight:400;color:var(--text2);">ครูปัจจุบัน: '+(a.teachers?a.teachers.fullname:'-')+'</span>';
+  info.dataset.id=id;
+  if(!ADM.teachers.length)ADM.teachers=await api('/rest/v1/teachers?select=id,fullname,role&active=eq.true&order=fullname')||[];
+  document.getElementById('raTeacher').innerHTML=ADM.teachers.map(function(t){return '<option value="'+t.id+'"'+(t.id===a.teacher_id?' selected':'')+'>'+t.fullname+'</option>';}).join('');
+  showModal('modalReassign');
+}
+async function saveReassign(){
+  var id=document.getElementById('raInfo').dataset.id,tid=parseInt(document.getElementById('raTeacher').value);
+  if(!tid){toast('เลือกครู','err');return;}
+  try{
+    await api('/rest/v1/teaching_assignments?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({teacher_id:tid})});
+    // โอนตารางสอนของกลุ่มนี้ไปครูใหม่ด้วย
+    await api('/rest/v1/timetable?assignment_id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({teacher_id:tid})});
+    toast('✅ โอนรายวิชาให้ครูใหม่แล้ว — ข้อมูลเช็คชื่อ/คะแนนเดิมครบ');
+    closeModal('modalReassign');admAssignments();
+  }catch(e){toast('❌ '+e.message,'err');}
 }
 
 // ---------- ประเภทความดี/พฤติกรรม ----------
