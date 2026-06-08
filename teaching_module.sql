@@ -68,6 +68,11 @@ ALTER TABLE subject_attendance   DISABLE ROW LEVEL SECURITY;
 ALTER TABLE grade_structures     DISABLE ROW LEVEL SECURITY;
 ALTER TABLE grades               DISABLE ROW LEVEL SECURITY;
 
+-- ===== 4.6 ขยาย grade_type ให้รองรับ 4 ช่วงคะแนน (ก่อน/กลางภาค/หลัง/ปลายภาค) =====
+ALTER TABLE grade_structures DROP CONSTRAINT IF EXISTS grade_structures_grade_type_check;
+ALTER TABLE grade_structures ADD CONSTRAINT grade_structures_grade_type_check
+  CHECK (grade_type IN ('homework','quiz','midterm','final','other','before_mid','after_mid'));
+
 -- ===== 5. ดัชนีช่วยค้นหา =====
 CREATE INDEX IF NOT EXISTS idx_ta_teacher    ON teaching_assignments(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_enr_assign    ON enrollments(assignment_id);

@@ -1864,10 +1864,21 @@ async function loadSubjectsForGrade(){
     var assigns=await loadMyAssigns(true);
     if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน (สร้างที่ "รายวิชาที่สอน") —</option>';return;}
     sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
-  }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';}
+  }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';document.getElementById('grContent').innerHTML='<div class="loading" style="color:var(--red);">โหลดกลุ่มเรียนไม่สำเร็จ (เน็ตอาจสะดุด)<br><button class="btn btn-primary btn-sm mt12" onclick="loadSubjectsForGrade()">🔄 ลองใหม่</button></div>';}
 }
 
 function curGradeAssignId(){return document.getElementById('grAssign').value;}
+
+// 4 ช่วงคะแนนมาตรฐาน (ก่อนกลางภาค/สอบกลางภาค/หลังกลางภาค/ปลายภาค)
+var GRADE_PHASE_ORDER=['before_mid','midterm','after_mid','final','other'];
+function phaseLabel(t){var m={before_mid:'ก่อนกลางภาค',midterm:'สอบกลางภาค',after_mid:'หลังกลางภาค',final:'ปลายภาค',other:'อื่นๆ',homework:'อื่นๆ',quiz:'อื่นๆ'};return m[t]||'อื่นๆ';}
+function groupStructs(structs){
+  var key=function(t){return GRADE_PHASE_ORDER.indexOf(t)>=0?t:'other';};
+  var buckets={};GRADE_PHASE_ORDER.forEach(function(o){buckets[o]=[];});
+  structs.forEach(function(s){buckets[key(s.grade_type)].push(s);});
+  var groups=[];GRADE_PHASE_ORDER.forEach(function(o){if(buckets[o].length)groups.push({key:o,label:phaseLabel(o),items:buckets[o]});});
+  return groups;
+}
 
 async function loadGradeStructure(){
   var assignId=curGradeAssignId();
@@ -1885,14 +1896,23 @@ async function loadGradeStructure(){
     var grades=await api('/rest/v1/grades?structure_id=in.('+sids+')&student_id=in.('+ids+')&select=structure_id,student_id,score');
     var gradeMap={};
     (grades||[]).forEach(function(g){gradeMap[g.structure_id+'_'+g.student_id]=g.score;});
-    var maxTotal=structs.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
-    var html='<div style="overflow-x:auto;"><table><thead><tr><th>เลขที่</th><th>ชื่อ-นามสกุล</th>'+structs.map(function(s){return '<th>'+s.name+'<br><small>('+s.max_score+')</small></th>';}).join('')+'<th>รวม<br><small>('+maxTotal+')</small></th><th>เกรด</th></tr></thead><tbody>';
+    // จัดกลุ่มตาม 4 ช่วง แล้วเรียงคอลัมน์ตามช่วง
+    var groups=groupStructs(structs);
+    var ordered=[];groups.forEach(function(g){g.items.forEach(function(it){ordered.push(it);});});
+    GR.structs=ordered;
+    var maxTotal=ordered.reduce(function(a,s){return a+parseFloat(s.max_score||0);},0);
+    // header 2 แถว: แถวบน = ช่วง, แถวล่าง = ช่องคะแนน
+    var h1='<tr><th rowspan="2">เลขที่</th><th rowspan="2">ชื่อ-นามสกุล</th>';
+    groups.forEach(function(g){var gm=g.items.reduce(function(a,it){return a+parseFloat(it.max_score||0);},0);h1+='<th colspan="'+g.items.length+'" style="background:var(--blue);border-bottom:2px solid #fff;">'+g.label+'<br><small>('+gm+')</small></th>';});
+    h1+='<th rowspan="2">รวม<br><small>('+maxTotal+')</small></th><th rowspan="2">เกรด</th></tr>';
+    var h2='<tr>'+ordered.map(function(s){return '<th><small>'+s.name+'<br>('+s.max_score+')</small></th>';}).join('')+'</tr>';
+    var html='<div style="overflow-x:auto;"><table><thead>'+h1+h2+'</thead><tbody>';
     stus.forEach(function(s){
       var total=0;
-      html+='<tr><td style="text-align:center;">'+(s.order_no||'')+'</td><td style="white-space:nowrap;">'+s.fullname+'</td>'+structs.map(function(st){
+      html+='<tr><td style="text-align:center;">'+(s.order_no||'')+'</td><td style="white-space:nowrap;">'+s.fullname+'</td>'+ordered.map(function(st){
         var sc=gradeMap[st.id+'_'+s.id];sc=(sc===undefined||sc===null)?'':sc;
         total+=parseFloat(sc)||0;
-        return '<td><input type="number" style="width:58px;border:1px solid var(--border2);border-radius:6px;padding:3px 6px;font-family:Sarabun,sans-serif;font-size:12px;" value="'+sc+'" min="0" max="'+st.max_score+'" data-sid="'+s.id+'" data-stid="'+st.id+'" onchange="gradeChanged(this)"></td>';
+        return '<td><input type="number" style="width:54px;border:1px solid var(--border2);border-radius:6px;padding:3px 6px;font-family:Sarabun,sans-serif;font-size:12px;" value="'+sc+'" min="0" max="'+st.max_score+'" data-sid="'+s.id+'" data-stid="'+st.id+'" onchange="gradeChanged(this)"></td>';
       }).join('');
       var g=calcGrade(total,maxTotal);
       html+='<td class="grTotal" style="font-weight:800;color:var(--blue);text-align:center;">'+total.toFixed(1)+'</td><td class="grGrade" style="font-weight:800;text-align:center;color:'+(g>=1?'var(--green)':'var(--red)')+';">'+g.toFixed(1)+'</td></tr>';
@@ -1951,19 +1971,19 @@ function renderGradeSummary(){
 function openGradeStructEditor(){
   var assignId=curGradeAssignId();
   if(!assignId){toast('เลือกกลุ่มเรียนก่อน','err');return;}
-  var rows=GR.structs.length?GR.structs:[{name:'เก็บคะแนนระหว่างภาค',max_score:60,grade_type:'homework'},{name:'สอบกลางภาค',max_score:20,grade_type:'midterm'},{name:'สอบปลายภาค',max_score:20,grade_type:'final'}];
+  var rows=GR.structs.length?GR.structs:[{name:'ก่อนกลางภาค',max_score:25,grade_type:'before_mid'},{name:'สอบกลางภาค',max_score:20,grade_type:'midterm'},{name:'หลังกลางภาค',max_score:25,grade_type:'after_mid'},{name:'ปลายภาค',max_score:30,grade_type:'final'}];
   document.getElementById('gsRows').innerHTML='';
   rows.forEach(function(r){addGSRow(r);});
   updateGSTotal();
   showModal('modalGradeStruct');
 }
 function addGSRow(r){
-  r=r||{name:'',max_score:'',grade_type:'homework'};
+  r=r||{name:'',max_score:'',grade_type:'before_mid'};
   var div=document.createElement('div');div.className='flex gap8 mb8 gsRow';
   div.innerHTML='<input class="form-control" placeholder="ชื่อช่อง" value="'+(r.name||'')+'" data-f="name" style="flex:2;">'+
     '<input class="form-control" type="number" placeholder="เต็ม" value="'+(r.max_score||'')+'" data-f="max" oninput="updateGSTotal()" style="flex:1;">'+
-    '<select class="form-control" data-f="type" style="flex:1.4;">'+
-      ['homework|เก็บคะแนน','quiz|quiz','midterm|กลางภาค','final|ปลายภาค','other|อื่นๆ'].map(function(o){var p=o.split('|');return '<option value="'+p[0]+'"'+(r.grade_type===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+
+    '<select class="form-control" data-f="type" style="flex:1.6;">'+
+      ['before_mid|ก่อนกลางภาค','midterm|สอบกลางภาค','after_mid|หลังกลางภาค','final|ปลายภาค','other|อื่นๆ'].map(function(o){var p=o.split('|');return '<option value="'+p[0]+'"'+(r.grade_type===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+
     '</select>'+
     '<button class="btn btn-red btn-xs" onclick="this.closest(\'.gsRow\').remove();updateGSTotal();">✕</button>';
   document.getElementById('gsRows').appendChild(div);
@@ -2984,14 +3004,21 @@ async function generatePapo5PDF(){
     var sids=structs.map(function(s){return s.id;}).join(',')||'0';
     var grades=await api('/rest/v1/grades?structure_id=in.('+sids+')&student_id=in.('+ids+')&select=structure_id,student_id,score');
     var gmap={};(grades||[]).forEach(function(g){gmap[g.structure_id+'_'+g.student_id]=g.score;});
-    var maxTotal=structs.reduce(function(x,s){return x+parseFloat(s.max_score||0);},0);
+    // จัดกลุ่มตาม 4 ช่วง
+    var groups=groupStructs(structs);
+    var ordered=[];groups.forEach(function(g){g.items.forEach(function(it){ordered.push(it);});});
+    var maxTotal=ordered.reduce(function(x,s){return x+parseFloat(s.max_score||0);},0);
     var sc=a.subjects?a.subjects.subject_code+' '+a.subjects.subject_name:'-',rn=a.classrooms?a.classrooms.room_name:'-';
 
-    var th='<thead><tr style="background:#1565c0;color:#fff;"><th>เลขที่</th><th style="text-align:left;">ชื่อ-นามสกุล</th>'+structs.map(function(s){return '<th>'+s.name+'<br><small>('+s.max_score+')</small></th>';}).join('')+'<th>รวม<br><small>('+maxTotal+')</small></th><th>เกรด</th></tr></thead><tbody>';
+    var hg='<tr style="background:#1565c0;color:#fff;"><th rowspan="2">เลขที่</th><th rowspan="2" style="text-align:left;">ชื่อ-นามสกุล</th>';
+    groups.forEach(function(g){var gm=g.items.reduce(function(x,it){return x+parseFloat(it.max_score||0);},0);hg+='<th colspan="'+g.items.length+'">'+g.label+'<br><small>('+gm+')</small></th>';});
+    hg+='<th rowspan="2">รวม<br><small>('+maxTotal+')</small></th><th rowspan="2">เกรด</th></tr>';
+    var hc='<tr style="background:#1976d2;color:#fff;">'+ordered.map(function(s){return '<th><small>'+s.name+'<br>('+s.max_score+')</small></th>';}).join('')+'</tr>';
+    var th='<thead>'+hg+hc+'</thead><tbody>';
     var dist={};[4,3.5,3,2.5,2,1.5,1,0].forEach(function(g){dist[g]=0;});var sumTotal=0,sumGrade=0;
     stus.forEach(function(s,i){
       var total=0;
-      var cells=structs.map(function(st){var v=gmap[st.id+'_'+s.id];v=(v==null)?'':v;total+=parseFloat(v)||0;return '<td style="text-align:center;">'+(v===''?'-':v)+'</td>';}).join('');
+      var cells=ordered.map(function(st){var v=gmap[st.id+'_'+s.id];v=(v==null)?'':v;total+=parseFloat(v)||0;return '<td style="text-align:center;">'+(v===''?'-':v)+'</td>';}).join('');
       var g=calcGrade(total,maxTotal);dist[g]++;sumTotal+=total;sumGrade+=g;
       th+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';"><td style="text-align:center;">'+(s.order_no||(i+1))+'</td><td>'+s.fullname+'</td>'+cells+'<td style="text-align:center;font-weight:700;color:#1565c0;">'+total.toFixed(1)+'</td><td style="text-align:center;font-weight:800;color:'+(g>=1?'#2e7d32':'#c62828')+';">'+g.toFixed(1)+'</td></tr>';
     });
