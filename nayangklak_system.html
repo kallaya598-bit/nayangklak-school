@@ -438,6 +438,17 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span class="room-badge" id="infoRoom"></span>
           <span style="color:var(--text3);font-size:12px;margin-left:4px;" id="infoDate"></span>
         </div>
+        <!-- แถบเครื่องมือผู้ดูแลระบบ -->
+        <div id="adminQuickBar" style="display:none;margin:12px 14px 0;background:linear-gradient(135deg,#0d47a1,#1565c0);border-radius:var(--radius);padding:14px 16px;color:#fff;box-shadow:var(--shadow);">
+          <div style="font-weight:800;font-size:15px;margin-bottom:3px;">⚙️ แผงควบคุมผู้ดูแลระบบ</div>
+          <div style="font-size:12px;color:#bbdefb;margin-bottom:10px;">เลือก "ดูห้องนี้" ก่อน จึงจะเช็คชื่อ/ดูรายงานของห้องนั้นได้</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">
+            <button class="btn btn-sm" style="background:#fff;color:var(--blue);border:none;font-weight:700;" onclick="openPage('pgAdmin');openAdmin('students')">👥 จัดการนักเรียน</button>
+            <button class="btn btn-sm" style="background:#fff;color:var(--blue);border:none;font-weight:700;" onclick="openPage('pgAdmin');openAdmin('teachers')">👨‍🏫 จัดการครู</button>
+            <button class="btn btn-sm" style="background:#fff;color:var(--blue);border:none;font-weight:700;" onclick="openPage('pgAdmin');openAdmin('classrooms')">🏫 ดูรายงานทุกห้อง</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);font-weight:700;" onclick="openPage('pgAdmin')">⚙️ ตั้งค่าระบบ</button>
+          </div>
+        </div>
         <div class="stat-row">
           <div class="scard"><div class="sico sico-b">👥</div><div><div class="sval" id="sTotal">-</div><div class="slbl">นักเรียน</div></div></div>
           <div class="scard"><div class="sico sico-g">✅</div><div><div class="sval" style="color:var(--green);" id="sPresent">-</div><div class="slbl">มาเรียนวันนี้</div></div></div>
@@ -1435,6 +1446,8 @@ function showApp(){
     document.getElementById('navAdmin').style.display='';
     document.getElementById('navAdminItem').classList.remove('hidden');
     document.getElementById('adminDashBtn').style.display='';
+    document.getElementById('adminQuickBar').style.display='block';
+    if(!G.room){document.getElementById('infoRoom').textContent='ดูภาพรวมทั้งโรงเรียน';}
   }
   loadDashStats();
   populateStudentSelects();
@@ -1443,6 +1456,7 @@ function showApp(){
 
 // ===== DASHBOARD STATS =====
 async function loadDashStats(){
+  if(G.user&&G.user.role==='admin'&&!G.room)return loadAdminDashStats();
   if(!G.room)return;
   try{
     var res=await fetch(SB+'/rest/v1/students?classroom_id=eq.'+G.room.id+'&status=eq.active&select=id',{headers:Object.assign({},H,{'Prefer':'count=exact'})});
@@ -1459,6 +1473,19 @@ async function loadDashStats(){
     var gd=await api('/rest/v1/good_deeds?student_id=in.('+((ids||[]).map(function(x){return x.id;}).join(',')||'0')+')&deed_date=eq.'+today()+'&select=id');
     document.getElementById('sGoodToday').textContent=(gd||[]).length;
   }catch(e){console.log('stats:',e.message);}
+}
+
+// สถิติภาพรวมทั้งโรงเรียน (สำหรับ admin ที่ยังไม่เลือกห้อง)
+async function loadAdminDashStats(){
+  try{
+    var res=await fetch(SB+'/rest/v1/students?status=eq.active&select=id',{headers:Object.assign({},H,{'Prefer':'count=exact'})});
+    var cr=res.headers.get('content-range');setTxt('sTotal',cr?cr.split('/')[1]:'-');
+    var ma=await api('/rest/v1/morning_attendance?att_date=eq.'+today()+'&select=status');
+    var p=0,ab=0;(ma||[]).forEach(function(a){if(a.status==='present')p++;else ab++;});
+    setTxt('sPresent',p);setTxt('sAbsent',ab);
+    var gd=await api('/rest/v1/good_deeds?deed_date=eq.'+today()+'&select=id');
+    setTxt('sGoodToday',(gd||[]).length);
+  }catch(e){console.log('admin stats:',e.message);}
 }
 
 // ===== LOAD STUDENTS =====
