@@ -1624,12 +1624,14 @@ async function loadEnrolledStudents(assignId){
 }
 
 async function loadSubjectsForAtt(){
-  document.getElementById('saDate').value=today();
+  if(!document.getElementById('saDate').value)document.getElementById('saDate').value=today();
+  var sel=document.getElementById('saAssign');
+  sel.innerHTML='<option value="">กำลังโหลด...</option>';
   try{
-    var assigns=await loadMyAssigns();
-    var opts='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
-    document.getElementById('saAssign').innerHTML=opts;
-  }catch(e){}
+    var assigns=await loadMyAssigns(true);
+    if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน (สร้างที่ "รายวิชาที่สอน") —</option>';return;}
+    sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+  }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';}
 }
 
 async function loadSubjectStudents(){
@@ -1843,11 +1845,13 @@ function calcGrade(total,maxTotal){
 }
 
 async function loadSubjectsForGrade(){
+  var sel=document.getElementById('grAssign');
+  sel.innerHTML='<option value="">กำลังโหลด...</option>';
   try{
-    var assigns=await loadMyAssigns();
-    var opts='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
-    document.getElementById('grAssign').innerHTML=opts;
-  }catch(e){}
+    var assigns=await loadMyAssigns(true);
+    if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน (สร้างที่ "รายวิชาที่สอน") —</option>';return;}
+    sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+  }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';}
 }
 
 function curGradeAssignId(){return document.getElementById('grAssign').value;}
@@ -2313,10 +2317,13 @@ function printReportHTML(title,bodyHTML){
 var SAR={tab:'detail',assignId:null,sessions:[],students:[],att:{},meta:{}};
 
 async function initSubjAttReport(){
+  var sel=document.getElementById('sarAssign');
+  sel.innerHTML='<option value="">กำลังโหลดกลุ่มเรียน...</option>';
   try{
-    var assigns=await loadMyAssigns();
-    document.getElementById('sarAssign').innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
-  }catch(e){}
+    var assigns=await loadMyAssigns(true);
+    if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน (สร้างที่ "รายวิชาที่สอน") —</option>';return;}
+    sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+  }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้ ('+(e.message||'error')+')</option>';document.getElementById('sarContent').innerHTML=teachErrHTML(e);}
 }
 function setSarTab(t){
   SAR.tab=t;
