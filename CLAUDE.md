@@ -136,8 +136,14 @@ enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_stru
 | `assignment_teachers` | ครูร่วมสอน/คำเชิญ |
 | (ALTER) | timetable.assignment_id, subject_attendance.assignment_id+period, grade_structures.assignment_id |
 
+## Admin Panel (เพิ่มใหม่)
+- จัดการนักเรียน: เลือกห้อง → เพิ่ม/แก้ไข/ลบ (ลบไม่ได้ถ้ามีประวัติ → เปลี่ยนเป็นพ้นสภาพ)
+- จัดการครู: เพิ่มครู, แก้ username/ชื่อ/บทบาท/เปิด-ปิด, **รีเซ็ตรหัสผ่าน**, เลือกครูที่ปรึกษาหลายห้อง
+- ดูรายงานทุกห้อง: ปุ่ม "ดูห้องนี้" (adminViewRoom) → set G.room → เข้าถึงเช็คชื่อ/ความดี/คะแนน/รายงานของห้องนั้น
+- **ต้องรัน `admin_rpc.sql` ก่อน** (RPC admin_create_teacher / admin_set_password — รหัสผ่าน bcrypt)
+
 ## สิ่งที่ยังค้างอยู่ ⏳
-- [ ] รัน teaching_module.sql บน Supabase + ทดสอบ end-to-end กับข้อมูลจริง
+- [ ] รัน teaching_module.sql + admin_rpc.sql บน Supabase + ทดสอบ end-to-end
 - [ ] Deploy index.html เวอร์ชันใหม่ขึ้น GitHub Pages
 - [ ] Admin Panel เต็มรูปแบบ
 - [ ] รายงานเช็คชื่อรายวิชา รายเดือน/% (ตอนนี้มีเฉพาะเสาธง/เย็น)

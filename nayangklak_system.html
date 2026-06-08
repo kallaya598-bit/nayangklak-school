@@ -1317,6 +1317,30 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
   <button class="btn btn-xs" style="width:100%;margin-top:3px;color:#999;border:none;background:none;" onclick="closeCellEdit()">ปิด</button>
 </div>
 
+<!-- MODAL: จัดการครู (admin) -->
+<div class="modal-bg" id="modalTeacher">
+  <div class="modal">
+    <div class="modal-head"><span id="tfHead">จัดการครู</span> <button class="modal-close" onclick="closeModal('modalTeacher')">✕</button></div>
+    <input type="hidden" id="tfId">
+    <div class="form-group"><label class="form-label">ชื่อ-นามสกุล</label><input class="form-control" id="tfName" placeholder="เช่น นายสมชาย ใจดี"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Username</label><input class="form-control" id="tfUser" autocapitalize="none" placeholder="username"></div>
+      <div class="form-group"><label class="form-label">บทบาท</label><select class="form-control" id="tfRole"><option value="teacher">ครู</option><option value="admin">ผู้ดูแลระบบ (admin)</option></select></div>
+    </div>
+    <div class="form-group" id="tfPassNew"><label class="form-label">รหัสผ่าน</label><input class="form-control" id="tfPass" placeholder="ตั้งรหัสผ่าน"></div>
+    <div class="form-group" id="tfPassReset" style="display:none;">
+      <label class="form-label">รีเซ็ตรหัสผ่าน <span style="font-weight:400;color:var(--text3);">(เว้นว่าง = ไม่เปลี่ยน)</span></label>
+      <div class="flex gap8"><input class="form-control" id="tfPass2" placeholder="รหัสผ่านใหม่"><button class="btn btn-outline btn-sm" type="button" onclick="tfQuick1234()">ตั้ง 1234</button></div>
+    </div>
+    <div class="form-group"><label class="flex gap8" style="cursor:pointer;"><input type="checkbox" id="tfActive" checked style="width:18px;height:18px;"> <span>เปิดใช้งานบัญชี</span></label></div>
+    <div class="form-group"><label class="form-label">ครูที่ปรึกษา (เลือกได้หลายห้อง)</label>
+      <div id="tfRooms" style="max-height:170px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:5px;"></div>
+    </div>
+    <div class="login-err" id="tfErr"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalTeacher')">ยกเลิก</button><button class="btn btn-green" id="tfSave" onclick="saveTeacher()">💾 บันทึก</button></div>
+  </div>
+</div>
+
 <script>
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
@@ -3347,6 +3371,7 @@ async function saveStudent(){
     // refresh cache
     G.students=[];SP.list=[];SP.loaded=false;
     loadStudentProfiles();
+    if(document.getElementById('admStuRoom')&&document.getElementById('admStuRoom').value)admStuLoad();
   }catch(e){
     var msg=e.message||'';
     if(/column|does not exist|relation|schema cache|parents/i.test(msg)){
@@ -3411,38 +3436,197 @@ function exportStudentsExcel(){
 }
 
 // ===== ADMIN =====
+// ================= ADMIN PANEL (CRUD เต็ม) =================
+var ADM={rooms:[],stu:[],teachers:[]};
+async function admRooms(){if(!ADM.rooms.length)ADM.rooms=await api('/rest/v1/classrooms?select=id,room_name,level,room_number&order=level,room_number')||[];return ADM.rooms;}
+
 async function openAdmin(section){
+  if(G.user.role!=='admin'){toast('เฉพาะผู้ดูแลระบบ','err');return;}
   var el=document.getElementById('adminContent');
   el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  document.querySelectorAll('#pgAdmin .card').forEach(function(c){c.style.outline='';});
   try{
-    if(section==='students'){
-      var data=await api('/rest/v1/students?select=id,student_code,fullname,classroom_id,order_no,status,classrooms(room_name)&order=classroom_id,order_no&limit=100');
-      var html='<div class="tbl-wrap"><table><thead><tr><th>เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ-นามสกุล</th><th>ห้อง</th><th>สถานะ</th></tr></thead><tbody>';
-      (data||[]).forEach(function(s){html+='<tr><td>'+s.order_no+'</td><td>'+s.student_code+'</td><td>'+s.fullname+'</td><td>'+(s.classrooms&&s.classrooms.room_name||'-')+'</td><td><span class="badge '+(s.status==='active'?'badge-green':'badge-gray')+'">'+s.status+'</span></td></tr>';});
-      html+='</tbody></table></div>';
-      el.innerHTML='<h3 style="font-weight:800;color:var(--blue);margin-bottom:12px;">👥 รายชื่อนักเรียน ('+data.length+' คน)</h3>'+html;
-    } else if(section==='teachers'){
-      var data=await api('/rest/v1/teachers?select=id,username,fullname,role,active&order=fullname');
-      var html='<div class="tbl-wrap"><table><thead><tr><th>ชื่อ</th><th>Username</th><th>Role</th><th>สถานะ</th></tr></thead><tbody>';
-      (data||[]).forEach(function(t){html+='<tr><td>'+t.fullname+'</td><td>'+t.username+'</td><td><span class="badge badge-blue">'+t.role+'</span></td><td><span class="badge '+(t.active?'badge-green':'badge-gray')+'">'+(t.active?'Active':'Inactive')+'</span></td></tr>';});
-      html+='</tbody></table></div>';
-      el.innerHTML='<h3 style="font-weight:800;color:var(--blue);margin-bottom:12px;">👨‍🏫 รายชื่อครู ('+data.length+' คน)</h3>'+html;
-    } else if(section==='good_categories'){
-      var data=await api('/rest/v1/good_deed_categories?select=id,name,default_score,active&order=id');
-      var html='<div class="tbl-wrap"><table><thead><tr><th>ประเภท</th><th>คะแนนเริ่มต้น</th><th>สถานะ</th></tr></thead><tbody>';
-      (data||[]).forEach(function(c){html+='<tr><td>'+c.name+'</td><td><span class="badge badge-green">+'+c.default_score+'</span></td><td><span class="badge '+(c.active?'badge-green':'badge-gray')+'">'+(c.active?'ใช้งาน':'ปิด')+'</span></td></tr>';});
-      html+='</tbody></table></div>';
-      el.innerHTML='<h3 style="font-weight:800;color:var(--blue);margin-bottom:12px;">❤️ ประเภทความดี</h3>'+html;
-    } else if(section==='behave_categories'){
-      var data=await api('/rest/v1/behavior_categories?select=id,name,default_score,active&order=id');
-      var html='<div class="tbl-wrap"><table><thead><tr><th>ประเภท</th><th>คะแนน</th><th>สถานะ</th></tr></thead><tbody>';
-      (data||[]).forEach(function(c){html+='<tr><td>'+c.name+'</td><td><span class="badge badge-red">'+c.default_score+'</span></td><td><span class="badge '+(c.active?'badge-green':'badge-gray')+'">'+(c.active?'ใช้งาน':'ปิด')+'</span></td></tr>';});
-      html+='</tbody></table></div>';
-      el.innerHTML='<h3 style="font-weight:800;color:var(--blue);margin-bottom:12px;">⚠️ ประเภทพฤติกรรม</h3>'+html;
-    } else {
-      el.innerHTML='<div class="loading">กำลังพัฒนา...</div>';
-    }
+    if(section==='students')return admStudents();
+    if(section==='teachers')return admTeachers();
+    if(section==='classrooms')return admClassrooms();
+    if(section==='good_categories')return admCats('good');
+    if(section==='behave_categories')return admCats('behave');
+    el.innerHTML='<div class="loading">กำลังพัฒนา...</div>';
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+
+// ---------- จัดการนักเรียน ----------
+async function admStudents(){
+  var rooms=await admRooms();
+  document.getElementById('adminContent').innerHTML=
+    '<h3 style="font-weight:800;color:var(--blue);margin-bottom:10px;">👥 จัดการนักเรียน</h3>'+
+    '<div class="flex gap8 mb12" style="flex-wrap:wrap;">'+
+      '<select class="filter-select" id="admStuRoom" onchange="admStuLoad()"><option value="">— เลือกห้อง —</option>'+rooms.map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('')+'</select>'+
+      '<div class="search-box" style="flex:1;min-width:140px;"><span>🔍</span><input id="admStuQ" placeholder="ค้นหาชื่อ/รหัส..." oninput="admStuRender()"></div>'+
+      '<button class="btn btn-green btn-sm" onclick="admStuAdd()">➕ เพิ่มนักเรียน</button>'+
+    '</div><div id="admStuList"><div class="loading">เลือกห้องเพื่อแสดงรายชื่อ</div></div>';
+}
+async function admStuLoad(){
+  var rid=document.getElementById('admStuRoom').value,box=document.getElementById('admStuList');
+  if(!rid){box.innerHTML='<div class="loading">เลือกห้อง</div>';return;}
+  box.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  ADM.stu=await api('/rest/v1/students?classroom_id=eq.'+rid+'&select=id,student_code,fullname,order_no,status&order=order_no')||[];
+  admStuRender();
+}
+function admStuRender(){
+  if(!document.getElementById('admStuList'))return;
+  var q=(document.getElementById('admStuQ').value||'').toLowerCase();
+  var list=ADM.stu.filter(function(s){return s.fullname.toLowerCase().indexOf(q)>=0||(''+(s.student_code||'')).indexOf(q)>=0;});
+  var h='<div class="tbl-wrap"><table><thead><tr><th>ที่</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>';
+  list.forEach(function(s){
+    h+='<tr><td>'+(s.order_no||'')+'</td><td>'+(s.student_code||'')+'</td><td>'+s.fullname+'</td>'+
+      '<td><span class="badge '+(s.status==='active'?'badge-green':'badge-gray')+'">'+(s.status==='active'?'กำลังศึกษา':(s.status||'-'))+'</span></td>'+
+      '<td style="white-space:nowrap;"><button class="btn btn-outline btn-xs" onclick="openStudentForm('+s.id+')">✏️ แก้ไข</button> '+
+      '<button class="btn btn-red btn-xs" onclick="admStuDel('+s.id+',\''+s.fullname.replace(/['\\]/g,'')+'\')">🗑️ ลบ</button></td></tr>';
+  });
+  h+='</tbody></table></div><div class="text-sm text-gray mt8">รวม '+list.length+' คน</div>';
+  document.getElementById('admStuList').innerHTML=h;
+}
+async function admStuAdd(){
+  var rid=document.getElementById('admStuRoom').value;
+  await openStudentForm(null);
+  if(rid){var sel=document.getElementById('sfRoom');if(sel)sel.value=rid;}
+}
+async function admStuDel(id,name){
+  if(!confirm('ลบนักเรียน "'+name+'" ?\n(ถ้ามีประวัติเช็คชื่อ/คะแนน ระบบจะเปลี่ยนเป็น "พ้นสภาพ" แทนการลบถาวร)'))return;
+  try{
+    await api('/rest/v1/students?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    toast('✅ ลบนักเรียนแล้ว');
+  }catch(e){
+    // ลบไม่ได้เพราะมีข้อมูลอ้างอิง → soft delete
+    try{await api('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'inactive'})});toast('⚠️ มีประวัติอยู่ — เปลี่ยนเป็นพ้นสภาพแทน');}
+    catch(e2){toast('❌ '+e2.message,'err');return;}
+  }
+  admStuLoad();
+}
+
+// ---------- จัดการครู ----------
+async function admTeachers(){
+  var el=document.getElementById('adminContent');
+  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  var rooms=await admRooms();
+  var teachers=await api('/rest/v1/teachers?select=id,username,fullname,role,active&order=fullname')||[];
+  var rt=await api('/rest/v1/room_teachers?select=teacher_id,classroom_id')||[];
+  ADM.teachers=teachers;
+  var roomMap={};rooms.forEach(function(r){roomMap[r.id]=r.room_name;});
+  var advMap={};rt.forEach(function(x){(advMap[x.teacher_id]=advMap[x.teacher_id]||[]).push(roomMap[x.classroom_id]||'');});
+  var h='<div class="flex gap8 mb12" style="flex-wrap:wrap;align-items:center;">'+
+    '<h3 style="font-weight:800;color:var(--blue);flex:1;">👨‍🏫 จัดการครู ('+teachers.length+' คน)</h3>'+
+    '<div class="search-box" style="min-width:150px;"><span>🔍</span><input id="admTQ" placeholder="ค้นหา..." oninput="admTFilter()"></div>'+
+    '<button class="btn btn-green btn-sm" onclick="openTeacherForm(null)">➕ เพิ่มครู</button></div>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>ชื่อ-นามสกุล</th><th>Username</th><th>บทบาท</th><th>ครูที่ปรึกษา</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="admTBody">';
+  h+=teachers.map(function(t){return admTRow(t,advMap[t.id]);}).join('');
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+function admTRow(t,adv){
+  return '<tr data-name="'+(t.fullname+' '+t.username).toLowerCase()+'"><td>'+t.fullname+'</td><td>'+t.username+'</td>'+
+    '<td><span class="badge '+(t.role==='admin'?'badge-purple':'badge-blue')+'">'+(t.role==='admin'?'แอดมิน':'ครู')+'</span></td>'+
+    '<td class="text-sm">'+((adv&&adv.length)?adv.join(', '):'<span class="text-gray">—</span>')+'</td>'+
+    '<td><span class="badge '+(t.active?'badge-green':'badge-gray')+'">'+(t.active?'ใช้งาน':'ปิด')+'</span></td>'+
+    '<td><button class="btn btn-outline btn-xs" onclick="openTeacherForm('+t.id+')">✏️ จัดการ</button></td></tr>';
+}
+function admTFilter(){var q=(document.getElementById('admTQ').value||'').toLowerCase();document.querySelectorAll('#admTBody tr').forEach(function(tr){tr.style.display=tr.dataset.name.indexOf(q)>=0?'':'none';});}
+
+async function openTeacherForm(id){
+  var rooms=await admRooms();
+  document.getElementById('tfErr').textContent='';
+  document.getElementById('tfId').value=id||'';
+  var roomChk=rooms.map(function(r){return '<label class="flex gap8" style="font-size:12px;"><input type="checkbox" value="'+r.id+'" class="tfRoomCk"> '+r.room_name+'</label>';}).join('');
+  document.getElementById('tfRooms').innerHTML=roomChk;
+  if(!id){
+    document.getElementById('tfHead').textContent='➕ เพิ่มครูใหม่';
+    document.getElementById('tfName').value='';document.getElementById('tfUser').value='';document.getElementById('tfPass').value='';document.getElementById('tfPass2').value='';
+    document.getElementById('tfRole').value='teacher';document.getElementById('tfActive').checked=true;
+    document.getElementById('tfPassNew').style.display='';document.getElementById('tfPassReset').style.display='none';
+    document.getElementById('tfUser').disabled=false;
+    showModal('modalTeacher');return;
+  }
+  document.getElementById('tfHead').textContent='✏️ จัดการครู';
+  document.getElementById('tfPassNew').style.display='none';document.getElementById('tfPassReset').style.display='';
+  showModal('modalTeacher');
+  var t=ADM.teachers.filter(function(x){return x.id==id;})[0]||{};
+  document.getElementById('tfName').value=t.fullname||'';document.getElementById('tfUser').value=t.username||'';
+  document.getElementById('tfRole').value=t.role||'teacher';document.getElementById('tfActive').checked=!!t.active;document.getElementById('tfPass2').value='';
+  // ห้องที่ปรึกษาเดิม
+  try{var rt=await api('/rest/v1/room_teachers?teacher_id=eq.'+id+'&select=classroom_id');var have={};(rt||[]).forEach(function(x){have[x.classroom_id]=1;});
+    document.querySelectorAll('.tfRoomCk').forEach(function(ck){if(have[ck.value])ck.checked=true;});}catch(e){}
+}
+function tfQuick1234(){document.getElementById('tfPass2').value='1234';}
+async function saveTeacher(){
+  var err=document.getElementById('tfErr');err.textContent='';
+  var id=document.getElementById('tfId').value;
+  var name=document.getElementById('tfName').value.trim(),user=document.getElementById('tfUser').value.trim().toLowerCase(),role=document.getElementById('tfRole').value,active=document.getElementById('tfActive').checked;
+  if(!name||!user){err.textContent='กรอกชื่อและ username';return;}
+  var roomIds=Array.from(document.querySelectorAll('.tfRoomCk:checked')).map(function(c){return parseInt(c.value);});
+  var btn=document.getElementById('tfSave');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    var tid;
+    if(!id){
+      var pass=document.getElementById('tfPass').value;
+      if(!pass){err.textContent='ตั้งรหัสผ่าน';btn.disabled=false;btn.textContent='💾 บันทึก';return;}
+      var r=await api('/rest/v1/rpc/admin_create_teacher',{method:'POST',body:JSON.stringify({p_username:user,p_password:pass,p_fullname:name,p_role:role})});
+      tid=(typeof r==='number')?r:(r&&r[0]&&(r[0].admin_create_teacher||r[0].id))||r;
+      if(active===false)await api('/rest/v1/teachers?id=eq.'+tid,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({active:false})});
+    }else{
+      tid=parseInt(id);
+      await api('/rest/v1/teachers?id=eq.'+tid,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({fullname:name,username:user,role:role,active:active})});
+      var newpass=document.getElementById('tfPass2').value;
+      if(newpass)await api('/rest/v1/rpc/admin_set_password',{method:'POST',body:JSON.stringify({p_teacher_id:tid,p_new_password:newpass})});
+    }
+    // sync ห้องที่ปรึกษา
+    await api('/rest/v1/room_teachers?teacher_id=eq.'+tid,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    if(roomIds.length)await api('/rest/v1/room_teachers',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(roomIds.map(function(c){return {teacher_id:tid,classroom_id:c,is_primary:true};}))});
+    toast('✅ บันทึกข้อมูลครูแล้ว');closeModal('modalTeacher');admTeachers();
+  }catch(e){var m=e.message||'';if(/admin_create_teacher|admin_set_password|schema cache|function/i.test(m))m='ยังไม่ได้ติดตั้ง RPC — รันไฟล์ admin_rpc.sql ก่อน';if(/duplicate/i.test(m))m='username ซ้ำ';err.textContent=m;toast('❌ '+m,'err');}
+  btn.disabled=false;btn.textContent='💾 บันทึก';
+}
+
+// ---------- ห้องเรียน + สลับมุมมอง (ดูรายงานทุกห้อง) ----------
+async function admClassrooms(){
+  var el=document.getElementById('adminContent');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  var rooms=await admRooms();
+  var rt=await api('/rest/v1/room_teachers?select=classroom_id,teachers(fullname)')||[];
+  var cnt=await api('/rest/v1/students?status=eq.active&select=classroom_id')||[];
+  var advMap={},cMap={};
+  rt.forEach(function(x){(advMap[x.classroom_id]=advMap[x.classroom_id]||[]).push(x.teachers&&x.teachers.fullname||'');});
+  cnt.forEach(function(x){cMap[x.classroom_id]=(cMap[x.classroom_id]||0)+1;});
+  var h='<h3 style="font-weight:800;color:var(--blue);margin-bottom:6px;">🏫 ห้องเรียน & ดูรายงานตามห้อง</h3>'+
+    '<div class="text-sm text-gray mb12">กด "ดูห้องนี้" เพื่อให้แอดมินเข้าถึงเช็คชื่อ/ความดี/คะแนน/รายงาน ของห้องนั้น</div>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>ห้อง</th><th>นักเรียน</th><th>ครูที่ปรึกษา</th><th></th></tr></thead><tbody>';
+  rooms.forEach(function(r){
+    h+='<tr><td class="bold" style="color:var(--blue);">'+r.room_name+'</td><td>'+(cMap[r.id]||0)+' คน</td>'+
+      '<td class="text-sm">'+((advMap[r.id]&&advMap[r.id].length)?advMap[r.id].join(', '):'<span class="text-gray">—</span>')+'</td>'+
+      '<td><button class="btn btn-primary btn-xs" onclick="adminViewRoom('+r.id+',\''+r.room_name+'\')">👁️ ดูห้องนี้</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+function adminViewRoom(rid,rname){
+  G.room={id:parseInt(rid),room_name:rname};
+  G.myRoomIds=[parseInt(rid)];
+  G.students=[];SP.list=[];SP.loaded=false;
+  setTxt('infoRoom','กำลังดูห้อง '+rname+' (Admin)');
+  setTxt('topRole','ผู้ดูแลระบบ · ห้อง '+rname);
+  toast('✅ สลับมาดูห้อง '+rname+' — เปิดเช็คชื่อ/รายงานได้แล้ว');
+  loadDashStats();populateStudentSelects();openPage('pgDash');
+}
+
+// ---------- ประเภทความดี/พฤติกรรม ----------
+async function admCats(kind){
+  var el=document.getElementById('adminContent');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  var tbl=kind==='good'?'good_deed_categories':'behavior_categories';
+  var data=await api('/rest/v1/'+tbl+'?select=id,name,default_score,active&order=id')||[];
+  var h='<h3 style="font-weight:800;color:var(--blue);margin-bottom:10px;">'+(kind==='good'?'❤️ ประเภทความดี':'⚠️ ประเภทพฤติกรรม')+'</h3>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>ประเภท</th><th>คะแนน</th><th>สถานะ</th></tr></thead><tbody>';
+  data.forEach(function(c){h+='<tr><td>'+c.name+'</td><td><span class="badge '+(kind==='good'?'badge-green':'badge-red')+'">'+(c.default_score>0?'+':'')+c.default_score+'</span></td><td><span class="badge '+(c.active?'badge-green':'badge-gray')+'">'+(c.active?'ใช้งาน':'ปิด')+'</span></td></tr>';});
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
 }
 
 function openAbsentList(){openPage('pgMorning');toast('โหลดรายชื่อขาดเรียน...','info');}
