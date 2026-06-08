@@ -574,6 +574,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div class="astat"><div class="aval av-ab" id="saLt">0</div><div class="albl al-ab">สาย/ลา</div></div>
         </div>
         <div class="bulk-row" id="saBulk" style="display:none;flex-wrap:wrap;gap:6px;">
+          <button class="btn btn-outline btn-sm" id="saCopyPrev" style="width:100%;display:none;" onclick="saCopyPrevPeriod()">📋 ดึงข้อมูลจากคาบที่แล้ว (กรณีเรียน 2 คาบติด)</button>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1;">
             <button class="stbtn stbtn-p btn-sm" onclick="saSetAll('present')">มา<br>ทั้งหมด</button>
             <button class="stbtn stbtn-l btn-sm" onclick="saSetAll('absent')">ขาด<br>ทั้งหมด</button>
@@ -735,7 +736,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div class="pt1">🗓️ จัดการตารางสอน</div>
           <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2);" onclick="openReport('timetable')">📄 PDF</button>
         </div>
-        <div style="padding:8px 14px;font-size:12px;color:var(--text2);">💡 คลิกช่องว่างเพื่อเพิ่มคาบสอน · คลิกช่องที่มีวิชาเพื่อไปเช็คชื่อ</div>
+        <div style="padding:8px 14px;font-size:12px;color:var(--text2);">💡 คลิกช่องว่าง(+)เพื่อเพิ่มคาบสอน · ปุ่ม 📚เช็คชื่อ เพื่อเช็คชื่อ · ปุ่ม ✏️แก้ไข เพื่อแก้/ลบคาบที่เพิ่มผิด</div>
         <div id="ttEditContent" style="padding:0 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
       </div>
 
@@ -1676,6 +1677,7 @@ async function loadSubjectStudents(){
     }
     document.getElementById('saStats').style.display='';
     document.getElementById('saBulk').style.display='flex';
+    document.getElementById('saCopyPrev').style.display=period>1?'block':'none';
     renderSubjectAtt();
     document.getElementById('saBtnSave').onclick=async function(){
       var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
@@ -1711,6 +1713,21 @@ function renderSubjectAtt(){
 }
 function saSet(sid,status){if(!SA.att[sid])SA.att[sid]={};SA.att[sid].status=status;renderSubjectAtt();}
 function saSetAll(status){SA.stus.forEach(function(s){SA.att[s.id]={status:status};});renderSubjectAtt();}
+
+// ดึงข้อมูลเช็คชื่อจากคาบก่อนหน้า (วิชา 2 คาบติด) มาใส่ — ยังแก้ไขได้ก่อนบันทึก
+async function saCopyPrevPeriod(){
+  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||1;
+  if(period<=1){toast('คาบนี้ไม่มีคาบก่อนหน้า','err');return;}
+  var prev=period-1;
+  try{
+    var ids=SA.stus.map(function(s){return s.id;}).join(',');
+    var ad=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&att_date=eq.'+dt+'&period=eq.'+prev+'&student_id=in.('+ids+')&select=student_id,status');
+    if(!ad||!ad.length){toast('คาบ '+prev+' ยังไม่มีข้อมูลเช็คชื่อ','err');return;}
+    var n=0;(ad||[]).forEach(function(a){SA.att[a.student_id]={status:a.status};n++;});
+    renderSubjectAtt();
+    toast('✅ ดึงจากคาบ '+prev+' มาแล้ว '+n+' คน · แก้ไขได้ก่อนบันทึก');
+  }catch(e){toast('❌ '+e.message,'err');}
+}
 
 // ===== GOOD DEEDS =====
 async function loadGood(){
@@ -2299,10 +2316,15 @@ async function loadTeachTimetable(){
         var t=ttMap[day+'_'+p];
         if(!t)return '<td style="text-align:center;cursor:pointer;color:var(--text3);" onclick="openTTSlot(\''+day+'\','+p+',null)">+</td>';
         var c=subjColor(t.subject_id);
-        return '<td style="cursor:pointer;background:'+c[0]+';border-radius:6px;" onclick="goToSubjectAtt('+t.assignment_id+','+p+')" ondblclick="event.stopPropagation();openTTSlot(\''+day+'\','+p+','+t.id+')">'+
-          '<div style="font-weight:700;color:'+c[1]+';font-size:12px;">'+((t.subjects&&t.subjects.subject_code)||'-')+'</div>'+
-          '<div style="font-size:11px;color:'+c[1]+';">'+((t.classrooms&&t.classrooms.room_name)||'-')+'</div>'+
-          '<div style="font-size:10px;color:'+c[1]+';opacity:.7;">📚เช็คชื่อ · ดับเบิลคลิกแก้</div></td>';
+        return '<td style="background:'+c[0]+';border-radius:6px;position:relative;padding:6px 6px 4px;">'+
+          '<div style="cursor:pointer;" onclick="goToSubjectAtt('+t.assignment_id+','+p+')" title="คลิกเพื่อเช็คชื่อ">'+
+            '<div style="font-weight:700;color:'+c[1]+';font-size:12px;">'+((t.subjects&&t.subjects.subject_code)||'-')+'</div>'+
+            '<div style="font-size:11px;color:'+c[1]+';">'+((t.classrooms&&t.classrooms.room_name)||'-')+'</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:4px;margin-top:3px;">'+
+            '<button onclick="event.stopPropagation();goToSubjectAtt('+t.assignment_id+','+p+')" style="flex:1;font-size:9px;border:none;border-radius:4px;padding:2px;background:rgba(255,255,255,.6);color:'+c[1]+';cursor:pointer;">📚เช็คชื่อ</button>'+
+            '<button onclick="event.stopPropagation();openTTSlot(\''+day+'\','+p+','+t.id+')" style="font-size:9px;border:none;border-radius:4px;padding:2px 5px;background:rgba(255,255,255,.85);color:#e65100;cursor:pointer;" title="แก้ไข/ลบคาบนี้">✏️แก้ไข</button>'+
+          '</div></td>';
       }).join('');
       html+='</tr>';
     });
