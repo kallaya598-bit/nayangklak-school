@@ -2556,17 +2556,19 @@ async function deleteTTSlot(){
 async function goToSubjectAtt(assignId,period,dt){
   openPage('pgSubjectAtt');
   await loadSubjectsForAtt();
+  showSaAtt();  // บังคับแสดงหน้าเช็คชื่อทันที (ไม่ค้างที่ตารางสอน)
   var sel=document.getElementById('saAssign');
   if(!sel)return;
-  sel.value=assignId;
+  sel.value=String(assignId);
   if(dt)document.getElementById('saDate').value=dt;
-  // ติ๊กนอกตาราง ถ้าระบุคาบเองมา (เพื่อให้แน่ใจว่าคาบนั้นเลือกได้)
   await onSaAssignChange();
   if(period){
+    document.getElementById('saAnyPeriod').checked=false;
+    refreshSaPeriods();
     var ps=document.getElementById('saPeriod');
     var has=Array.from(ps.options).some(function(o){return o.value==String(period);});
-    if(!has){document.getElementById('saAnyPeriod').checked=true;refreshSaPeriods();}
-    document.getElementById('saPeriod').value=period;
+    if(!has){document.getElementById('saAnyPeriod').checked=true;refreshSaPeriods();} // คาบนอกตาราง (สอนชดเชย)
+    document.getElementById('saPeriod').value=String(period);
     loadSubjectStudents();
   }
 }
