@@ -407,7 +407,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="nav-section">เช็คชื่อ</div>
       <div class="nav-item" data-page="pgMorning">🚩 <span>เสาธงเช้า</span></div>
       <div class="nav-item" data-page="pgEvening">🌆 <span>ตอนเย็น</span></div>
-      <div class="nav-item" data-page="pgSubjectAtt">📚 <span>รายวิชา</span></div>
+      <div class="nav-item" data-page="pgSubjectAtt">🕐 <span>เช็คเวลาเรียน</span></div>
       <div class="nav-section">บันทึก</div>
       <div class="nav-item" data-page="pgGood">❤️ <span>บันทึกความดี</span></div>
       <div class="nav-item" data-page="pgBehave">⚠️ <span>บันทึกพฤติกรรม</span></div>
@@ -466,7 +466,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
         <div class="mgrid">
           <div class="mc" onclick="openPage('pgMorning')"><div class="mico mico-b">🚩</div><div class="mlbl">เช็คชื่อ<br>เสาธง</div></div>
           <div class="mc" onclick="openPage('pgEvening')"><div class="mico mico-t">🌆</div><div class="mlbl">เช็คชื่อ<br>ตอนเย็น</div></div>
-          <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-b">📚</div><div class="mlbl">เช็คชื่อ<br>รายวิชา</div></div>
+          <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-b">🕐</div><div class="mlbl">เช็คเวลา<br>เรียน</div></div>
           <div class="mc" onclick="openPage('pgAttReport')"><div class="mico mico-gold">📋</div><div class="mlbl">Report<br>เช็คชื่อ</div><div class="rbadge">แก้ไข</div></div>
           <div class="mc" onclick="openAbsentList()"><div class="mico mico-r">🚫</div><div class="mlbl">รายชื่อ<br>ขาดเรียน</div></div>
         </div>
@@ -483,7 +483,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div class="mc" onclick="openPage('pgTeachSubjects')"><div class="mico mico-b">🎓</div><div class="mlbl">รายวิชา<br>ที่สอน</div></div>
           <div class="mc" onclick="openPage('pgManageSubjects')"><div class="mico mico-t">🗂️</div><div class="mlbl">จัดการ<br>รายวิชา</div></div>
           <div class="mc" onclick="openPage('pgTeachTimetable')"><div class="mico mico-p">🗓️</div><div class="mlbl">จัดการ<br>ตารางสอน</div></div>
-          <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-g">📚</div><div class="mlbl">เช็คชื่อ<br>รายวิชา</div></div>
+          <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-g">🕐</div><div class="mlbl">เช็คเวลา<br>เรียน</div></div>
           <div class="mc" onclick="openReport('papo5')"><div class="mico mico-gold">📄</div><div class="mlbl">รายงาน<br>ปพ.5</div><div class="rbadge">PDF</div></div>
           <div class="mc" onclick="openPage('pgSubjAttReport')"><div class="mico mico-b">📊</div><div class="mlbl">เวลาเรียน<br>รายวิชา</div></div>
           <div class="mc" onclick="openPage('pgRoomAttReport')"><div class="mico mico-t">🏫</div><div class="mlbl">เวลาเรียน<br>รายห้อง</div></div>
@@ -528,7 +528,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span style="font-size:12px;font-weight:700;color:#e65100;" id="maEditLabel"></span>
           <span style="font-size:11px;color:#bf360c;">— แก้ไขย้อนหลัง กด 💾 บันทึก เพื่อบันทึก</span>
         </div>
-        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+        <div class="bulk-row" id="maBulk" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
           <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
           <button class="btn btn-outline btn-sm" id="maBtnReset">🔄 รีเซ็ต</button>
           <button class="btn btn-primary btn-sm" id="maBtnSave">💾 บันทึก</button>
@@ -560,19 +560,27 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span style="font-size:12px;font-weight:700;color:#e65100;" id="eaEditLabel"></span>
           <span style="font-size:11px;color:#bf360c;">— แก้ไขย้อนหลัง กด 💾 บันทึก เพื่อบันทึก</span>
         </div>
-        <div class="bulk-row" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
+        <div class="bulk-row" id="eaBulk" style="flex-wrap:wrap;gap:6px;justify-content:flex-end;">
           <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
           <button class="btn btn-primary btn-sm" id="eaBtnSave">💾 บันทึก</button>
         </div>
         <div class="stu-list" id="eaList"><div class="loading">กำลังโหลด...</div></div>
       </div>
 
-      <!-- ===== SUBJECT ATTENDANCE ===== -->
+      <!-- ===== SUBJECT ATTENDANCE (เช็คเวลาเรียน) ===== -->
       <div class="page" id="pgSubjectAtt">
         <div class="page-topbar">
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
-          <div class="pt1">📚 เช็คชื่อรายวิชา</div>
+          <div class="pt1">🕐 เช็คเวลาเรียน</div>
+          <button class="btn btn-sm" id="saBackToGrid" style="display:none;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2);" onclick="showSaGrid()">📅 ตารางสอน</button>
         </div>
+        <!-- มุมมองตารางสอน (คลิกวิชาเพื่อเช็คเวลาเรียน) -->
+        <div id="saTimetableWrap" style="padding:12px 14px 80px;">
+          <div style="font-size:13px;color:var(--blue);font-weight:700;margin-bottom:8px;">📅 ตารางสอนของคุณ — แตะที่วิชาเพื่อเช็คเวลาเรียน</div>
+          <div id="saTimetable"><div class="loading">กำลังโหลด...</div></div>
+        </div>
+        <!-- มุมมองเช็คชื่อ -->
+        <div id="saAttView" style="display:none;">
         <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
           <select class="filter-select" id="saAssign" onchange="onSaAssignChange()" style="flex:1;min-width:160px;">
             <option value="">เลือกกลุ่มเรียน...</option>
@@ -588,6 +596,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <label style="margin-left:10px;font-size:12px;cursor:pointer;"><input type="checkbox" id="saAnyPeriod" onchange="refreshSaPeriods()" style="vertical-align:middle;"> เช็คนอกตาราง (สอนชดเชย)</label>
           <button class="btn btn-outline btn-xs" style="margin-left:8px;" onclick="goToSubjReportFromAtt()">📋 แก้ไขย้อนหลัง/ตรวจวันที่ขาด</button>
         </div>
+        <div id="saAttHeader" style="display:none;text-align:center;padding:12px 14px;background:var(--bluel);border-bottom:1px solid var(--border);"></div>
         <div class="att-stats" id="saStats" style="display:none;">
           <div class="astat"><div class="aval av-all" id="saAll">0</div><div class="albl al-all">ทั้งหมด</div></div>
           <div class="astat"><div class="aval av-p" id="saP">0</div><div class="albl al-p">มา</div></div>
@@ -599,6 +608,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <span style="flex:1;font-size:12px;color:var(--text3);">💡 ติ๊ก ☑ หัวคอลัมน์ = เลือกสถานะนั้นทั้งหมด</span>
         </div>
         <div class="stu-list" id="saList"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
+        </div><!-- end saAttView -->
       </div>
 
       <!-- ===== GOOD DEEDS ===== -->
@@ -1564,10 +1574,15 @@ async function loadMorning(){
       var ids=stus.map(function(s){return s.id;}).join(',');
       var ad=await api('/rest/v1/morning_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status,remark');
       (ad||[]).forEach(function(a){G.att[a.student_id]={status:a.status,remark:a.remark||''};});
+      if(ad&&ad.length){lockMorningView(dt);return;}
     }
+    var mb=document.getElementById('maBulk');if(mb)mb.style.display='flex';
     renderAtt('maList',stus,G.att,'morning');
   }catch(e){document.getElementById('maList').innerHTML='<div class="loading" style="color:var(--red);">โหลดไม่สำเร็จ: '+e.message+'</div>';}
 }
+function lockMorningView(dt){var mb=document.getElementById('maBulk');if(mb)mb.style.display='none';document.getElementById('maList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('morning','"+dt+"')");}
+function lockEveningView(dt){var eb=document.getElementById('eaBulk');if(eb)eb.style.display='none';document.getElementById('eaList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('evening','"+dt+"')");}
+function openAttReportEdit(type,dt){openPage('pgAttReport');if(dt&&document.getElementById('arDate'))document.getElementById('arDate').value=dt;setAttReportTab(type);setArMode('day');}
 
 // ===== EVENING ATTENDANCE =====
 async function loadEvening(){
@@ -1586,7 +1601,9 @@ async function loadEvening(){
       var ids=stus.map(function(s){return s.id;}).join(',');
       var ad=await api('/rest/v1/afternoon_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status,remark');
       (ad||[]).forEach(function(a){G.eveningAtt[a.student_id]={status:a.status,remark:a.remark||''};});
+      if(ad&&ad.length){lockEveningView(dt);return;}
     }
+    var eb=document.getElementById('eaBulk');if(eb)eb.style.display='flex';
     renderEveningAtt(stus);
   }catch(e){document.getElementById('eaList').innerHTML='<div class="loading" style="color:var(--red);">โหลดไม่สำเร็จ</div>';}
 }
@@ -1658,7 +1675,7 @@ document.getElementById('maBtnSave').addEventListener('click',async function(){
   var btn=this,records=G.students.filter(function(s){return G.att[s.id]&&G.att[s.id].status;}).map(function(s){return {student_id:s.id,teacher_id:G.user.id,att_date:dt,status:G.att[s.id].status,remark:G.att[s.id].remark||null};});
   if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
   btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  try{await api('/rest/v1/morning_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ บันทึกแล้ว '+records.length+' คน');loadDashStats();}
+  try{await api('/rest/v1/morning_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อเสาธงเรียบร้อยแล้ว '+records.length+' คน');loadDashStats();lockMorningView(dt);}
   catch(e){toast('❌ '+e.message,'err');}
   btn.disabled=false;btn.textContent='💾 บันทึก';
 });
@@ -1669,7 +1686,7 @@ document.getElementById('eaBtnSave').addEventListener('click',async function(){
   var btn=this,records=G.students.filter(function(s){return G.eveningAtt[s.id]&&G.eveningAtt[s.id].status;}).map(function(s){return {student_id:s.id,teacher_id:G.user.id,att_date:dt,status:G.eveningAtt[s.id].status,remark:G.eveningAtt[s.id].remark||null};});
   if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
   btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  try{await api('/rest/v1/afternoon_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ บันทึกแล้ว '+records.length+' คน');}
+  try{await api('/rest/v1/afternoon_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อตอนเย็นเรียบร้อยแล้ว '+records.length+' คน');lockEveningView(dt);}
   catch(e){toast('❌ '+e.message,'err');}
   btn.disabled=false;btn.textContent='💾 บันทึก';
 });
@@ -1687,17 +1704,53 @@ async function loadEnrolledStudents(assignId){
   return stus;
 }
 
+function showSaGrid(){document.getElementById('saTimetableWrap').style.display='';document.getElementById('saAttView').style.display='none';document.getElementById('saBackToGrid').style.display='none';}
+function showSaAtt(){document.getElementById('saTimetableWrap').style.display='none';document.getElementById('saAttView').style.display='';document.getElementById('saBackToGrid').style.display='inline-flex';}
+function dateOfThisWeek(dow){var idx=SA_DOW.indexOf(dow);var d=new Date();d.setDate(d.getDate()+(idx-d.getDay()));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
 async function loadSubjectsForAtt(){
   if(!document.getElementById('saDate').value)document.getElementById('saDate').value=today();
   document.getElementById('saPeriod').innerHTML='';
   document.getElementById('saDayInfo').style.display='none';
+  showSaGrid();
   var sel=document.getElementById('saAssign');
   sel.innerHTML='<option value="">กำลังโหลด...</option>';
   try{
     var assigns=await loadMyAssigns(true);
-    if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน (สร้างที่ "รายวิชาที่สอน") —</option>';return;}
-    sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
+    if(!assigns.length){sel.innerHTML='<option value="">— ยังไม่มีกลุ่มเรียน —</option>';}
+    else sel.innerHTML='<option value="">เลือกกลุ่มเรียน...</option>'+assigns.map(function(a){var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';return '<option value="'+a.id+'">'+sc+' '+sn+' · '+rn+'</option>';}).join('');
   }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';}
+  renderSaTimetable();
+}
+// ตารางสอน picker (คลิกวิชา→เช็คเวลาเรียน)
+async function renderSaTimetable(){
+  var el=document.getElementById('saTimetable');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    var tt=await api('/rest/v1/timetable?teacher_id=eq.'+G.user.id+'&select=day_of_week,period,assignment_id,subject_id,subjects(subject_code),classrooms(room_name)&order=day_of_week,period')||[];
+    if(!tt.length){el.innerHTML='<div class="loading">ยังไม่ได้จัดตารางสอน<br><button class="btn btn-green btn-sm mt12" onclick="openPage(\'pgTeachTimetable\')">📅 ไปจัดตารางสอน</button><div class="mt12"><button class="btn btn-outline btn-sm" onclick="showSaAtt()">หรือเลือกกลุ่มเรียนเอง →</button></div></div>';return;}
+    var map={};tt.forEach(function(t){map[t.day_of_week+'_'+t.period]=t;});
+    var days=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'],periods=[1,2,3,4,5,6,7];
+    var todayDow=SA_DOW[new Date().getDay()];
+    var h='<div style="overflow-x:auto;"><table class="att-grid" style="font-size:11px;"><thead><tr><th>วัน\\คาบ</th>'+periods.map(function(p){return '<th>'+p+'</th>';}).join('')+'</tr></thead><tbody>';
+    days.forEach(function(day){
+      h+='<tr><td class="l" style="font-weight:700;background:'+(day===todayDow?'#fff3e0':'#fff')+';white-space:nowrap;">'+day+(day===todayDow?'<br><span style="font-size:9px;color:#e65100;">(วันนี้)</span>':'')+'</td>'+periods.map(function(p){
+        var t=map[day+'_'+p];if(!t)return '<td style="background:#fafafa;"></td>';
+        var c=subjColor(t.subject_id);
+        return '<td style="cursor:pointer;background:'+c[0]+';padding:5px 3px;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"><div style="font-weight:700;color:'+c[1]+';">'+((t.subjects&&t.subjects.subject_code)||'')+'</div><div style="color:'+c[1]+';font-size:10px;">'+((t.classrooms&&t.classrooms.room_name)||'')+'</div></td>';
+      }).join('')+'</tr>';
+    });
+    h+='</tbody></table></div><div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 แตะช่องวิชาเพื่อเช็คเวลาเรียนของคาบนั้น (ใช้วันในสัปดาห์ปัจจุบัน) · <button class="btn btn-outline btn-xs" onclick="showSaAtt()">เลือกกลุ่มเรียนเอง</button></div>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+async function onSaPickCell(assignId,period,day){
+  showSaAtt();
+  document.getElementById('saAssign').value=assignId;
+  document.getElementById('saDate').value=dateOfThisWeek(day);
+  document.getElementById('saAnyPeriod').checked=false;
+  await onSaAssignChange();
+  var ps=document.getElementById('saPeriod');
+  if(Array.from(ps.options).some(function(o){return o.value==String(period);})){ps.value=period;loadSubjectStudents();}
 }
 
 function setSaDate(which){
@@ -1754,25 +1807,57 @@ async function loadSubjectStudents(){
   try{
     var stus=await loadEnrolledStudents(assignId);
     SA.stus=stus;SA.att={};SA.entry={};
-    if(!stus.length){hide();document.getElementById('saList').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่หน้า "จัดการรายวิชา"</div>';return;}
+    showSaAtt();
+    saRenderHeader(assignId,dt,period);
+    if(!stus.length){hide();document.getElementById('saAttHeader').style.display='none';document.getElementById('saList').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่หน้า "จัดการรายวิชา"</div>';return;}
+    var alreadyChecked=false;
     if(dt){
       var ids=stus.map(function(s){return s.id;}).join(',');
       var ad=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&att_date=eq.'+dt+'&period=eq.'+period+'&student_id=in.('+ids+')&select=student_id,status');
       (ad||[]).forEach(function(a){SA.att[a.student_id]={status:a.status};});
-      // ตอนเข้า (เสาธงเช้า) ใช้เป็นข้อมูลอ้างอิง
+      alreadyChecked=(ad&&ad.length>0);
       try{var ma=await api('/rest/v1/morning_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status');(ma||[]).forEach(function(a){SA.entry[a.student_id]=a.status;});}catch(e){}
     }
+    // เช็คไปแล้ว → ล็อก (แก้ที่รายงาน)
+    if(alreadyChecked){saLockedView();return;}
     document.getElementById('saStats').style.display='';
     document.getElementById('saBulk').style.display='flex';
+    document.getElementById('saBtnSave').style.display='';
     document.getElementById('saCopyPrev').style.display=period>1?'block':'none';
     renderSubjectAtt();
     document.getElementById('saBtnSave').onclick=async function(){
       var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
       if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
-      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ บันทึกแล้ว '+records.length+' คน');}
+      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');saLockedView();}
       catch(e){toast('❌ '+e.message,'err');}
     };
   }catch(e){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+// หัวรายงานหน้าเช็คเวลาเรียน
+function saRenderHeader(assignId,dt,period){
+  var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0]||{};
+  var sc=a.subjects?a.subjects.subject_code:'-',sn=a.subjects?a.subjects.subject_name:'-',rn=a.classrooms?a.classrooms.room_name:'-';
+  var h=document.getElementById('saAttHeader');h.style.display='block';
+  h.innerHTML='<div style="font-weight:800;color:var(--blue);font-size:15px;">เช็คเวลาเรียนในชั่วโมงสอน</div>'+
+    '<div style="font-size:13px;">รหัสวิชา '+sc+' รายวิชา '+sn+'</div>'+
+    '<div style="font-size:13px;">'+(dt?thaiDate(dt):'')+' คาบที่ '+period+'</div>'+
+    '<div style="font-size:12px;color:var(--text2);">ครูประจำวิชา '+(G.user?G.user.fullname:'')+' · กลุ่ม '+rn+' จำนวน '+SA.stus.length+' คน</div>';
+}
+// มุมมองล็อก (เช็คไปแล้ว → แก้ที่รายงาน)
+function saLockedView(){
+  document.getElementById('saStats').style.display='none';
+  document.getElementById('saBulk').style.display='none';
+  document.getElementById('saBtnSave').style.display='none';
+  document.getElementById('saList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเวลาเรียน','goToSubjReportFromAtt()');
+}
+function stopCheckedHTML(btnLabel,onclickStr){
+  return '<div style="text-align:center;padding:34px 20px 80px;">'+
+    '<div style="font-size:56px;line-height:1;">🛑</div>'+
+    '<div style="font-size:19px;font-weight:800;color:var(--red);margin:10px 0 4px;">ได้มีการเช็คชื่อห้องเรียนนี้ไปแล้ว</div>'+
+    '<div style="font-size:13px;color:var(--text2);">เช็คชื่อเรียบร้อยแล้ว ไม่สามารถเช็ค/แก้ไขซ้ำที่หน้านี้</div>'+
+    '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">หากต้องการแก้ไข กรุณาไปที่หน้ารายงาน</div>'+
+    '<button class="btn btn-primary mt16" style="height:46px;padding:0 22px;" onclick="'+onclickStr+'">📋 '+btnLabel+'</button>'+
+  '</div>';
 }
 
 function renderSubjectAtt(){
