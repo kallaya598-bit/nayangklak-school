@@ -1580,8 +1580,8 @@ async function loadMorning(){
     renderAtt('maList',stus,G.att,'morning');
   }catch(e){document.getElementById('maList').innerHTML='<div class="loading" style="color:var(--red);">โหลดไม่สำเร็จ: '+e.message+'</div>';}
 }
-function lockMorningView(dt){var mb=document.getElementById('maBulk');if(mb)mb.style.display='none';document.getElementById('maList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('morning','"+dt+"')");}
-function lockEveningView(dt){var eb=document.getElementById('eaBulk');if(eb)eb.style.display='none';document.getElementById('eaList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('evening','"+dt+"')");}
+function lockMorningView(dt,saved){var mb=document.getElementById('maBulk');if(mb)mb.style.display='none';document.getElementById('maList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('morning','"+dt+"')",saved);}
+function lockEveningView(dt,saved){var eb=document.getElementById('eaBulk');if(eb)eb.style.display='none';document.getElementById('eaList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเช็คชื่อ',"openAttReportEdit('evening','"+dt+"')",saved);}
 function openAttReportEdit(type,dt){openPage('pgAttReport');if(dt&&document.getElementById('arDate'))document.getElementById('arDate').value=dt;setAttReportTab(type);setArMode('day');}
 
 // ===== EVENING ATTENDANCE =====
@@ -1675,7 +1675,7 @@ document.getElementById('maBtnSave').addEventListener('click',async function(){
   var btn=this,records=G.students.filter(function(s){return G.att[s.id]&&G.att[s.id].status;}).map(function(s){return {student_id:s.id,teacher_id:G.user.id,att_date:dt,status:G.att[s.id].status,remark:G.att[s.id].remark||null};});
   if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
   btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  try{await api('/rest/v1/morning_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อเสาธงเรียบร้อยแล้ว '+records.length+' คน');loadDashStats();lockMorningView(dt);}
+  try{await api('/rest/v1/morning_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อเสาธงเรียบร้อยแล้ว '+records.length+' คน');loadDashStats();lockMorningView(dt,true);}
   catch(e){toast('❌ '+e.message,'err');}
   btn.disabled=false;btn.textContent='💾 บันทึก';
 });
@@ -1686,7 +1686,7 @@ document.getElementById('eaBtnSave').addEventListener('click',async function(){
   var btn=this,records=G.students.filter(function(s){return G.eveningAtt[s.id]&&G.eveningAtt[s.id].status;}).map(function(s){return {student_id:s.id,teacher_id:G.user.id,att_date:dt,status:G.eveningAtt[s.id].status,remark:G.eveningAtt[s.id].remark||null};});
   if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
   btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  try{await api('/rest/v1/afternoon_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อตอนเย็นเรียบร้อยแล้ว '+records.length+' คน');lockEveningView(dt);}
+  try{await api('/rest/v1/afternoon_attendance?on_conflict=student_id,att_date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คชื่อตอนเย็นเรียบร้อยแล้ว '+records.length+' คน');lockEveningView(dt,true);}
   catch(e){toast('❌ '+e.message,'err');}
   btn.disabled=false;btn.textContent='💾 บันทึก';
 });
@@ -1818,8 +1818,8 @@ async function loadSubjectStudents(){
       alreadyChecked=(ad&&ad.length>0);
       try{var ma=await api('/rest/v1/morning_attendance?student_id=in.('+ids+')&att_date=eq.'+dt+'&select=student_id,status');(ma||[]).forEach(function(a){SA.entry[a.student_id]=a.status;});}catch(e){}
     }
-    // เช็คไปแล้ว → ล็อก (แก้ที่รายงาน)
-    if(alreadyChecked){saLockedView();return;}
+    // เคยเช็คไปแล้ว → ล็อก (แดง STOP)
+    if(alreadyChecked){saLockedView(false);return;}
     document.getElementById('saStats').style.display='';
     document.getElementById('saBulk').style.display='flex';
     document.getElementById('saBtnSave').style.display='';
@@ -1828,7 +1828,7 @@ async function loadSubjectStudents(){
     document.getElementById('saBtnSave').onclick=async function(){
       var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
       if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
-      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');saLockedView();}
+      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');saLockedView(true);}
       catch(e){toast('❌ '+e.message,'err');}
     };
   }catch(e){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
@@ -1843,18 +1843,27 @@ function saRenderHeader(assignId,dt,period){
     '<div style="font-size:13px;">'+(dt?thaiDate(dt):'')+' คาบที่ '+period+'</div>'+
     '<div style="font-size:12px;color:var(--text2);">ครูประจำวิชา '+(G.user?G.user.fullname:'')+' · กลุ่ม '+rn+' จำนวน '+SA.stus.length+' คน</div>';
 }
-// มุมมองล็อก (เช็คไปแล้ว → แก้ที่รายงาน)
-function saLockedView(){
+// มุมมองล็อก (saved=เพิ่งบันทึก → เขียว / มิฉะนั้น=เคยเช็คแล้ว → แดง STOP)
+function saLockedView(saved){
   document.getElementById('saStats').style.display='none';
   document.getElementById('saBulk').style.display='none';
   document.getElementById('saBtnSave').style.display='none';
-  document.getElementById('saList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเวลาเรียน','goToSubjReportFromAtt()');
+  document.getElementById('saList').innerHTML=stopCheckedHTML('ไปแก้ไขที่รายงานเวลาเรียน','goToSubjReportFromAtt()',saved);
 }
-function stopCheckedHTML(btnLabel,onclickStr){
+function stopCheckedHTML(btnLabel,onclickStr,saved){
+  if(saved){
+    return '<div style="text-align:center;padding:34px 20px 80px;">'+
+      '<div style="font-size:60px;line-height:1;">✅</div>'+
+      '<div style="font-size:20px;font-weight:800;color:var(--green);margin:10px 0 4px;">เช็คชื่อเรียบร้อยแล้ว</div>'+
+      '<div style="font-size:13px;color:var(--text2);">บันทึกการเช็คเวลาเรียนของห้องนี้สำเร็จ</div>'+
+      '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">หากต้องการแก้ไขภายหลัง ให้ไปที่หน้ารายงาน</div>'+
+      '<button class="btn btn-outline mt16" style="height:44px;padding:0 20px;" onclick="'+onclickStr+'">📋 '+btnLabel+'</button>'+
+    '</div>';
+  }
   return '<div style="text-align:center;padding:34px 20px 80px;">'+
     '<div style="font-size:56px;line-height:1;">🛑</div>'+
     '<div style="font-size:19px;font-weight:800;color:var(--red);margin:10px 0 4px;">ได้มีการเช็คชื่อห้องเรียนนี้ไปแล้ว</div>'+
-    '<div style="font-size:13px;color:var(--text2);">เช็คชื่อเรียบร้อยแล้ว ไม่สามารถเช็ค/แก้ไขซ้ำที่หน้านี้</div>'+
+    '<div style="font-size:13px;color:var(--text2);">ไม่สามารถเช็ค/แก้ไขซ้ำที่หน้านี้</div>'+
     '<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">หากต้องการแก้ไข กรุณาไปที่หน้ารายงาน</div>'+
     '<button class="btn btn-primary mt16" style="height:46px;padding:0 22px;" onclick="'+onclickStr+'">📋 '+btnLabel+'</button>'+
   '</div>';
