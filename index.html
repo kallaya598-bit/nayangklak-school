@@ -574,14 +574,19 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div class="pt1">📚 เช็คชื่อรายวิชา</div>
         </div>
         <div class="filter-bar" style="flex-wrap:wrap;gap:6px;">
-          <select class="filter-select" id="saAssign" onchange="loadSubjectStudents()" style="flex:1;min-width:160px;">
+          <select class="filter-select" id="saAssign" onchange="onSaAssignChange()" style="flex:1;min-width:160px;">
             <option value="">เลือกกลุ่มเรียน...</option>
           </select>
-          <select class="filter-select" id="saPeriod" onchange="loadSubjectStudents()" title="คาบ">
-            <option value="1">คาบ 1</option><option value="2">คาบ 2</option><option value="3">คาบ 3</option><option value="4">คาบ 4</option><option value="5">คาบ 5</option><option value="6">คาบ 6</option><option value="7">คาบ 7</option>
-          </select>
-          <input type="date" class="filter-select" id="saDate" onchange="loadSubjectStudents()">
+          <input type="date" class="filter-select" id="saDate" onchange="onSaDateChange()">
+          <button class="btn btn-outline btn-xs" onclick="setSaDate('today')">วันนี้</button>
+          <button class="btn btn-outline btn-xs" onclick="setSaDate('yesterday')">เมื่อวาน</button>
+          <select class="filter-select" id="saPeriod" onchange="loadSubjectStudents()" title="คาบ"></select>
           <button class="btn btn-primary btn-sm" id="saBtnSave" style="margin-left:auto;">💾 บันทึก</button>
+        </div>
+        <div id="saDayInfo" style="display:none;padding:7px 14px;font-size:12.5px;background:var(--bluel);border-bottom:1px solid var(--border);color:var(--blue);">
+          <span id="saDayInfoText"></span>
+          <label style="margin-left:10px;font-size:12px;cursor:pointer;"><input type="checkbox" id="saAnyPeriod" onchange="refreshSaPeriods()" style="vertical-align:middle;"> เช็คนอกตาราง (สอนชดเชย)</label>
+          <button class="btn btn-outline btn-xs" style="margin-left:8px;" onclick="goToSubjReportFromAtt()">📋 แก้ไขย้อนหลัง/ตรวจวันที่ขาด</button>
         </div>
         <div class="att-stats" id="saStats" style="display:none;">
           <div class="astat"><div class="aval av-all" id="saAll">0</div><div class="albl al-all">ทั้งหมด</div></div>
@@ -764,6 +769,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
           <div style="display:flex;border:1.5px solid var(--border2);border-radius:var(--radius2);overflow:hidden;">
             <button id="sarTabD" onclick="setSarTab('detail')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:var(--blue);color:#fff;cursor:pointer;">รายครั้ง</button>
             <button id="sarTabS" onclick="setSarTab('summary')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#fff;color:var(--blue);cursor:pointer;">สรุป %</button>
+            <button id="sarTabM" onclick="setSarTab('missing')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#fff;color:var(--blue);cursor:pointer;">🛑 ยังไม่เช็ค</button>
           </div>
           <div id="sarColWrap" style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:12px;color:var(--text2);">คอลัมน์</span>
@@ -1670,7 +1676,8 @@ document.getElementById('eaBtnSave').addEventListener('click',async function(){
 
 // ===== SUBJECT ATT =====
 // ===== เช็คชื่อรายวิชา (ผูกกลุ่มเรียน + คาบ) =====
-var SA={stus:[],att:{},entry:{}};
+var SA={stus:[],att:{},entry:{},timetable:[]};
+var SA_DOW=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 
 // โหลดนักเรียนที่ลงทะเบียนในกลุ่มเรียน
 async function loadEnrolledStudents(assignId){
@@ -1682,6 +1689,8 @@ async function loadEnrolledStudents(assignId){
 
 async function loadSubjectsForAtt(){
   if(!document.getElementById('saDate').value)document.getElementById('saDate').value=today();
+  document.getElementById('saPeriod').innerHTML='';
+  document.getElementById('saDayInfo').style.display='none';
   var sel=document.getElementById('saAssign');
   sel.innerHTML='<option value="">กำลังโหลด...</option>';
   try{
@@ -1691,10 +1700,56 @@ async function loadSubjectsForAtt(){
   }catch(e){sel.innerHTML='<option value="">⚠️ โหลดไม่ได้</option>';}
 }
 
+function setSaDate(which){
+  var d=new Date();if(which==='yesterday')d.setDate(d.getDate()-1);
+  document.getElementById('saDate').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  onSaDateChange();
+}
+// เลือกกลุ่ม → โหลดตารางสอนของกลุ่มนั้น แล้วกรองคาบตามวัน
+async function onSaAssignChange(){
+  var assignId=document.getElementById('saAssign').value;
+  document.getElementById('saDayInfo').style.display='none';
+  if(!assignId){document.getElementById('saPeriod').innerHTML='';loadSubjectStudents();return;}
+  try{SA.timetable=await api('/rest/v1/timetable?assignment_id=eq.'+assignId+'&select=day_of_week,period')||[];}catch(e){SA.timetable=[];}
+  refreshSaPeriods();
+}
+function onSaDateChange(){refreshSaPeriods();}
+// สร้างรายการคาบให้เลือก = เฉพาะคาบที่สอนในวันนั้น (ตามตารางสอน)
+function refreshSaPeriods(){
+  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value;
+  var sel=document.getElementById('saPeriod'),info=document.getElementById('saDayInfo'),infoTxt=document.getElementById('saDayInfoText');
+  if(!assignId){sel.innerHTML='';info.style.display='none';return;}
+  var dow=dt?SA_DOW[new Date(dt+'T00:00:00').getDay()]:'';
+  var anyP=document.getElementById('saAnyPeriod').checked;
+  info.style.display='block';
+  if(anyP){
+    sel.innerHTML=[1,2,3,4,5,6,7].map(function(p){return '<option value="'+p+'">คาบ '+p+'</option>';}).join('');
+    infoTxt.innerHTML='📅 <b>'+dow+'</b> · โหมดนอกตาราง: เลือกคาบได้อิสระ (สำหรับสอนชดเชย)';
+    loadSubjectStudents();return;
+  }
+  if(!SA.timetable.length){
+    sel.innerHTML=[1,2,3,4,5,6,7].map(function(p){return '<option value="'+p+'">คาบ '+p+'</option>';}).join('');
+    infoTxt.innerHTML='📅 <b>'+dow+'</b> · ⚠️ ยังไม่ได้จัดตารางสอนวิชานี้ — เลือกคาบเองได้ (แนะนำจัดตารางสอนเพื่อให้ระบบจำกัดคาบอัตโนมัติ)';
+    loadSubjectStudents();return;
+  }
+  var todayPeriods=SA.timetable.filter(function(t){return t.day_of_week===dow;}).map(function(t){return t.period;}).sort(function(a,b){return a-b;});
+  if(!todayPeriods.length){
+    sel.innerHTML='<option value="">— ไม่มีคาบ —</option>';
+    infoTxt.innerHTML='📅 <b>'+dow+'</b> · 🛑 วันนี้ไม่มีคาบสอนวิชานี้ตามตาราง (วันหยุด/ไม่ใช่วันสอน) — ติ๊ก "เช็คนอกตาราง" หากต้องการเช็คชดเชย';
+    document.getElementById('saStats').style.display='none';document.getElementById('saBulk').style.display='none';
+    document.getElementById('saList').innerHTML='<div class="loading" style="color:#e65100;">วันนี้ไม่มีคาบสอนวิชานี้</div>';
+    return;
+  }
+  sel.innerHTML=todayPeriods.map(function(p){return '<option value="'+p+'">คาบ '+p+'</option>';}).join('');
+  infoTxt.innerHTML='📅 <b>'+dow+'</b> · สอนคาบ '+todayPeriods.join(', ')+' (เลือกคาบที่จะเช็คชื่อ)';
+  loadSubjectStudents();
+}
+
 async function loadSubjectStudents(){
-  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||1;
+  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||0;
   var hide=function(){document.getElementById('saStats').style.display='none';document.getElementById('saBulk').style.display='none';};
   if(!assignId){hide();document.getElementById('saList').innerHTML='<div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div>';return;}
+  if(!period){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:#e65100;">เลือกคาบที่จะเช็คชื่อ</div>';return;}
   document.getElementById('saList').innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
     var stus=await loadEnrolledStudents(assignId);
@@ -2391,11 +2446,29 @@ async function deleteTTSlot(){
 }
 
 // ไปหน้าเช็คชื่อรายวิชาของกลุ่มที่เลือก
-async function goToSubjectAtt(assignId,period){
+async function goToSubjectAtt(assignId,period,dt){
   openPage('pgSubjectAtt');
   await loadSubjectsForAtt();
   var sel=document.getElementById('saAssign');
-  if(sel){sel.value=assignId;if(period&&document.getElementById('saPeriod'))document.getElementById('saPeriod').value=period;loadSubjectStudents();}
+  if(!sel)return;
+  sel.value=assignId;
+  if(dt)document.getElementById('saDate').value=dt;
+  // ติ๊กนอกตาราง ถ้าระบุคาบเองมา (เพื่อให้แน่ใจว่าคาบนั้นเลือกได้)
+  await onSaAssignChange();
+  if(period){
+    var ps=document.getElementById('saPeriod');
+    var has=Array.from(ps.options).some(function(o){return o.value==String(period);});
+    if(!has){document.getElementById('saAnyPeriod').checked=true;refreshSaPeriods();}
+    document.getElementById('saPeriod').value=period;
+    loadSubjectStudents();
+  }
+}
+// จากหน้าเช็คชื่อ → ไปหน้ารายงาน (แก้ย้อนหลัง/ตรวจวันที่ขาด) ของกลุ่มเดียวกัน
+async function goToSubjReportFromAtt(){
+  var assignId=document.getElementById('saAssign').value;
+  openPage('pgSubjAttReport');
+  await initSubjAttReport();
+  if(assignId){document.getElementById('sarAssign').value=assignId;loadSubjAttReport();}
 }
 
 // ================================================================
@@ -2428,7 +2501,7 @@ function printReportHTML(title,bodyHTML){
 }
 
 // ---------- รายงานเวลาเรียนรายวิชา ----------
-var SAR={tab:'detail',assignId:null,sessions:[],students:[],att:{},meta:{}};
+var SAR={tab:'detail',assignId:null,sessions:[],students:[],att:{},meta:{},timetable:[],missFrom:null,missTo:null};
 
 async function initSubjAttReport(){
   var sel=document.getElementById('sarAssign');
@@ -2441,21 +2514,21 @@ async function initSubjAttReport(){
 }
 function setSarTab(t){
   SAR.tab=t;
-  document.getElementById('sarTabD').style.background=t==='detail'?'var(--blue)':'#fff';
-  document.getElementById('sarTabD').style.color=t==='detail'?'#fff':'var(--blue)';
-  document.getElementById('sarTabS').style.background=t==='summary'?'var(--blue)':'#fff';
-  document.getElementById('sarTabS').style.color=t==='summary'?'#fff':'var(--blue)';
+  [['sarTabD','detail'],['sarTabS','summary'],['sarTabM','missing']].forEach(function(x){
+    var b=document.getElementById(x[0]);b.style.background=t===x[1]?'var(--blue)':'#fff';b.style.color=t===x[1]?'#fff':'var(--blue)';
+  });
   document.getElementById('sarColWrap').style.display=t==='detail'?'flex':'none';
   renderSubjAttReport();
 }
 async function loadSubjAttReport(){
   var assignId=document.getElementById('sarAssign').value;
-  SAR.assignId=assignId;
+  SAR.assignId=assignId;SAR.missFrom=null;SAR.missTo=null;
   if(!assignId){document.getElementById('sarContent').innerHTML='<div class="loading">เลือกกลุ่มเรียนก่อนครับ</div>';return;}
   document.getElementById('sarContent').innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
     SAR.meta=G.myAssigns.filter(function(a){return a.id==assignId;})[0]||{};
     SAR.students=await loadEnrolledStudents(assignId);
+    try{SAR.timetable=await api('/rest/v1/timetable?assignment_id=eq.'+assignId+'&select=day_of_week,period')||[];}catch(e){SAR.timetable=[];}
     var rows=await api('/rest/v1/subject_attendance?assignment_id=eq.'+assignId+'&select=student_id,att_date,period,status&order=att_date,period');
     var sess={};SAR.att={};
     (rows||[]).forEach(function(r){
@@ -2477,8 +2550,49 @@ function renderSubjAttReport(){
   if(!SAR.assignId){return;}
   var el=document.getElementById('sarContent');
   if(!SAR.students.length){el.innerHTML=sarHeaderHTML()+'<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน</div>';return;}
+  if(SAR.tab==='missing'){el.innerHTML=sarHeaderHTML()+buildSarMissing();return;}
   if(!SAR.sessions.length){el.innerHTML=sarHeaderHTML()+'<div class="loading">ยังไม่มีข้อมูลการเช็คชื่อรายวิชานี้</div>';return;}
   el.innerHTML=sarHeaderHTML()+(SAR.tab==='detail'?buildSarDetail():buildSarSummary());
+}
+
+// ===== ตรวจวันที่ยังไม่เช็คชื่อ (วันหยุด/ลืมเช็ค) =====
+function buildSarMissing(){
+  if(!SAR.timetable||!SAR.timetable.length){
+    return '<div class="loading" style="color:#e65100;">⚠️ ยังไม่ได้จัดตารางสอนวิชานี้<br><small>ระบบตรวจ "วันที่ยังไม่เช็ค" จากตารางสอน — กรุณาจัดตารางสอนก่อน (เมนู จัดการตารางสอน)</small></div>';
+  }
+  // ค่าเริ่มต้นช่วงวันที่
+  if(!SAR.missFrom){SAR.missFrom=SAR.sessions.length?SAR.sessions[0].split('#')[0]:(today().substr(0,7)+'-01');}
+  if(!SAR.missTo){SAR.missTo=today();}
+  var sched={};SAR.timetable.forEach(function(t){(sched[t.day_of_week]=sched[t.day_of_week]||[]).push(t.period);});
+  var checked={};SAR.sessions.forEach(function(k){checked[k]=1;});
+  // enumerate วัน
+  var from=new Date(SAR.missFrom+'T00:00:00'),to=new Date(SAR.missTo+'T00:00:00');
+  var rows=[],missCount=0,doneCount=0;
+  for(var d=new Date(from);d<=to;d.setDate(d.getDate()+1)){
+    var dow=SA_DOW[d.getDay()];if(!sched[dow])continue;
+    var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    sched[dow].slice().sort(function(a,b){return a-b;}).forEach(function(p){
+      var key=ds+'#'+p, isChk=!!checked[key];
+      if(isChk)doneCount++;else missCount++;
+      rows.push({ds:ds,dow:dow,period:p,checked:isChk});
+    });
+  }
+  var ctl='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border);">'+
+    '<span style="font-size:12px;color:var(--text2);font-weight:700;">ช่วงวันที่</span>'+
+    '<input type="date" class="filter-select" value="'+SAR.missFrom+'" onchange="SAR.missFrom=this.value;renderSubjAttReport();">'+
+    '<span>ถึง</span>'+
+    '<input type="date" class="filter-select" value="'+SAR.missTo+'" onchange="SAR.missTo=this.value;renderSubjAttReport();">'+
+    '<span class="badge badge-green">เช็คแล้ว '+doneCount+'</span><span class="badge badge-red">ยังไม่เช็ค '+missCount+'</span>'+
+    '</div>';
+  if(!rows.length)return ctl+'<div class="loading">ไม่มีคาบสอนในช่วงวันที่นี้</div>';
+  var h=ctl+'<div class="tbl-wrap"><table><thead><tr><th>วันที่</th><th>วัน</th><th>คาบ</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr style="background:'+(r.checked?'#e8f5e9':'#ffebee')+';"><td>'+thaiDateShort(r.ds)+'</td><td>'+r.dow+'</td><td style="text-align:center;">'+r.period+'</td>'+
+      '<td style="text-align:center;font-weight:700;color:'+(r.checked?'#2e7d32':'#c62828')+';">'+(r.checked?'✅ เช็คแล้ว':'🛑 ยังไม่เช็ค')+'</td>'+
+      '<td><button class="btn '+(r.checked?'btn-outline':'btn-primary')+' btn-xs" onclick="goToSubjectAtt('+SAR.assignId+','+r.period+',\''+r.ds+'\')">'+(r.checked?'✏️ แก้ไข':'➕ เช็คย้อนหลัง')+'</button></td></tr>';
+  });
+  h+='</tbody></table></div><div style="font-size:11px;color:var(--text3);margin-top:6px;">🛑 แถวแดง = ยังไม่ได้เช็คชื่อ · กด "เช็คย้อนหลัง" เพื่อเติม (เลือกทั้งห้องด้วย ☑ หัวคอลัมน์ หรือรายคนด้วยปุ่มสถานะ)</div>';
+  return h;
 }
 function buildSarDetail(){
   var maxCol=parseInt(document.getElementById('sarMaxCol').value)||15;
