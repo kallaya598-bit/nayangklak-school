@@ -413,9 +413,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="nav-item" data-page="pgBehave">⚠️ <span>บันทึกพฤติกรรม</span></div>
       <div class="nav-item" data-page="pgScore">📊 <span>คะแนนสุทธิ</span></div>
       <div class="nav-section">การสอน</div>
-      <div class="nav-item" data-page="pgTeachSubjects">🎓 <span>รายวิชาที่สอน</span></div>
-      <div class="nav-item" data-page="pgManageSubjects">🗂️ <span>จัดการรายวิชา</span></div>
-      <div class="nav-item" data-page="pgTeachTimetable">🗓️ <span>จัดการตารางสอน</span></div>
+      <div class="nav-item" data-page="pgTeachSubjects">📅 <span>ตารางสอน</span></div>
       <div class="nav-item" data-page="pgSubjAttReport">📊 <span>เวลาเรียนรายวิชา</span></div>
       <div class="nav-item" data-page="pgRoomAttReport">🏫 <span>เวลาเรียนรายห้อง</span></div>
       <div class="nav-section">วิชาเรียน</div>
@@ -480,9 +478,7 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
         </div>
         <div class="sec-head"><div class="sec-bar"></div><div class="sec-title">ระบบการสอน (ครูผู้สอน)</div></div>
         <div class="mgrid">
-          <div class="mc" onclick="openPage('pgTeachSubjects')"><div class="mico mico-b">🎓</div><div class="mlbl">รายวิชา<br>ที่สอน</div></div>
-          <div class="mc" onclick="openPage('pgManageSubjects')"><div class="mico mico-t">🗂️</div><div class="mlbl">จัดการ<br>รายวิชา</div></div>
-          <div class="mc" onclick="openPage('pgTeachTimetable')"><div class="mico mico-p">🗓️</div><div class="mlbl">จัดการ<br>ตารางสอน</div></div>
+          <div class="mc" onclick="openPage('pgTeachSubjects')"><div class="mico mico-b">📅</div><div class="mlbl">ตารางสอน</div></div>
           <div class="mc" onclick="openPage('pgSubjectAtt')"><div class="mico mico-g">🕐</div><div class="mlbl">เช็คเวลา<br>เรียน</div></div>
           <div class="mc" onclick="openReport('papo5')"><div class="mico mico-gold">📄</div><div class="mlbl">รายงาน<br>ปพ.5</div><div class="rbadge">PDF</div></div>
           <div class="mc" onclick="openPage('pgSubjAttReport')"><div class="mico mico-b">📊</div><div class="mlbl">เวลาเรียน<br>รายวิชา</div></div>
@@ -701,9 +697,9 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="page" id="pgTeachSubjects">
         <div class="page-topbar">
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
-          <div class="pt1">🎓 เลือกรายวิชาที่ทำการสอน</div>
-          <button class="btn btn-sm" style="background:#fff;color:var(--blue);" onclick="openPage('pgManageSubjects')">🗂️ รายวิชาของฉัน</button>
+          <div class="pt1">📅 ตารางสอน</div>
         </div>
+        <div class="filter-bar schedTabs" style="gap:6px;overflow-x:auto;"><button class="btn btn-sm" onclick="openPage('pgTeachSubjects')">📚 รายวิชาที่สอน</button><button class="btn btn-sm" onclick="openPage('pgManageSubjects')">🗂️ จัดการรายวิชา</button><button class="btn btn-sm" onclick="openPage('pgTeachTimetable')">🗓️ จัดการตารางสอน</button></div>
         <div style="padding:14px;">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
             <div class="card">
@@ -749,9 +745,9 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="page" id="pgManageSubjects">
         <div class="page-topbar">
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
-          <div class="pt1">🗂️ จัดการรายวิชาที่ทำการสอน</div>
-          <button class="btn btn-sm" style="background:#fff;color:var(--blue);" onclick="openPage('pgTeachSubjects')">➕ เพิ่มรายวิชา</button>
+          <div class="pt1">📅 ตารางสอน</div>
         </div>
+        <div class="filter-bar schedTabs" style="gap:6px;overflow-x:auto;"><button class="btn btn-sm" onclick="openPage('pgTeachSubjects')">📚 รายวิชาที่สอน</button><button class="btn btn-sm" onclick="openPage('pgManageSubjects')">🗂️ จัดการรายวิชา</button><button class="btn btn-sm" onclick="openPage('pgTeachTimetable')">🗓️ จัดการตารางสอน</button></div>
         <div id="msContent" style="padding:14px 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
       </div>
 
@@ -759,9 +755,10 @@ tbody td{padding:9px 12px;font-size:13px;color:var(--text);vertical-align:middle
       <div class="page" id="pgTeachTimetable">
         <div class="page-topbar">
           <button class="back-btn" onclick="openPage('pgDash')">← หลัก</button>
-          <div class="pt1">🗓️ จัดการตารางสอน</div>
+          <div class="pt1">📅 ตารางสอน</div>
           <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2);" onclick="openReport('timetable')">📄 PDF</button>
         </div>
+        <div class="filter-bar schedTabs" style="gap:6px;overflow-x:auto;"><button class="btn btn-sm" onclick="openPage('pgTeachSubjects')">📚 รายวิชาที่สอน</button><button class="btn btn-sm" onclick="openPage('pgManageSubjects')">🗂️ จัดการรายวิชา</button><button class="btn btn-sm" onclick="openPage('pgTeachTimetable')">🗓️ จัดการตารางสอน</button></div>
         <div style="padding:8px 14px;font-size:12px;color:var(--text2);">💡 คลิกช่องว่าง(+)เพื่อเพิ่มคาบสอน · ปุ่ม 📚เช็คชื่อ เพื่อเช็คชื่อ · ปุ่ม ✏️แก้ไข เพื่อแก้/ลบคาบที่เพิ่มผิด</div>
         <div id="ttEditContent" style="padding:0 14px 80px;"><div class="loading">กำลังโหลด...</div></div>
       </div>
@@ -1426,6 +1423,8 @@ function openPage(id){
   if(id==='pgTeachSubjects')initTeachSubjects();
   if(id==='pgManageSubjects')loadManageSubjects();
   if(id==='pgTeachTimetable')loadTeachTimetable();
+  var schIdx={pgTeachSubjects:0,pgManageSubjects:1,pgTeachTimetable:2}[id];
+  if(schIdx!==undefined){var bar=document.querySelector('#'+id+' .schedTabs');if(bar)bar.querySelectorAll('button').forEach(function(b,i){b.className='btn btn-sm '+(i===schIdx?'btn-primary':'btn-outline');});}
   if(id==='pgSubjAttReport')initSubjAttReport();
   if(id==='pgRoomAttReport')initRoomAttReport();
 }
@@ -1730,16 +1729,30 @@ async function renderSaTimetable(){
     if(!tt.length){el.innerHTML='<div class="loading">ยังไม่ได้จัดตารางสอน<br><button class="btn btn-green btn-sm mt12" onclick="openPage(\'pgTeachTimetable\')">📅 ไปจัดตารางสอน</button><div class="mt12"><button class="btn btn-outline btn-sm" onclick="showSaAtt()">หรือเลือกกลุ่มเรียนเอง →</button></div></div>';return;}
     var map={};tt.forEach(function(t){map[t.day_of_week+'_'+t.period]=t;});
     var days=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'],periods=[1,2,3,4,5,6,7];
-    var todayDow=SA_DOW[new Date().getDay()];
-    var h='<div style="overflow-x:auto;"><table class="att-grid" style="font-size:11px;"><thead><tr><th>วัน\\คาบ</th>'+periods.map(function(p){return '<th>'+p+'</th>';}).join('')+'</tr></thead><tbody>';
+    var todayDow=SA_DOW[new Date().getDay()],td=today();
+    var weekStart=dateOfThisWeek('จันทร์'),weekEnd=dateOfThisWeek('ศุกร์');
+    var aids=[];tt.forEach(function(t){if(t.assignment_id&&aids.indexOf(t.assignment_id)<0)aids.push(t.assignment_id);});
+    var chk={};
+    if(aids.length){try{var sa=await api('/rest/v1/subject_attendance?assignment_id=in.('+aids.join(',')+')&att_date=gte.'+weekStart+'&att_date=lte.'+weekEnd+'&select=assignment_id,att_date,period');(sa||[]).forEach(function(r){chk[r.assignment_id+'_'+r.att_date+'_'+r.period]=1;});}catch(e){}}
+    var h='<div style="overflow-x:auto;"><table style="table-layout:fixed;width:100%;min-width:560px;border-collapse:collapse;font-size:11px;"><thead><tr>'+
+      '<th style="width:12%;background:var(--blue);color:#fff;border:1px solid #90caf9;padding:5px;">วัน/คาบ</th>'+
+      periods.map(function(p){return '<th style="width:12.5%;background:var(--blue);color:#fff;border:1px solid #90caf9;padding:5px;">'+p+'</th>';}).join('')+'</tr></thead><tbody>';
     days.forEach(function(day){
-      h+='<tr><td class="l" style="font-weight:700;background:'+(day===todayDow?'#fff3e0':'#fff')+';white-space:nowrap;">'+day+(day===todayDow?'<br><span style="font-size:9px;color:#e65100;">(วันนี้)</span>':'')+'</td>'+periods.map(function(p){
-        var t=map[day+'_'+p];if(!t)return '<td style="background:#fafafa;"></td>';
-        var c=subjColor(t.subject_id);
-        return '<td style="cursor:pointer;background:'+c[0]+';padding:5px 3px;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"><div style="font-weight:700;color:'+c[1]+';">'+((t.subjects&&t.subjects.subject_code)||'')+'</div><div style="color:'+c[1]+';font-size:10px;">'+((t.classrooms&&t.classrooms.room_name)||'')+'</div></td>';
+      var wd=dateOfThisWeek(day);
+      h+='<tr><td style="font-weight:700;border:1px solid var(--border);padding:4px;text-align:center;background:'+(day===todayDow?'#fff3e0':'#f5f9ff')+';white-space:nowrap;">'+day+(day===todayDow?'<br><span style="font-size:9px;color:#e65100;">(วันนี้)</span>':'')+'</td>'+periods.map(function(p){
+        var t=map[day+'_'+p];
+        if(!t)return '<td style="border:1px solid var(--border);background:#fafafa;height:48px;"></td>';
+        var code=(t.subjects&&t.subjects.subject_code)||'',rn=(t.classrooms&&t.classrooms.room_name)||'';
+        var isFuture=wd>td,isChecked=!!chk[t.assignment_id+'_'+wd+'_'+p];
+        var bg,tc,tag,click;
+        if(isFuture){bg='#e8eaed';tc='#9aa0a6';tag='⏳ ยังไม่ถึงวัน';click='onclick="toast(\'ยังไม่ถึงวันสอน ('+thaiDateShort(wd)+') เช็คได้เมื่อถึงวันจริง\',\'info\')"';}
+        else if(isChecked){bg='#c8e6c9';tc='#1b5e20';tag='✅ เช็คแล้ว';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        else if(wd<td){bg='#ffcdd2';tc='#b71c1c';tag='🔴 ลืมเช็ค';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        else{bg='#fff9c4';tc='#5d4037';tag='✍️ เช็คได้';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        return '<td '+click+' style="border:1px solid var(--border);background:'+bg+';padding:3px 2px;text-align:center;height:48px;vertical-align:middle;"><div style="font-weight:700;color:'+tc+';">'+code+'</div><div style="color:'+tc+';font-size:10px;">'+rn+'</div><div style="font-size:8px;color:'+tc+';">'+tag+'</div></td>';
       }).join('')+'</tr>';
     });
-    h+='</tbody></table></div><div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 แตะช่องวิชาเพื่อเช็คเวลาเรียนของคาบนั้น (ใช้วันในสัปดาห์ปัจจุบัน) · <button class="btn btn-outline btn-xs" onclick="showSaAtt()">เลือกกลุ่มเรียนเอง</button></div>';
+    h+='</tbody></table></div><div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.9;"><span style="background:#c8e6c9;padding:2px 7px;border-radius:4px;">✅ เช็คแล้ว</span> <span style="background:#ffcdd2;padding:2px 7px;border-radius:4px;">🔴 ลืมเช็ค</span> <span style="background:#fff9c4;padding:2px 7px;border-radius:4px;">✍️ ยังเช็คได้</span> <span style="background:#e8eaed;padding:2px 7px;border-radius:4px;">⏳ ยังไม่ถึงวัน</span><br>💡 แตะช่องวิชาเพื่อเช็คเวลาเรียน (สัปดาห์ปัจจุบัน) · <button class="btn btn-outline btn-xs" onclick="showSaAtt()">เลือกกลุ่มเรียนเอง</button></div>';
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
