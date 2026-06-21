@@ -1638,7 +1638,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div class="filter-bar">
           <div class="search-box"><span>🔍</span><input type="text" id="scQ" placeholder="ค้นหาชื่อ..." oninput="filterScore()"></div>
           <button class="btn btn-outline btn-sm" onclick="loadScoreSummary()">🔄 รีเฟรช</button>
-          <button class="btn btn-sm" style="background:rgba(0,105,92,.1);color:var(--blue);border-color:var(--border2);" onclick="openReport('score')">📄 PDF</button>
+          <button class="btn btn-sm" style="background:rgba(0,105,92,.1);color:var(--blue);border-color:var(--border2);" onclick="generateScorePDF()">📄 PDF</button>
         </div>
         <!-- เมนูย่อยรายงาน -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 6px;">
@@ -6201,6 +6201,97 @@ async function scRenderReport(kind,overrideRoomId){
     h+='<div style="font-size:13.2px;color:var(--text3);margin-top:6px;">แสดงสูงสุด 300 อันดับ · '+(isGood?'เรียงคะแนนความดีมาก→น้อย':'เรียงคะแนนติดลบมาก→น้อย')+'</div>';
     area.innerHTML=h;
   }catch(e){area.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+
+// ===== PDF สำหรับแท็บคะแนน/ความดี/พฤติกรรม =====
+async function generateScorePDF(){
+  var kind=SC_RPT_KIND||'main';
+  // แท็บหน้าหลัก → ใช้ generatePDF เดิม
+  if(kind==='main'){openReport('score');return;}
+  toast('กำลังสร้าง PDF...','info');
+  var roomName=G.room?G.room.room_name:'';
+  var printer=G.user?G.user.fullname:'';
+  try{
+    var isGood=kind.indexOf('good')===0,isRoom=kind.indexOf('room')>=0;
+    var isInd=kind==='individual';
+    var thColor=isInd?'#1565c0':isGood?'#2e7d32':'#6a1b9a';
+    var valColor=isGood?'#2e7d32':'#c62828';
+    var titleMap={good_room:'รายงานความดี (รายห้อง)',good_all:'รายงานความดี ทั้งโรงเรียน',behave_room:'รายงานพฤติกรรม (รายห้อง)',behave_all:'รายงานพฤติกรรม ทั้งโรงเรียน',individual:'รายงานค้นหารายบุคคล'};
+    var title=titleMap[kind]||'รายงาน';
+    var subtitle='โรงเรียนนายางกลักพิทยาคม';
+    var tableHTML='';
+
+    if(isInd){
+      // ดึงข้อมูลจากการ์ดที่แสดงอยู่ในหน้าจอ
+      var resEl=document.getElementById('scIndResult');
+      var q=document.getElementById('scIndQ')?document.getElementById('scIndQ').value:'';
+      if(!resEl||!q){toast('กรุณาค้นหานักเรียนก่อนพิมพ์ PDF','err');return;}
+      var rows2=await api('/rest/v1/students?or=(fullname.ilike.*'+encodeURIComponent(q)+'*,student_code.ilike.*'+encodeURIComponent(q)+'*)&select=id,fullname,student_code,classrooms(room_name)&status=eq.active&limit=20');
+      if(!rows2||!rows2.length){toast('ไม่มีข้อมูล','err');return;}
+      var ids2=rows2.map(function(r){return r.id;}).join(',');
+      var scores2=await api('/rest/v1/score_summary?student_id=in.('+ids2+')&select=student_id,good_score,bad_score,net_score');
+      var sm2={};(scores2||[]).forEach(function(s){sm2[s.student_id]=s;});
+      subtitle+=' · ค้นหา: "'+q+'"';
+      tableHTML='<thead><tr style="background:'+thColor+';color:#fff;"><th style="padding:8px 6px;text-align:center;">ที่</th><th style="padding:8px 6px;text-align:left;">ชื่อ-นามสกุล</th><th style="padding:8px 6px;text-align:center;">ห้อง</th><th style="padding:8px 6px;text-align:center;">ความดี</th><th style="padding:8px 6px;text-align:center;">ติดลบ</th><th style="padding:8px 6px;text-align:center;">สุทธิ</th></tr></thead><tbody>';
+      rows2.forEach(function(s,i){
+        var sc=sm2[s.id]||{good_score:0,bad_score:0,net_score:0};
+        var nc=sc.net_score>=0?'#2e7d32':'#c62828';
+        var room=s.classrooms?s.classrooms.room_name:'-';
+        tableHTML+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';"><td style="padding:7px 6px;text-align:center;">'+(i+1)+'</td><td style="padding:7px 8px;">'+s.fullname+'</td><td style="padding:7px 6px;text-align:center;">'+room+'</td><td style="padding:7px 6px;text-align:center;color:#2e7d32;font-weight:700;">+'+sc.good_score+'</td><td style="padding:7px 6px;text-align:center;color:#c62828;font-weight:700;">'+sc.bad_score+'</td><td style="padding:7px 6px;text-align:center;font-weight:800;color:'+nc+';">'+(sc.net_score>=0?'+':'')+sc.net_score+'</td></tr>';
+      });
+      tableHTML+='</tbody>';
+    } else if(isRoom){
+      var selEl=document.getElementById('scRoomSelId');
+      var selRoomId=selEl?parseInt(selEl.value):(G.room&&G.room.id)||0;
+      var selRoomName=selEl?selEl.options[selEl.selectedIndex].text:roomName;
+      subtitle+=' · ห้อง '+selRoomName;
+      var stus=await api('/rest/v1/students?classroom_id=eq.'+selRoomId+'&status=eq.active&select=id,fullname,order_no&order=order_no')||[];
+      var ids=stus.map(function(s){return s.id;}).join(',')||'0';
+      var data=await api('/rest/v1/score_summary?student_id=in.('+ids+')&select=student_id,good_score,bad_score&order='+(isGood?'good_score.desc':'bad_score.asc'))||[];
+      var smap={};stus.forEach(function(s){smap[s.id]=s;});
+      var filtRows=data.filter(function(d){return isGood?d.good_score>0:d.bad_score<0;});
+      var filtIds=filtRows.map(function(d){return d.student_id;}).join(',')||'0';
+      var tbl=isGood?'good_deeds':'behavior_records',dtF=isGood?'deed_date':'record_date';
+      var recs=await api('/rest/v1/'+tbl+'?student_id=in.('+filtIds+')&select=student_id,score,description,'+dtF+'&order='+dtF+'.desc&limit=500').catch(function(){return [];});
+      var recMap={};(recs||[]).forEach(function(r){if(!recMap[r.student_id])recMap[r.student_id]=[];recMap[r.student_id].push(r.score+' '+r.description.replace(/\[ออโต้\]\s*/,'')+' ('+thaiDateShort(r[dtF])+')');});
+      tableHTML='<thead><tr style="background:'+thColor+';color:#fff;"><th style="padding:8px 6px;text-align:center;">อันดับ</th><th style="padding:8px 6px;text-align:left;">ชื่อ-นามสกุล</th><th style="padding:8px 6px;text-align:center;">'+(isGood?'คะแนนความดี':'คะแนนพฤติกรรม')+'</th><th style="padding:8px 8px;text-align:left;">สาเหตุ</th></tr></thead><tbody>';
+      filtRows.forEach(function(d,i){var s=smap[d.student_id]||{};var val=isGood?d.good_score:d.bad_score;var detail=(recMap[d.student_id]||[]).slice(0,5).join(' / ')||'—';tableHTML+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';"><td style="padding:6px;text-align:center;font-weight:700;">'+(i+1)+'</td><td style="padding:6px 8px;">'+s.fullname+'</td><td style="padding:6px;text-align:center;font-weight:800;color:'+valColor+';">'+(val>0?'+':'')+val+'</td><td style="padding:6px 8px;font-size:12px;color:#555;">'+detail+'</td></tr>';});
+      tableHTML+='</tbody>';
+    } else {
+      // ทั้งโรงเรียน
+      var data=await api('/rest/v1/score_summary?select=student_id,good_score,bad_score,students!inner(fullname,classrooms(room_name))&order='+(isGood?'good_score.desc':'bad_score.asc')+'&limit=300')||[];
+      var filtRows=data.filter(function(d){return isGood?d.good_score>0:d.bad_score<0;});
+      var filtIds=filtRows.map(function(d){return d.student_id;}).join(',')||'0';
+      var tbl=isGood?'good_deeds':'behavior_records',dtF=isGood?'deed_date':'record_date';
+      var recs=await api('/rest/v1/'+tbl+'?student_id=in.('+filtIds+')&select=student_id,score,description,'+dtF+'&order='+dtF+'.desc&limit=1000').catch(function(){return [];});
+      var recMap={};(recs||[]).forEach(function(r){if(!recMap[r.student_id])recMap[r.student_id]=[];recMap[r.student_id].push(r.score+' '+r.description.replace(/\[ออโต้\]\s*/,'')+' ('+thaiDateShort(r[dtF])+')');});
+      tableHTML='<thead><tr style="background:'+thColor+';color:#fff;"><th style="padding:8px 6px;text-align:center;">อันดับ</th><th style="padding:8px 6px;text-align:left;">ชื่อ-นามสกุล</th><th style="padding:8px 6px;text-align:center;">ห้อง</th><th style="padding:8px 6px;text-align:center;">'+(isGood?'คะแนนความดี':'คะแนนพฤติกรรม')+'</th><th style="padding:8px 8px;text-align:left;">สาเหตุ</th></tr></thead><tbody>';
+      filtRows.forEach(function(d,i){var s=d.students||{};var room=(s.classrooms&&s.classrooms.room_name)||'-';var val=isGood?d.good_score:d.bad_score;var detail=(recMap[d.student_id]||[]).slice(0,4).join(' / ')||'—';tableHTML+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';"><td style="padding:6px;text-align:center;font-weight:700;">'+(i+1)+'</td><td style="padding:6px 8px;">'+s.fullname+'</td><td style="padding:6px;text-align:center;">'+room+'</td><td style="padding:6px;text-align:center;font-weight:800;color:'+valColor+';">'+(val>0?'+':'')+val+'</td><td style="padding:6px 8px;font-size:12px;color:#555;">'+detail+'</td></tr>';});
+      tableHTML+='</tbody>';
+    }
+
+    var el=document.createElement('div');
+    el.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;font-family:Sarabun,sans-serif;padding:28px 32px;';
+    el.innerHTML='<div style="text-align:center;margin-bottom:16px;">'+
+      '<div style="font-size:22px;font-weight:800;color:'+thColor+';">โรงเรียนนายางกลักพิทยาคม</div>'+
+      '<div style="font-size:13px;color:#555;margin-top:2px;">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>'+
+      '<div style="font-size:18px;font-weight:700;color:#333;margin-top:8px;">'+title+'</div>'+
+      '<div style="font-size:13px;color:#555;margin-top:3px;">'+subtitle+'</div>'+
+      '<div style="border-bottom:2px solid '+thColor+';margin-top:10px;"></div></div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:13.5px;">'+tableHTML+'</table>'+
+      '<div style="margin-top:12px;font-size:11px;color:#999;text-align:right;">พิมพ์เมื่อ: '+thaiDate()+' · ครูที่ปรึกษา: '+printer+'</div>';
+    document.body.appendChild(el);
+    var canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff'});
+    document.body.removeChild(el);
+    var imgData=canvas.toDataURL('image/jpeg',0.95);
+    var {jsPDF}=window.jspdf;
+    var pdf=new jsPDF('p','mm','a4');
+    var pageW=210,pageH=297,imgH=(canvas.height/canvas.width)*pageW;
+    var y=0;
+    while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(imgData,'JPEG',0,-(y),pageW,imgH);y+=pageH;}
+    pdf.save('report_'+kind+'_'+today()+'.pdf');
+    toast('✅ ดาวน์โหลด PDF แล้ว');
+  }catch(e){toast('❌ สร้าง PDF ไม่สำเร็จ: '+e.message,'err');console.error(e);}
 }
 
 // ===== หักคะแนนอัตโนมัติจากการเช็คชื่อ (สาย/ขาด/หนีเรียน) =====
