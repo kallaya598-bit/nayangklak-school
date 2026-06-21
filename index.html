@@ -478,6 +478,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   .logout-btn{font-size:12px;padding:4px 8px;border-radius:6px;}
   .tb-burger{width:32px;height:32px;}
 }
+#app:not(.on-dash) .topbar{display:none!important;}
 
 /* PAGE */
 .page{display:none;}
@@ -2834,7 +2835,7 @@ function openPage(id,fromPop){
   if(!fromPop && (!_cur || _cur.id!==id)){ try{history.pushState({page:id},'','#'+id);}catch(e){} }
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.topbar').forEach(function(t){t.style.display=(id==='pgDash'?'':'none');});
+  document.getElementById('app').classList.toggle('on-dash',id==='pgDash');
   // ปิด popup แก้สถานะเช็คชื่อทุกครั้งที่เปลี่ยนหน้า (ป้องกัน popup ลอยค้างบนหน้าอื่น)
   var _sp=document.getElementById('sarEditPop');if(_sp)_sp.style.display='none';
   var _ap=document.getElementById('arEditPop');if(_ap)_ap.style.display='none';
@@ -4901,6 +4902,7 @@ function showApp(){
   _showAppInit();
 }
 function _showAppInit(){
+  document.getElementById('app').classList.add('on-dash');
   // เริ่ม cloud animation หลัง app visible
   setTimeout(function(){if(window.heroCloudStart)window.heroCloudStart();},50);
   try{history.replaceState({page:'pgDash'},'','#pgDash');}catch(e){}
