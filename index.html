@@ -470,7 +470,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   .tb-n2{display:none;}
   .tb-right{display:none;}
   .tb-line-btn{display:none;}
-  .tb-n1{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+  .tb-n1{display:none;}
   .tb-brand{min-width:0;overflow:hidden;}
 }
 
@@ -7412,25 +7412,28 @@ function renderAttReport(stus,dt){
   document.getElementById('arP').textContent=p;
   document.getElementById('arL').textContent=ab;
   document.getElementById('arA').textContent=other;
+  var isMobile=window.innerWidth<=600;
+  var recName=G.user?G.user.fullname:'';
+  if(isMobile&&recName.length>10)recName=recName.replace(/^นาย|^นาง|^นางสาว/,'').trim().split(' ')[0];
   var rows=stus.map(function(s,i){
     var a=G_arAtt[s.id]||{};var st=a.status||'';
     var stTxt=st?'<span style="color:'+statusColor[st]+';font-weight:700;">'+statLabels[st]+'</span>':'<span style="color:#bbb;font-size:13px;">ยังไม่เช็ค</span>';
     return '<tr style="background:'+(i%2===0?'#fff':'#f5f8ff')+';"><td style="text-align:center;color:var(--blue);font-weight:700;padding:7px 5px;border:1px solid #e0e9f7;">'+(i+1)+'</td>'+
-      '<td style="text-align:center;font-size:13px;color:var(--text2);padding:7px 4px;border:1px solid #e0e9f7;">'+(s.student_code||'-')+'</td>'+
-      '<td style="padding:7px 10px;border:1px solid #e0e9f7;font-weight:600;white-space:nowrap;">'+s.fullname+'</td>'+
+      (isMobile?'':'<td style="text-align:center;font-size:13px;color:var(--text2);padding:7px 4px;border:1px solid #e0e9f7;">'+(s.student_code||'-')+'</td>')+
+      '<td style="padding:7px 8px;border:1px solid #e0e9f7;font-weight:600;">'+s.fullname+'</td>'+
       '<td style="text-align:center;padding:7px 8px;border:1px solid #e0e9f7;">'+stTxt+'</td>'+
-      '<td style="text-align:center;font-size:13px;color:var(--text2);padding:7px 5px;border:1px solid #e0e9f7;">'+(st?(G.user?G.user.fullname:''):'—')+'</td>'+
-      '<td style="text-align:center;padding:6px 4px;border:1px solid #e0e9f7;"><button class="btn btn-outline btn-xs" style="font-size:12.5px;padding:3px 10px;" onclick="openArEdit('+s.id+',\''+dt+'\',\'day\',this,event)">แก้ไขการเช็คชื่อ</button></td></tr>';
+      (isMobile?'':'<td style="text-align:center;font-size:13px;color:var(--text2);padding:7px 5px;border:1px solid #e0e9f7;">'+(st?recName:'—')+'</td>')+
+      '<td style="text-align:center;padding:6px 4px;border:1px solid #e0e9f7;"><button class="btn btn-outline btn-xs" style="font-size:12px;padding:3px 8px;" onclick="openArEdit('+s.id+',\''+dt+'\',\'day\',this,event)">'+(isMobile?'แก้':'แก้ไขการเช็คชื่อ')+'</button></td></tr>';
   }).join('');
   document.getElementById('arList').innerHTML='<div style="overflow-x:auto;padding:0 14px 80px;">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:14.5px;">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:'+(isMobile?'13':'14.5')+'px;">'+
     '<thead><tr style="background:var(--blue);color:#fff;">'+
-    '<th style="padding:10px 6px;text-align:center;white-space:nowrap;">ที่</th>'+
-    '<th style="padding:10px 6px;text-align:center;white-space:nowrap;">รหัส<br>นักเรียน</th>'+
-    '<th style="padding:10px 10px;text-align:left;white-space:nowrap;min-width:160px;">ชื่อ-สกุล</th>'+
-    '<th style="padding:10px 8px;text-align:center;white-space:nowrap;">รายการ</th>'+
-    '<th style="padding:10px 6px;text-align:center;white-space:nowrap;min-width:130px;">ผู้บันทึก</th>'+
-    '<th style="padding:10px 6px;text-align:center;white-space:nowrap;">แก้ไขการเช็คชื่อ</th>'+
+    '<th style="padding:8px 4px;text-align:center;">ที่</th>'+
+    (isMobile?'':'<th style="padding:8px 6px;text-align:center;">รหัส<br>นักเรียน</th>')+
+    '<th style="padding:8px 8px;text-align:left;">ชื่อ-สกุล</th>'+
+    '<th style="padding:8px 6px;text-align:center;">รายการ</th>'+
+    (isMobile?'':'<th style="padding:8px 6px;text-align:center;">ผู้บันทึก</th>')+
+    '<th style="padding:8px 4px;text-align:center;">'+(isMobile?'แก้':'แก้ไขการเช็คชื่อ')+'</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table></div>';
   document.getElementById('arBtnSave').style.display='none';
 }
