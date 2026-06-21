@@ -7541,25 +7541,58 @@ async function generatePDF(){
     var roomName=G.room?G.room.room_name:'';
     var periodTxt=from===to?thaiDate(from):thaiDate(from)+' ถึง '+thaiDate(to);
 
-    var tableHTML='';
+    var tableHTML='';var pdfLandscape=false;
     if(type==='morning_att'||type==='att'||type==='evening_att'){
       var tbl=type==='evening_att'?'afternoon_attendance':'morning_attendance';
-      var data=await api('/rest/v1/'+tbl+'?student_id=in.('+ids+')&att_date=gte.'+from+'&att_date=lte.'+to+'&select=student_id,att_date,status,remark&order=student_id,att_date');
-      var statTH={present:'มาเรียน',absent:'ขาด',late:'มาสาย',leave:'ลา',gone_home:'กลับบ้าน',special_leave:'พิเศษ',skip:'หนีเรียน'};
-      var statColor={present:'#2e7d32',absent:'#c62828',late:'#6a1b9a',leave:'#00695c',gone_home:'#00695c',special_leave:'#6a1b9a'};
-      tableHTML='<thead><tr style="background:#00695c;color:#fff;"><th style="width:40px;">ที่</th><th style="text-align:left;">ชื่อ-นามสกุล</th><th style="width:130px;">วันที่</th><th style="width:80px;">สถานะ</th><th>หมายเหตุ</th></tr></thead><tbody>';
-      (data||[]).forEach(function(d,i){
-        var s=stuMap[d.student_id]||{};
-        var col=statColor[d.status]||'#333';
-        tableHTML+='<tr style="background:'+(i%2?'#f5f5f5':'#fff')+';">'+
-          '<td style="text-align:center;">'+(s.order_no||'-')+'</td>'+
-          '<td>'+s.fullname+'</td>'+
-          '<td style="text-align:center;">'+thaiDate(d.att_date)+'</td>'+
-          '<td style="text-align:center;color:'+col+';font-weight:700;">'+(statTH[d.status]||d.status)+'</td>'+
-          '<td style="font-size:13.2px;">'+(d.remark||'')+'</td></tr>';
+      var data=await api('/rest/v1/'+tbl+'?student_id=in.('+ids+')&att_date=gte.'+from+'&att_date=lte.'+to+'&select=student_id,att_date,status&order=att_date');
+      // สร้างรายการวัน (จันทร์–ศุกร์เท่านั้น)
+      var dates=[];var dc=new Date(from),toD2=new Date(to);
+      while(dc<=toD2){var dw=dc.getDay();if(dw>=1&&dw<=5)dates.push(dc.toISOString().substr(0,10));dc.setDate(dc.getDate()+1);}
+      pdfLandscape=dates.length>7;
+      // map สถานะ
+      var attMap={};
+      (data||[]).forEach(function(r){if(!attMap[r.student_id])attMap[r.student_id]={};attMap[r.student_id][r.att_date]=r.status;});
+      var sym={present:'/',absent:'(ข)',late:'(ส)',leave:'(ล)',gone_home:'(ก)',special_leave:'(พ)',skip:'(ห)'};
+      var symCol={present:'#2e7d32',absent:'#c62828',late:'#6a1b9a',leave:'#00695c',gone_home:'#00695c',special_leave:'#6a1b9a'};
+      var dayS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+      var fs=dates.length>15?9:dates.length>10?10:12;
+      var cw=Math.max(16,Math.floor((pdfLandscape?750:480)/dates.length));
+      var thS='padding:3px 1px;text-align:center;font-size:'+fs+'px;border:1px solid #b2dfdb;';
+      var tdS='padding:3px 1px;text-align:center;font-size:'+fs+'px;border:1px solid #e0e0e0;';
+      // header
+      tableHTML='<thead><tr style="background:#00695c;color:#fff;">'+
+        '<th style="width:24px;'+thS+'">ที่</th>'+
+        '<th style="width:46px;'+thS+'">รหัส</th>'+
+        '<th style="text-align:left;padding:3px 6px;font-size:'+fs+'px;border:1px solid #b2dfdb;min-width:100px;">ชื่อ-นามสกุล</th>'+
+        dates.map(function(dt){var d2=new Date(dt);return '<th style="width:'+cw+'px;'+thS+'">'+dayS[d2.getDay()]+'<br>'+d2.getDate()+'</th>';}).join('')+
+        '<th style="width:30px;'+thS+'">รวม</th></tr></thead>';
+      // body
+      var datePres={};dates.forEach(function(dt){datePres[dt]=0;});
+      tableHTML+='<tbody>';
+      stus.forEach(function(s,i){
+        var sA=attMap[s.id]||{};var pCnt=0;
+        tableHTML+='<tr style="background:'+(i%2?'#f1f8f5':'#fff')+'">';
+        tableHTML+='<td style="'+tdS+'text-align:center;">'+(s.order_no||i+1)+'</td>';
+        tableHTML+='<td style="'+tdS+'text-align:center;">'+(s.student_code||'-')+'</td>';
+        tableHTML+='<td style="padding:3px 6px;font-size:'+fs+'px;border:1px solid #e0e0e0;">'+(s.fullname||'-')+'</td>';
+        dates.forEach(function(dt){
+          var st=sA[dt];var mk=st?sym[st]||st:'-';var cl=st?symCol[st]||'#333':'#bbb';
+          if(st==='present'){pCnt++;datePres[dt]=(datePres[dt]||0)+1;}
+          tableHTML+='<td style="'+tdS+'color:'+cl+';font-weight:'+(st==='present'?'700':'400')+';">'+mk+'</td>';
+        });
+        tableHTML+='<td style="'+tdS+'font-weight:700;color:#2e7d32;">'+pCnt+'</td></tr>';
       });
       tableHTML+='</tbody>';
-      if(!data||!data.length) tableHTML='<tbody><tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">ไม่มีข้อมูลในช่วงวันที่นี้</td></tr></tbody>';
+      // footer summary
+      var ftS='background:#e8f5e9;font-weight:700;font-size:'+fs+'px;border:1px solid #b2dfdb;';
+      tableHTML+='<tfoot>'+
+        '<tr><td colspan="3" style="'+ftS+'padding:4px 6px;">จำนวนที่เข้าเรียน</td>'+
+        dates.map(function(dt){return '<td style="'+ftS+'text-align:center;padding:4px 2px;">'+(datePres[dt]||0)+'</td>';}).join('')+
+        '<td style="'+ftS+'"></td></tr>'+
+        '<tr><td colspan="3" style="'+ftS+'padding:4px 6px;">% เข้าเรียน</td>'+
+        dates.map(function(dt){var p=stus.length?(((datePres[dt]||0)/stus.length)*100).toFixed(1):'0.0';return '<td style="'+ftS+'text-align:center;padding:4px 2px;">'+p+'</td>';}).join('')+
+        '<td style="'+ftS+'"></td></tr></tfoot>';
+      if(!dates.length) tableHTML='<tbody><tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">ไม่มีวันเรียน (จ-ศ) ในช่วงที่เลือก</td></tr></tbody>';
     } else if(type==='good'){
       var data=await api('/rest/v1/good_deeds?student_id=in.('+ids+')&deed_date=gte.'+from+'&deed_date=lte.'+to+'&select=student_id,deed_date,description,score,category_id&order=deed_date.desc&limit=200');
       var catMap={};G.goodCats.forEach(function(c){catMap[c.id]=c.name;});
@@ -7576,20 +7609,23 @@ async function generatePDF(){
     }
 
     // ===== render to hidden div =====
+    var isAttMatrix=(type==='morning_att'||type==='att'||type==='evening_att');
+    var divW=pdfLandscape?1060:794;
     var el=document.createElement('div');
-    el.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;font-family:Sarabun,sans-serif;padding:32px 36px;';
-    el.innerHTML='<div style="text-align:center;margin-bottom:20px;">'+
-      '<div style="font-size:24px;font-weight:800;color:#00695c;">โรงเรียนนายางกลักพิทยาคม</div>'+
-      '<div style="font-size:14.4px;color:#555;margin-top:2px;">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>'+
-      '<div style="font-size:19.2px;font-weight:700;color:#333;margin-top:10px;">'+(titles[type]||'รายงาน')+' ชั้น '+roomName+'</div>'+
-      '<div style="font-size:14.4px;color:#555;margin-top:4px;">'+periodTxt+'</div>'+
-      '<div style="border-bottom:2px solid #00695c;margin-top:12px;"></div>'+
+    el.style.cssText='position:fixed;left:-9999px;top:0;width:'+divW+'px;background:#fff;font-family:Sarabun,sans-serif;padding:24px 28px;';
+    var legend=isAttMatrix?'<div style="margin-top:10px;font-size:11px;color:#555;">/ มา &nbsp;·&nbsp; (ส) สาย &nbsp;·&nbsp; (ล) ลา &nbsp;·&nbsp; (ข) ขาด &nbsp;·&nbsp; (ก) กลับบ้าน &nbsp;·&nbsp; - ยังไม่เช็ค</div>':'';
+    el.innerHTML='<div style="text-align:center;margin-bottom:16px;">'+
+      '<div style="font-size:22px;font-weight:800;color:#00695c;">โรงเรียนนายางกลักพิทยาคม</div>'+
+      '<div style="font-size:13px;color:#555;margin-top:2px;">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>'+
+      '<div style="font-size:17px;font-weight:700;color:#333;margin-top:8px;">'+(titles[type]||'รายงาน')+' ชั้น '+roomName+'</div>'+
+      '<div style="font-size:13px;color:#555;margin-top:3px;">'+periodTxt+'</div>'+
+      '<div style="border-bottom:2px solid #00695c;margin-top:10px;"></div>'+
     '</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:14.4px;">'+tableHTML+'</table>'+
-    '<div style="margin-top:20px;font-size:13.2px;color:#999;text-align:right;">พิมพ์เมื่อ: '+thaiDate()+'  ·  ครูที่ปรึกษา: '+(G.user?G.user.fullname:'')+'</div>';
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;">'+tableHTML+'</table>'+
+    legend+
+    '<div style="margin-top:12px;font-size:11px;color:#999;text-align:right;">พิมพ์เมื่อ: '+thaiDate()+'  ·  ครูที่ปรึกษา: '+(G.user?G.user.fullname:'')+'</div>';
 
-    // style table cells
-    el.querySelectorAll('th,td').forEach(function(c){c.style.padding='7px 10px';c.style.borderBottom='1px solid #e0e0e0';});
+    if(!isAttMatrix) el.querySelectorAll('th,td').forEach(function(c){c.style.padding='7px 10px';c.style.borderBottom='1px solid #e0e0e0';});
     document.body.appendChild(el);
 
     var canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff'});
@@ -7597,9 +7633,9 @@ async function generatePDF(){
 
     var imgData=canvas.toDataURL('image/jpeg',0.95);
     var {jsPDF}=window.jspdf;
-    var pageW=210,pageH=297,margin=0;
+    var pageW=pdfLandscape?297:210,pageH=pdfLandscape?210:297,margin=0;
     var imgW=pageW,imgH=(canvas.height/canvas.width)*imgW;
-    var pdf=new jsPDF('p','mm','a4');
+    var pdf=new jsPDF(pdfLandscape?'l':'p','mm','a4');
     var y=0;
     while(y<imgH){
       if(y>0) pdf.addPage();
