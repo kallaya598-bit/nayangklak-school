@@ -9,23 +9,61 @@
 <meta name="apple-mobile-web-app-title" content="StudentCare 360°">
 <script>
 (function(){
-  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
-    +'<circle cx="50" cy="50" r="49" fill="white"/>'
-    +'<path d="M50 8A42 42 0 0 1 92 50" fill="none" stroke="#81c784" stroke-width="11" stroke-linecap="round"/>'
-    +'<path d="M92 50A42 42 0 0 1 50 92" fill="none" stroke="#ef9a9a" stroke-width="11" stroke-linecap="round"/>'
-    +'<path d="M50 92A42 42 0 0 1 8 50" fill="none" stroke="#64b5f6" stroke-width="11" stroke-linecap="round"/>'
-    +'<path d="M8 50A42 42 0 0 1 50 8" fill="none" stroke="#a5d6a7" stroke-width="11" stroke-linecap="round"/>'
-    +'<circle cx="79.7" cy="20.3" r="6.5" fill="#f9a825"/>'
-    +'<circle cx="79.7" cy="20.3" r="2" fill="white" opacity="0.5"/>'
-    +'<circle cx="20.3" cy="79.7" r="6.5" fill="#1976d2"/>'
-    +'<circle cx="20.3" cy="79.7" r="2" fill="white" opacity="0.5"/>'
-    +'<text x="50" y="45" text-anchor="middle" font-size="10" fill="#777" font-family="Arial,sans-serif">studentcare</text>'
-    +'<text x="50" y="64" text-anchor="middle" font-size="23" font-weight="800" fill="#455a64" font-family="Arial,sans-serif">360°</text>'
-    +'</svg>';
-  var l=document.createElement('link');
-  l.rel='icon';l.type='image/svg+xml';
-  l.href='data:image/svg+xml,'+encodeURIComponent(s);
-  document.head.appendChild(l);
+  var PI=Math.PI;
+  // สร้างไอคอนกลม StudentCare 360° บน Canvas
+  function buildIcon(size){
+    var cv=document.createElement('canvas');
+    cv.width=cv.height=size;
+    var ctx=cv.getContext('2d');
+    var cx=size/2,cy=size/2,r=size*0.42;
+    var lw=size*0.11,br=size*0.065;
+    // พื้นหลังขาว
+    ctx.fillStyle='white';ctx.fillRect(0,0,size,size);
+    // 4 วงส่วนโค้ง
+    function arc(s,e,c){ctx.beginPath();ctx.arc(cx,cy,r,s,e);ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();}
+    arc(-PI/2,0,'#81c784');
+    arc(0,PI/2,'#ef9a9a');
+    arc(PI/2,PI,'#64b5f6');
+    arc(PI,3*PI/2,'#a5d6a7');
+    // ลูกบอล
+    function ball(angle,color){
+      var bx=cx+r*Math.cos(angle),by=cy+r*Math.sin(angle);
+      ctx.beginPath();ctx.arc(bx,by,br,0,PI*2);ctx.fillStyle=color;ctx.fill();
+      ctx.beginPath();ctx.arc(bx-br*0.3,by-br*0.3,br*0.28,0,PI*2);ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fill();
+    }
+    ball(-PI/4,'#f9a825');
+    ball(3*PI/4,'#1976d2');
+    // ข้อความ
+    ctx.textAlign='center';
+    ctx.fillStyle='#777';ctx.font='500 '+(size*0.1)+'px Arial,sans-serif';
+    ctx.fillText('studentcare',cx,cy-size*0.06);
+    ctx.fillStyle='#455a64';ctx.font='800 '+(size*0.23)+'px Arial,sans-serif';
+    ctx.fillText('360°',cx,cy+size*0.16);
+    return cv.toDataURL('image/png');
+  }
+  try{
+    // SVG favicon สำหรับ browser tab
+    var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+      +'<circle cx="50" cy="50" r="49" fill="white"/>'
+      +'<path d="M50 8A42 42 0 0 1 92 50" fill="none" stroke="#81c784" stroke-width="11" stroke-linecap="round"/>'
+      +'<path d="M92 50A42 42 0 0 1 50 92" fill="none" stroke="#ef9a9a" stroke-width="11" stroke-linecap="round"/>'
+      +'<path d="M50 92A42 42 0 0 1 8 50" fill="none" stroke="#64b5f6" stroke-width="11" stroke-linecap="round"/>'
+      +'<path d="M8 50A42 42 0 0 1 50 8" fill="none" stroke="#a5d6a7" stroke-width="11" stroke-linecap="round"/>'
+      +'<circle cx="79.7" cy="20.3" r="6.5" fill="#f9a825"/>'
+      +'<circle cx="79.7" cy="20.3" r="2" fill="white" opacity="0.5"/>'
+      +'<circle cx="20.3" cy="79.7" r="6.5" fill="#1976d2"/>'
+      +'<circle cx="20.3" cy="79.7" r="2" fill="white" opacity="0.5"/>'
+      +'<text x="50" y="45" text-anchor="middle" font-size="10" fill="#777" font-family="Arial,sans-serif">studentcare</text>'
+      +'<text x="50" y="64" text-anchor="middle" font-size="23" font-weight="800" fill="#455a64" font-family="Arial,sans-serif">360°</text>'
+      +'</svg>';
+    var fl=document.createElement('link');
+    fl.rel='icon';fl.type='image/svg+xml';
+    fl.href='data:image/svg+xml,'+encodeURIComponent(s);
+    document.head.appendChild(fl);
+    // Canvas PNG สำหรับ apple-touch-icon (iOS home screen)
+    var al=document.querySelector('link[rel="apple-touch-icon"]');
+    if(al)al.href=buildIcon(512);
+  }catch(e){}
 })();
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
