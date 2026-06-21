@@ -2834,6 +2834,7 @@ function openPage(id,fromPop){
   if(!fromPop && (!_cur || _cur.id!==id)){ try{history.pushState({page:id},'','#'+id);}catch(e){} }
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
+  var _tb=document.querySelector('.topbar');if(_tb)_tb.style.display=(id==='pgDash'?'':'none');
   // ปิด popup แก้สถานะเช็คชื่อทุกครั้งที่เปลี่ยนหน้า (ป้องกัน popup ลอยค้างบนหน้าอื่น)
   var _sp=document.getElementById('sarEditPop');if(_sp)_sp.style.display='none';
   var _ap=document.getElementById('arEditPop');if(_ap)_ap.style.display='none';
