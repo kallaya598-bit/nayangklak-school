@@ -6154,24 +6154,28 @@ async function applyAttDeduct(records,source,dateStr,opts){
   opts=opts||{};
   try{
     var st=await loadDeductSettings();
-    if(!st.enabled)return;
+    if(!st.enabled){console.log('[deduct] disabled');return;}
     var labels={late:'มาสาย',absent:'ขาดเรียน',skip:'หนีเรียน'};
     var amt={late:st.late,absent:st.absent,skip:st.skip};
     var srcLabel=source==='morning'?'[ออโต้] เสาธงเช้า':source==='evening'?'[ออโต้] เช็คเย็น':('[ออโต้] คาบ '+(opts.period||'')+' #'+(opts.assignId||''));
     var allIds=records.map(function(r){return r.student_id;}).filter(Boolean);
     if(!allIds.length)return;
     // ลบรายการหักอัตโนมัติเดิมของ session นี้ก่อน (กันหักซ้ำเมื่อบันทึก/แก้ใหม่)
-    try{await api('/rest/v1/behavior_records?student_id=in.('+allIds.join(',')+')&record_date=eq.'+dateStr+'&description=like.'+encodeURIComponent(srcLabel)+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});}catch(e){}
+    try{await api('/rest/v1/behavior_records?student_id=in.('+allIds.join(',')+')&record_date=eq.'+dateStr+'&description=like.'+srcLabel+'*',{method:'DELETE',headers:{'Prefer':'return=minimal'}});}catch(e){console.warn('[deduct] delete old:',e);}
     // สร้างรายการหักใหม่เฉพาะ สาย/ขาด/หนี
     var newRecs=[];
     records.forEach(function(r){
       var a=amt[r.status];
-      if(a&&a>0)newRecs.push({student_id:r.student_id,teacher_id:G.user.id,category_id:null,score:-Math.abs(a),record_date:dateStr,description:srcLabel+' - '+(labels[r.status]||r.status),management_status:'pending'});
+      if(a&&a>0)newRecs.push({student_id:r.student_id,teacher_id:G.user.id,score:-Math.abs(a),record_date:dateStr,description:srcLabel+' - '+(labels[r.status]||r.status),management_status:'pending'});
     });
-    if(newRecs.length)try{await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(newRecs)});}catch(e){}
+    console.log('[deduct]',source,'newRecs:',newRecs.length,newRecs);
+    if(newRecs.length){
+      try{await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(newRecs)});}
+      catch(e){console.error('[deduct] INSERT failed:',e);toast('⚠️ หักคะแนนอัตโนมัติไม่สำเร็จ: '+e.message,'err');}
+    }
     // คำนวณคะแนนสุทธิใหม่ทุกคนใน session (เผื่อเปลี่ยนจากขาด→มา ต้องคืนคะแนน)
     await Promise.all(allIds.map(function(id){return api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:id})}).catch(function(){});}));
-  }catch(e){/* ไม่ขัดจังหวะการบันทึกเช็คชื่อหลัก */}
+  }catch(e){console.error('[deduct] error:',e);}
 }
 
 // ===== GRADES + เกรด 0-4 + ปพ.5 =====
