@@ -1042,7 +1042,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <label class="form-label">ชื่อผู้ใช้</label>
       <div class="input-ico">
         <span class="ico"><span class="ms" style="font-size:16px;vertical-align:middle;">person</span></span>
-        <input type="text" id="loginU" class="form-control" placeholder="เช่น adisak" autocapitalize="none" autocomplete="off">
+        <input type="text" id="loginU" class="form-control" placeholder="ชื่อผู้ใช้" autocapitalize="none" autocomplete="off">
       </div>
     </div>
     <div class="form-group">
@@ -1054,7 +1054,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       </div>
     </div>
     <div class="login-opts">
-      <label><input type="checkbox" id="loginRemember"> จดจำฉัน</label>
+      <span></span>
       <a onclick="forgotPw()">ลืมรหัสผ่าน?</a>
     </div>
     <button class="login-btn" id="loginBtn">➜ เข้าสู่ระบบ</button>
@@ -1081,14 +1081,14 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <label class="form-label">เลขประจำตัวนักเรียน</label>
         <div class="input-ico">
           <span class="ico"><span class="ms" style="font-size:16px;vertical-align:middle;">badge</span></span>
-          <input type="text" id="stuCode" class="form-control" placeholder="เช่น 12345" autocapitalize="none" inputmode="numeric">
+          <input type="text" id="stuCode" class="form-control" placeholder="เลขประจำตัวนักเรียน" autocapitalize="none" inputmode="numeric" autocomplete="off">
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">รหัสผ่าน</label>
         <div class="input-ico">
           <span class="ico"><span class="ms" style="font-size:16px;vertical-align:middle;">lock</span></span>
-          <input type="password" id="stuPass" class="form-control" placeholder="รหัสผ่าน (ค่าเริ่มต้น 1234)">
+          <input type="password" id="stuPass" class="form-control" placeholder="รหัสผ่าน" autocomplete="new-password">
         </div>
       </div>
       <button class="login-btn" id="stuLoginBtn" onclick="doStudentLogin()">➜ เข้าสู่ระบบ</button>
@@ -2965,7 +2965,6 @@ async function doLogin(){
     var data=await api('/rest/v1/rpc/login',{method:'POST',body:JSON.stringify({p_username:u,p_password:p})});
     if(!data||!data.length){err.textContent='Username หรือ Password ไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
     // จดจำชื่อผู้ใช้
-    try{if(document.getElementById('loginRemember').checked){localStorage.setItem('remember_user',u);}else{localStorage.removeItem('remember_user');}}catch(e){}
     G.user=data[0];G.semester=1;
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
     try{var tEx=await api('/rest/v1/teachers?id=eq.'+G.user.id+'&select=is_academic,shortcuts&limit=1');if(tEx&&tEx[0]){G.user.is_academic=!!tEx[0].is_academic;if(tEx[0].shortcuts&&tEx[0].shortcuts.length)G.user.shortcuts=tEx[0].shortcuts;}}catch(e){}
@@ -2974,8 +2973,7 @@ async function doLogin(){
     // ผู้บริหาร (viewer) → เข้าแดชบอร์ดผู้บริหารโดยตรง (ไม่ใช้เมนูครู)
     if(G.user.role==='viewer'){
       G.viewOnly=true;await loadCategories();
-      try{if(document.getElementById('loginRemember').checked){localStorage.setItem('remember_user',u);}else{localStorage.removeItem('remember_user');}}catch(e){}
-      saveSession({t:'viewer',user:G.user});
+        saveSession({t:'viewer',user:G.user});
       execStart();return;
     }
     // โหลด "ทุกห้อง" ที่ครูคนนี้เป็นที่ปรึกษา (ใช้ตรวจสิทธิ์แก้ไข)
@@ -2992,7 +2990,7 @@ function toggleLoginPw(){var i=document.getElementById('loginP'),e=document.getE
 // ลืมรหัสผ่าน
 function forgotPw(){toast('กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อรีเซ็ตรหัสผ่าน','err');}
 // คืนค่าชื่อผู้ใช้ที่จดจำไว้
-(function(){try{var ru=localStorage.getItem('remember_user');if(ru){var u=document.getElementById('loginU'),c=document.getElementById('loginRemember');if(u)u.value=ru;if(c)c.checked=true;}}catch(e){}})();
+try{localStorage.removeItem('remember_user');}catch(e){}
 
 // ===== ผู้บริหาร (viewer) =====
 function pickExec(){fillLogin('','');var u=document.getElementById('loginU');if(u)u.focus();document.getElementById('loginErr').textContent='ℹ️ ผู้บริหารเข้าด้วยบัญชีที่ผู้ดูแลระบบสร้างให้ (บทบาท: ผู้บริหาร)';}
