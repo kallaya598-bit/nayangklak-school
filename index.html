@@ -838,6 +838,18 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .iapp-gray{background:linear-gradient(145deg,#78909c,#37474f);}
 .iapp-pink{background:linear-gradient(145deg,#ec407a,#ad1457);}
 .iapp-gold{background:linear-gradient(145deg,#ffa726,#e65100);}
+/* iPhone Home Paged Grid */
+.iphome-wrap{position:relative;overflow:hidden;touch-action:pan-y;}
+.iphome-track{display:flex;will-change:transform;transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.iphome-page{min-width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:14px 14px 4px;align-content:start;}
+.iphome-icon{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 4px;border-radius:14px;transition:opacity .12s;}
+.iphome-icon:active{opacity:.6;transform:scale(.93);}
+.iphome-ico{width:62px;height:62px;border-radius:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.22);}
+.iphome-ico .ms{font-size:30px;color:#fff;}
+.iphome-lbl{font-size:11.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;width:72px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 2px rgba(255,255,255,.9);}
+.iphome-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:10px 0 6px;}
+.iphome-dot{width:7px;height:7px;border-radius:50%;background:#c5d5ee;transition:all .25s cubic-bezier(.4,0,.2,1);cursor:pointer;border:none;outline:none;}
+.iphome-dot.iphome-active{width:20px;border-radius:4px;background:var(--blue);}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
@@ -1503,67 +1515,45 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <button class="btn btn-sm admOnly" id="adminLineSummaryBtn" style="background:#06c755;color:#fff;border:none;font-weight:700;" onclick="sendSchoolSummary()"><span class="ms" style="font-size:15px;vertical-align:middle;">send</span> ส่งสรุป LINE</button>
           </div>
         </div>
-        <div style="padding:14px 0 4px;" id="dashMenuGrid">
-          <!-- เช็คชื่อ -->
-          <div class="menu-section">
-            <div class="menu-section-hd">เช็คชื่อ</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgStudents')"><div class="iapp-ico iapp-blue"><span class="ms">groups</span></div><div class="iapp-lbl">ข้อมูลนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgMorning')"><div class="iapp-ico iapp-red"><span class="ms">flag</span></div><div class="iapp-lbl">เสาธงเช้า</div></div>
-              <div class="iapp" onclick="openPage('pgEvening')"><div class="iapp-ico iapp-orange"><span class="ms">wb_twilight</span></div><div class="iapp-lbl">ตอนเย็น</div></div>
-              <div class="iapp" onclick="openPage('pgSubjectAtt')"><div class="iapp-ico iapp-blue"><span class="ms">schedule</span></div><div class="iapp-lbl">เช็คเวลาเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgAttReport')"><div class="iapp-ico iapp-teal"><span class="ms">assignment</span></div><div class="iapp-lbl">รายงานเช็คชื่อ</div></div>
-              <div class="iapp" onclick="openPage('pgAbsentRep')"><div class="iapp-ico iapp-red"><span class="ms">person_off</span></div><div class="iapp-lbl">นักเรียนขาด</div></div>
+        <div style="padding:8px 0 4px;" id="dashMenuGrid">
+          <div class="iphome-wrap">
+            <div class="iphome-track" id="iphomeTrack">
+              <!-- หน้า 1: เช็คชื่อ + บันทึก + ดูแลช่วยเหลือ + การสอน (16 icon) -->
+              <div class="iphome-page">
+                <div class="iphome-icon" onclick="openPage('pgStudents')"><div class="iphome-ico iapp-blue"><span class="ms">groups</span></div><div class="iphome-lbl">ข้อมูลนักเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgMorning')"><div class="iphome-ico iapp-red"><span class="ms">flag</span></div><div class="iphome-lbl">เสาธงเช้า</div></div>
+                <div class="iphome-icon" onclick="openPage('pgEvening')"><div class="iphome-ico iapp-orange"><span class="ms">wb_twilight</span></div><div class="iphome-lbl">ตอนเย็น</div></div>
+                <div class="iphome-icon" onclick="openPage('pgSubjectAtt')"><div class="iphome-ico iapp-blue"><span class="ms">schedule</span></div><div class="iphome-lbl">เช็คเวลาเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgAttReport')"><div class="iphome-ico iapp-teal"><span class="ms">assignment</span></div><div class="iphome-lbl">รายงานเช็คชื่อ</div></div>
+                <div class="iphome-icon" onclick="openPage('pgAbsentRep')"><div class="iphome-ico iapp-red"><span class="ms">person_off</span></div><div class="iphome-lbl">นักเรียนขาด</div></div>
+                <div class="iphome-icon" onclick="openPage('pgGood')"><div class="iphome-ico iapp-pink"><span class="ms">favorite</span></div><div class="iphome-lbl">บันทึกความดี</div></div>
+                <div class="iphome-icon" onclick="openPage('pgBehave')"><div class="iphome-ico iapp-orange"><span class="ms">warning</span></div><div class="iphome-lbl">บันทึกพฤติกรรม</div></div>
+                <div class="iphome-icon" onclick="openPage('pgScore')"><div class="iphome-ico iapp-green"><span class="ms">bar_chart</span></div><div class="iphome-lbl">คะแนนสุทธิ</div></div>
+                <div class="iphome-icon" onclick="openPage('pgHomeVisit')"><div class="iphome-ico iapp-teal"><span class="ms">home_work</span></div><div class="iphome-lbl">เยี่ยมบ้านนักเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgHvMap')"><div class="iphome-ico iapp-teal"><span class="ms">map</span></div><div class="iphome-lbl">แผนที่บ้านนักเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgMH')"><div class="iphome-ico iapp-purple"><span class="ms">psychology</span></div><div class="iphome-lbl">สุขภาพจิต</div></div>
+                <div class="iphome-icon" onclick="openPage('pgActivities')"><div class="iphome-ico iapp-indigo"><span class="ms">diversity_3</span></div><div class="iphome-lbl">กิจกรรมชุมนุม</div></div>
+                <div class="iphome-icon" onclick="openPage('pgTeachSubjects')"><div class="iphome-ico iapp-blue"><span class="ms">calendar_month</span></div><div class="iphome-lbl">ตารางสอน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgGrades')"><div class="iphome-ico iapp-gold"><span class="ms">grade</span></div><div class="iphome-lbl">คะแนนรายวิชา</div></div>
+                <div class="iphome-icon" onclick="openPage('pgSubjAttReport')"><div class="iphome-ico iapp-green"><span class="ms">analytics</span></div><div class="iphome-lbl">เวลาเรียนรายวิชา</div></div>
+              </div>
+              <!-- หน้า 2: การสอน (ต่อ) + รายงาน + Admin -->
+              <div class="iphome-page">
+                <div class="iphome-icon" onclick="openPage('pgRoomAttReport')"><div class="iphome-ico iapp-blue"><span class="ms">school</span></div><div class="iphome-lbl">เวลาเรียนรายห้อง</div></div>
+                <div class="iphome-icon" onclick="openPage('pgTimetable')"><div class="iphome-ico iapp-teal"><span class="ms">event_note</span></div><div class="iphome-lbl">ตารางนักเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgSubjAbsentRep')"><div class="iphome-ico iapp-orange"><span class="ms">event_busy</span></div><div class="iphome-lbl">ขาดเรียนรายวิชา</div></div>
+                <div class="iphome-icon" onclick="openPage('pgSkipRep')"><div class="iphome-ico iapp-red"><span class="ms">directions_run</span></div><div class="iphome-lbl">นักเรียนหนีเรียน</div></div>
+                <div class="iphome-icon" onclick="openPage('pgReport')"><div class="iphome-ico iapp-blue"><span class="ms">picture_as_pdf</span></div><div class="iphome-lbl">ออกรายงาน PDF</div></div>
+                <div class="iphome-icon" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="iphome-ico iapp-indigo"><span class="ms">checklist</span></div><div class="iphome-lbl">ภาพรวมชุมนุม</div></div>
+                <div class="iphome-icon" id="iappAdminSection" style="display:none;" onclick="openPage('pgAdmin')"><div class="iphome-ico iapp-gray"><span class="ms">settings</span></div><div class="iphome-lbl">จัดการระบบ</div></div>
+              </div>
+            </div>
+            <div class="iphome-dots" id="iphomeDots">
+              <span class="iphome-dot iphome-active"></span>
+              <span class="iphome-dot"></span>
             </div>
           </div>
-          <!-- บันทึก -->
-          <div class="menu-section">
-            <div class="menu-section-hd">บันทึก</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgGood')"><div class="iapp-ico iapp-pink"><span class="ms">favorite</span></div><div class="iapp-lbl">บันทึกความดี</div></div>
-              <div class="iapp" onclick="openPage('pgBehave')"><div class="iapp-ico iapp-orange"><span class="ms">warning</span></div><div class="iapp-lbl">บันทึกพฤติกรรม</div></div>
-              <div class="iapp" onclick="openPage('pgScore')"><div class="iapp-ico iapp-green"><span class="ms">bar_chart</span></div><div class="iapp-lbl">คะแนนสุทธิ</div></div>
-            </div>
-          </div>
-          <!-- ดูแลช่วยเหลือ -->
-          <div class="menu-section">
-            <div class="menu-section-hd">ดูแลช่วยเหลือ</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgHomeVisit')"><div class="iapp-ico iapp-teal"><span class="ms">home_work</span></div><div class="iapp-lbl">เยี่ยมบ้านนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgHvMap')"><div class="iapp-ico iapp-teal"><span class="ms">map</span></div><div class="iapp-lbl">แผนที่บ้านนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgMH')"><div class="iapp-ico iapp-purple"><span class="ms">psychology</span></div><div class="iapp-lbl">สุขภาพจิต</div></div>
-              <div class="iapp" onclick="openPage('pgActivities')"><div class="iapp-ico iapp-indigo"><span class="ms">diversity_3</span></div><div class="iapp-lbl">กิจกรรมชุมนุม</div></div>
-              <div class="iapp" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="iapp-ico iapp-indigo"><span class="ms">checklist</span></div><div class="iapp-lbl">ภาพรวมชุมนุม</div></div>
-            </div>
-          </div>
-          <!-- การสอน -->
-          <div class="menu-section">
-            <div class="menu-section-hd">การสอน</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgTeachSubjects')"><div class="iapp-ico iapp-blue"><span class="ms">calendar_month</span></div><div class="iapp-lbl">ตารางสอน</div></div>
-              <div class="iapp" onclick="openPage('pgGrades')"><div class="iapp-ico iapp-gold"><span class="ms">grade</span></div><div class="iapp-lbl">คะแนนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgSubjAttReport')"><div class="iapp-ico iapp-green"><span class="ms">analytics</span></div><div class="iapp-lbl">เวลาเรียนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgRoomAttReport')"><div class="iapp-ico iapp-blue"><span class="ms">school</span></div><div class="iapp-lbl">เวลาเรียนรายห้อง</div></div>
-              <div class="iapp" onclick="openPage('pgTimetable')"><div class="iapp-ico iapp-teal"><span class="ms">event_note</span></div><div class="iapp-lbl">ตารางนักเรียน</div></div>
-            </div>
-          </div>
-          <!-- รายงาน -->
-          <div class="menu-section">
-            <div class="menu-section-hd">รายงาน</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgSubjAbsentRep')"><div class="iapp-ico iapp-orange"><span class="ms">event_busy</span></div><div class="iapp-lbl">ขาดเรียนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgSkipRep')"><div class="iapp-ico iapp-red"><span class="ms">directions_run</span></div><div class="iapp-lbl">นักเรียนหนีเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgReport')"><div class="iapp-ico iapp-blue"><span class="ms">picture_as_pdf</span></div><div class="iapp-lbl">ออกรายงาน PDF</div></div>
-            </div>
-          </div>
-          <!-- Admin (เฉพาะ admin) -->
-          <div class="menu-section" id="iappAdminSection" style="display:none;">
-            <div class="menu-section-hd">Admin</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgAdmin')"><div class="iapp-ico iapp-gray"><span class="ms">settings</span></div><div class="iapp-lbl">จัดการระบบ</div></div>
-              <div class="mc mc-purple" id="adminDashBtn" style="display:none;" onclick="openPage('pgAdmin')"><div class="mico"><span class="ms">settings</span></div><div class="mlbl">จัดการ<br>ระบบ</div></div>
-            </div>
-          </div>
+          <div id="adminDashBtn" style="display:none;"></div>
         </div>
         <div class="footer">
           <div class="fdot"></div><span class="fonline">ออนไลน์</span>
@@ -5025,8 +5015,40 @@ function showApp(){
   app.style.display='block';
   _showAppInit();
 }
+function initIphome(){
+  var track=document.getElementById('iphomeTrack');
+  if(!track)return;
+  var dotsEl=document.getElementById('iphomeDots');
+  var pages=track.children.length;
+  var cur=0,startX=0,startY=0,dragging=false,dragDx=0;
+  function goTo(n){
+    cur=Math.max(0,Math.min(n,pages-1));
+    track.style.transition='transform .35s cubic-bezier(.4,0,.2,1)';
+    track.style.transform='translateX(-'+cur*100+'%)';
+    if(dotsEl)Array.from(dotsEl.children).forEach(function(d,i){d.className='iphome-dot'+(i===cur?' iphome-active':'');});
+  }
+  track.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;startY=e.touches[0].clientY;dragging=true;dragDx=0;},{passive:true});
+  track.addEventListener('touchmove',function(e){
+    if(!dragging)return;
+    var dx=e.touches[0].clientX-startX, dy=e.touches[0].clientY-startY;
+    if(Math.abs(dy)>Math.abs(dx)){dragging=false;return;}
+    dragDx=dx;
+    var pct=cur*100-(dx/track.offsetWidth*100);
+    track.style.transition='none';
+    track.style.transform='translateX(-'+Math.max(0,Math.min((pages-1)*100,pct))+'%)';
+  },{passive:true});
+  track.addEventListener('touchend',function(){
+    if(!dragging){goTo(cur);return;}
+    dragging=false;
+    goTo(Math.abs(dragDx)>55?(dragDx<0?cur+1:cur-1):cur);
+  },{passive:true});
+  if(dotsEl)Array.from(dotsEl.children).forEach(function(d,i){d.addEventListener('click',function(){goTo(i);});});
+  goTo(0);
+}
+
 function _showAppInit(){
   document.getElementById('app').classList.add('on-dash');
+  initIphome();
   // เริ่ม cloud animation หลัง app visible
   setTimeout(function(){if(window.heroCloudStart)window.heroCloudStart();},50);
   try{history.replaceState({page:'pgDash'},'','#pgDash');}catch(e){}
