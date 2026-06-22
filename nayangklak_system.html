@@ -2631,16 +2631,26 @@ async function buildStudentDetailHTML(stu,opts){
   try{
     var aids=enr.map(function(x){return x.assignment_id;}).filter(Boolean);
     if(aids.length){
-      var pubA=await api('/rest/v1/teaching_assignments?id=in.('+aids.join(',')+')&published=eq.true&select=id,subjects(subject_code,subject_name)').catch(e0);
-      var paids=(pubA||[]).map(function(a){return a.id;});
-      if(paids.length){
-        var structs=await api('/rest/v1/grade_structures?assignment_id=in.('+paids.join(',')+')&select=id,assignment_id,max_score').catch(e0);
+      var pubA=await api('/rest/v1/teaching_assignments?id=in.('+aids.join(',')+')&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
+      if(pubA&&pubA.length){
+        // วิชาเดียว+ครูเดียว ใช้โครงสร้างชุดเดียว → หา assignment_id "เจ้าของโครงสร้าง" (น้อยสุด)
+        var tids=[],sjs=[];(pubA||[]).forEach(function(a){if(a.teacher_id!=null)tids.push(a.teacher_id);if(a.subject_id!=null)sjs.push(a.subject_id);});
+        var canon={};
+        if(tids.length&&sjs.length){
+          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&select=id,teacher_id,subject_id').catch(e0);
+          (sib||[]).forEach(function(x){var k=x.teacher_id+'_'+x.subject_id;if(canon[k]==null||x.id<canon[k])canon[k]=x.id;});
+        }
+        var ownerOf=function(a){var k=a.teacher_id+'_'+a.subject_id;return canon[k]!=null?canon[k]:a.id;};
+        var canonIds=[];(pubA||[]).forEach(function(a){var o=ownerOf(a);if(canonIds.indexOf(o)<0)canonIds.push(o);});
+        var structs=await api('/rest/v1/grade_structures?assignment_id=in.('+canonIds.join(',')+')&select=id,assignment_id,max_score').catch(e0);
         var sids=(structs||[]).map(function(s){return s.id;});
         var grd=[];
         if(sids.length)grd=await api('/rest/v1/grades?student_id=eq.'+id+'&structure_id=in.('+sids.join(',')+')&select=structure_id,score').catch(e0);
         var gByStruct={};(grd||[]).forEach(function(g){gByStruct[g.structure_id]=g.score;});
+        var seen={};
         (pubA||[]).forEach(function(a){
-          var st=(structs||[]).filter(function(s){return s.assignment_id==a.id;});
+          var o=ownerOf(a);if(seen[o])return;seen[o]=1;
+          var st=(structs||[]).filter(function(s){return s.assignment_id==o;});
           var tot=0,mx=0,has=false;
           st.forEach(function(s){if(gByStruct[s.id]!=null){tot+=Number(gByStruct[s.id])||0;mx+=Number(s.max_score)||0;has=true;}});
           subjGrades.push({name:(a.subjects?a.subjects.subject_name:'วิชา'),code:(a.subjects?a.subjects.subject_code:''),tot:tot,mx:mx,grade:has?calcGrade(tot,mx):null,has:has});
@@ -5378,7 +5388,7 @@ async function loadGradeStructure(){
   try{
     var stus=await loadEnrolledStudents(assignId);
     GR.stus=stus;
-    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId+'&select=id,name,max_score,grade_type,order_no&order=order_no');
+    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+gradeStructKey(assignId)+'&select=id,name,max_score,grade_type,order_no&order=order_no');
     GR.structs=structs||[];
     if(!structs||!structs.length){document.getElementById('grContent').innerHTML='<div class="loading">ยังไม่มีโครงสร้างคะแนน<br><button class="btn btn-green btn-sm mt12" onclick="openGradeStructEditor()">⚙️ ตั้งโครงสร้างคะแนน</button></div>';return;}
     if(!stus.length){document.getElementById('grContent').innerHTML='<div class="loading">กลุ่มนี้ยังไม่มีนักเรียน · ไปเพิ่มที่ "จัดการรายวิชา"</div>';return;}
@@ -5504,17 +5514,26 @@ async function saveGradeStruct(){
   var assignId=curGradeAssignId();
   var rows=[];document.querySelectorAll('#gsRows .gsRow').forEach(function(r,i){
     var name=r.querySelector('[data-f="name"]').value.trim(),max=parseFloat(r.querySelector('[data-f="max"]').value)||0,type=r.querySelector('[data-f="type"]').value;
-    if(name&&max>0)rows.push({assignment_id:parseInt(assignId),subject_id:gradeAssignSubject(assignId),name:name,max_score:max,grade_type:type,order_no:i+1});
+    if(name&&max>0)rows.push({assignment_id:gradeStructKey(assignId),subject_id:gradeAssignSubject(assignId),name:name,max_score:max,grade_type:type,order_no:i+1});
   });
   if(!rows.length){toast('เพิ่มช่องคะแนนอย่างน้อย 1 ช่อง','err');return;}
   try{
     // ลบของเดิมแล้วใส่ใหม่
-    await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await api('/rest/v1/grade_structures?assignment_id=eq.'+gradeStructKey(assignId),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
     await api('/rest/v1/grade_structures',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rows)});
     toast('✅ บันทึกโครงสร้างคะแนนแล้ว');closeModal('modalGradeStruct');loadGradeStructure();
   }catch(e){toast('❌ '+e.message,'err');}
 }
 function gradeAssignSubject(assignId){var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0];return a?a.subject_id:null;}
+// วิชาเดียวกัน + ครูคนเดียวกัน → ใช้โครงสร้างคะแนนชุดเดียวกัน (ใช้ assignment_id น้อยสุดเป็น "เจ้าของโครงสร้าง")
+function gradeStructKey(assignId){
+  assignId=parseInt(assignId);
+  var a=(G.myAssigns||[]).filter(function(x){return x.id==assignId;})[0];
+  if(!a||a.subject_id==null)return assignId;
+  var sibs=(G.myAssigns||[]).filter(function(x){return x.subject_id==a.subject_id&&x.teacher_id==a.teacher_id;}).map(function(x){return parseInt(x.id);});
+  sibs.push(assignId);
+  return Math.min.apply(null,sibs);
+}
 
 // ---------- Export Excel ----------
 function exportGradesExcel(){
@@ -6620,7 +6639,7 @@ async function generatePapo5PDF(){
     await loadMyAssigns();
     var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0]||{};
     var stus=await loadEnrolledStudents(assignId);
-    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+assignId+'&select=id,name,max_score,grade_type,order_no&order=order_no');
+    var structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+gradeStructKey(assignId)+'&select=id,name,max_score,grade_type,order_no&order=order_no');
     structs=structs||[];
     if(!structs.length){toast('ยังไม่มีโครงสร้างคะแนน','err');return;}
     if(!stus.length){toast('กลุ่มนี้ยังไม่มีนักเรียน','err');return;}
