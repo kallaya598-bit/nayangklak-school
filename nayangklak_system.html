@@ -684,19 +684,19 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 @media(max-width:600px){#grContent input[type=number]{width:30px!important;}#grContent .cName{max-width:78px;}}
 
 /* ===== ตารางเช็คชื่อแบบเรดิโอ (ใช้ร่วมทุกหน้าเช็คชื่อ) ===== */
-.att-grid{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;}
-.att-grid th,.att-grid td{border:1px solid var(--border);padding:5px 4px;text-align:center;vertical-align:middle;}
-.att-grid thead th{background:var(--blue);color:#fff;}
+.att-grid{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;}
+.att-grid th,.att-grid td{border:1px solid var(--border);padding:4px 4px;text-align:center;vertical-align:middle;}
+.att-grid thead th{background:var(--blue);color:#fff;font-weight:500;}
 .att-grid th.l,.att-grid td.l{text-align:left;}
-.att-grid .agNo{width:32px;}
-.att-grid .agName{min-width:120px;}
-.att-grid tbody td.l{font-weight:600;color:var(--text);line-height:1.15;}
+.att-grid .agNo{width:30px;font-weight:400;}
+.att-grid .agName{min-width:110px;}
+.att-grid tbody td.l{font-weight:400;color:var(--text);line-height:1.1;white-space:nowrap;}
 .att-grid .ag-no{font-size:12.6px;color:var(--text3);font-weight:400;}
-.att-grid thead input[type=checkbox]{width:18px;height:18px;cursor:pointer;}
-.ag-radio{display:inline-block;width:23px;height:23px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
+.att-grid thead input[type=checkbox]{width:17px;height:17px;cursor:pointer;}
+.ag-radio{display:inline-block;width:21px;height:21px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
 .ag-radio:hover{border-color:var(--c);transform:scale(1.1);}
 .ag-radio.on{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 3px #fff;}
-@media(max-width:560px){.att-grid{font-size:11px;min-width:330px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:80px;}.ag-radio{width:19px;height:19px;}.att-grid .agNo{width:24px;}}
+@media(max-width:560px){.att-grid{font-size:10.5px;min-width:320px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:0;}.ag-radio{width:18px;height:18px;}.att-grid .agNo{width:22px;}}
 /* ===== เยี่ยมบ้านนักเรียน ===== */
 .hv-table{width:100%;border-collapse:collapse;font-size:15.6px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
 .hv-table th{background:var(--bluel);color:var(--blue);padding:9px 8px;text-align:left;font-weight:700;white-space:nowrap;}
@@ -4615,6 +4615,20 @@ function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap){
   });
   h+='</tbody></table></div>';
   el.innerHTML=h;
+  attFitGrid(elId);
+}
+// ย่อขนาดฟอนต์คอลัมน์ชื่ออัตโนมัติ ให้ชื่ออยู่บรรทัดเดียวพอดีจอ (ไม่ต้องเลื่อนแนวนอน)
+function attFitGrid(elId){
+  var el=document.getElementById(elId);if(!el)return;
+  var wrap=el.firstElementChild,table=el.querySelector('table.att-grid');
+  if(!wrap||!table)return;
+  var cells=table.querySelectorAll('tbody td.l');
+  cells.forEach(function(td){td.style.fontSize='';});
+  if(table.scrollWidth<=wrap.clientWidth+1)return;
+  var fs=parseFloat(getComputedStyle(table).fontSize)||12.5,min=8.5;
+  for(var i=0;i<40&&table.scrollWidth>wrap.clientWidth+1&&fs>min;i++){
+    fs-=0.5;cells.forEach(function(td){td.style.fontSize=fs+'px';});
+  }
 }
 function attGridSet(gridId,sid,k){var g=ATTGRID[gridId];if(!g.att[sid])g.att[sid]={};g.att[sid].status=(g.att[sid].status===k?'':k);buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap);}
 function attGridMarkAll(gridId,k,checked){var g=ATTGRID[gridId];g.students.forEach(function(s){if(!g.att[s.id])g.att[s.id]={};if(checked)g.att[s.id].status=k;else if(g.att[s.id].status===k)g.att[s.id].status='';});buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap);}
