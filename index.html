@@ -3261,6 +3261,7 @@ async function renderStuPortal(stu){
   body.innerHTML='<div class="sp-empty">⏳ กำลังโหลดข้อมูล...</div>';
   try{
     body.innerHTML=mhPortalCard(STU.mode)
+      +await hvStuCard(stu)
       +await actPortalHTML(stu,STU.mode)
       +await buildStudentDetailHTML(stu,{mode:STU.mode})
       +'<div class="sp-empty" style="margin-top:6px;">👁️ ข้อมูลนี้แสดงผลอย่างเดียว · ติดต่อครูที่ปรึกษาหากข้อมูลคลาดเคลื่อน</div>';
@@ -9741,7 +9742,7 @@ async function hvHome(){
     var stus=await api('/rest/v1/students?classroom_id=eq.'+G.room.id+'&status=eq.active&select=id,fullname,student_code,order_no&order=order_no')||[];
     hvStudents=stus;
     var ids=stus.map(function(s){return s.id;}).join(',')||'0';
-    var rec=await api('/rest/v1/home_visits?student_id=in.('+ids+')&year=eq.'+HV_YEAR+'&select=student_id,visit_date,risk_group,lat,lng,photos').catch(function(){return[];});
+    var rec=await api('/rest/v1/home_visits?student_id=in.('+ids+')&year=eq.'+HV_YEAR+'&select=student_id,visit_date,risk_group,lat,lng,photos,data').catch(function(){return[];});
     var by={};(rec||[]).forEach(function(r){by[r.student_id]=r;});hvByStu=by;
     var done=0;stus.forEach(function(s){if(by[s.id])done++;});
     var h='<div style="padding:12px 14px;">'
@@ -9769,7 +9770,7 @@ async function hvHome(){
       var hasMap=!!(r&&r.lat&&r.lng);
       var hasPhoto=!!(r&&r.photos&&r.photos.length>0);
       h+='<tr><td>'+(s.order_no||i+1)+'</td><td>'+hvEsc(s.student_code)+'</td><td class="nm">'+hvEsc(s.fullname)+'</td>'
-        +'<td>'+(r&&r.visit_date?thaiDateShort(r.visit_date):'<span style="color:#bbb;">—</span>')+'</td>'
+        +'<td>'+(r&&r.visit_date?thaiDateShort(r.visit_date):(r&&r.data&&r.data._stu_submitted?'<span style="background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;padding:2px 7px;font-size:11.5px;font-weight:700;white-space:nowrap;">📝 นักเรียนกรอก</span>':'<span style="color:#bbb;">—</span>'))+'</td>'
         +'<td>'+(r&&r.risk_group?'<span class="hv-rb '+hvGroupCls(r.risk_group)+'">'+r.risk_group+'</span>':'<span style="color:#bbb;">—</span>')+'</td>'
         +'<td style="text-align:center;">'+hvStatusBadge(hasInfo,s.id,0)+'</td>'
         +'<td style="text-align:center;">'+hvStatusBadge(hasMap,s.id,1)+'</td>'
@@ -10061,6 +10062,96 @@ async function hvDelete(){
   if(!hvState.id||!confirm('ลบบันทึกการเยี่ยมบ้านของนักเรียนคนนี้?'))return;
   try{await api('/rest/v1/home_visits?id=eq.'+hvState.id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});toast('🗑️ ลบแล้ว');hvHome();}
   catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ========== แบบเยี่ยมบ้าน — ฝั่งนักเรียน (กรอกเอง: ส่วน 1–6 + แผนที่ + รูป) ==========
+async function hvStuCard(stu){
+  var submitted=false;
+  try{
+    var ex=await api('/rest/v1/home_visits?student_id=eq.'+stu.id+'&year=eq.'+HV_YEAR+'&select=data&limit=1').catch(function(){return[];});
+    if(ex&&ex[0]&&ex[0].data&&ex[0].data._stu_submitted)submitted=true;
+  }catch(e){}
+  var status=submitted
+    ?'<div style="background:#e8f5e9;color:#2e7d32;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;margin-bottom:8px;">✅ ส่งข้อมูลแล้ว · ครูที่ปรึกษาจะตรวจสอบและออกเยี่ยมบ้านต่อไป</div>'
+    :'';
+  var lbl=submitted?'✏️ แก้ไขข้อมูลที่กรอก':'🏡 กรอกแบบเยี่ยมบ้าน';
+  return '<div class="sp-card"><h3>🏡 แบบเยี่ยมบ้านนักเรียน</h3>'+status
+    +'<button class="btn btn-sm" style="background:#00695c;color:#fff;border:none;width:100%;" onclick="stuHvOpen()">'+lbl+'</button>'
+    +'<div class="sp-empty" style="padding:8px 0 0;font-size:13.8px;">กรอกข้อมูลครอบครัว/ที่อยู่ พร้อมปักหมุดแผนที่บ้านและแนบรูปถ่าย · ข้อมูลจะส่งให้ครูที่ปรึกษา (ครูเป็นผู้คัดกรองและสรุปเอง)</div></div>';
+}
+async function stuHvOpen(){
+  var stu=STU.student;if(!stu){toast('ไม่พบข้อมูลนักเรียน','err');return;}
+  var body=document.getElementById('spBody');
+  body.innerHTML='<div class="sp-empty">⏳ กำลังโหลด...</div>';
+  hvState={sid:stu.id,stu:stu,id:null,data:{},photos:[],sign_parent:null,sign_teacher:null,visit_date:today(),visitors:'',lat:null,lng:null,_prevYear:null,_stuMode:true};
+  try{
+    var ex=await api('/rest/v1/home_visits?student_id=eq.'+stu.id+'&year=eq.'+HV_YEAR+'&select=*&limit=1').catch(function(){return[];});
+    if(ex&&ex[0]){var r=ex[0];hvState.id=r.id;hvState.data=r.data||{};hvState.photos=r.photos||[];hvState.lat=r.lat;hvState.lng=r.lng;}
+    stuHvForm();
+  }catch(e){body.innerHTML='<div class="sp-empty">โหลดไม่สำเร็จ: '+hvEsc(e.message)+'</div>';}
+}
+function stuHvForm(){
+  var st=hvState,s=st.stu||{};
+  var h='<div style="padding:4px 2px 110px;">'
+    +'<span class="ex-back" onclick="renderStuPortal(STU.student)">← กลับหน้าหลัก</span>'
+    +'<div style="background:var(--bluel);border-radius:10px;padding:12px 14px;margin:8px 0 4px;">'
+    +'<div style="font-weight:800;color:var(--blue);font-size:18px;">🏡 แบบเยี่ยมบ้าน</div>'
+    +'<div style="font-size:14px;color:var(--text2);">'+hvEsc(s.fullname||'')+' · ปีการศึกษา '+HV_YEAR+'</div>'
+    +'<div style="font-size:13px;color:var(--text3);margin-top:4px;">กรอกข้อมูลตามจริง แล้วกด “ส่งให้ครู” ด้านล่าง</div></div>';
+  h+='<div class="hv-tabs">'
+    +'<button class="hvt active" onclick="hvTab(0,this)">📋 ข้อมูล</button>'
+    +'<button class="hvt" onclick="hvTab(1,this)">🗺️ แผนที่บ้าน</button>'
+    +'<button class="hvt" onclick="hvTab(2,this)">📷 รูปถ่าย</button>'
+    +'</div>';
+  // แท็บ 0: ข้อมูลส่วน 1–6 (ไม่รวมคัดกรอง/ความเห็นครู)
+  h+='<div class="hv-tabpane active" id="hvTab0">';
+  HV_FORM.slice(0,6).forEach(function(sec){
+    h+='<div class="hv-sec">'+hvEsc(sec.t)+'</div><div class="hv-grid">';
+    sec.f.forEach(function(f){h+=hvField(f);});
+    h+='</div>';
+  });
+  h+='</div>';
+  // แท็บ 1: แผนที่บ้าน (ใช้ id เดียวกับฝั่งครู → reuse แผนที่ได้)
+  h+='<div class="hv-tabpane" id="hvTab1">'
+    +'<div class="hv-sec">📍 พิกัดบ้าน (แผนที่)</div>'
+    +'<div style="padding:0 0 8px;">'
+    +'<div style="display:flex;gap:6px;margin-bottom:6px;">'
+    +'<input id="hvMapSearch" type="text" placeholder="ค้นหา หมู่บ้าน ตำบล อำเภอ ชัยภูมิ..." style="flex:1;font-family:Sarabun,sans-serif;font-size:16.8px;padding:8px 10px;border:1.5px solid #d6dde6;border-radius:9px;" onkeydown="if(event.key===\'Enter\')hvDoSearch()">'
+    +'<button class="btn btn-sm btn-primary" onclick="hvDoSearch()">🔍 ค้นหา</button>'
+    +'<button class="btn btn-sm btn-outline" onclick="hvGetGps()" title="ดึงพิกัด GPS ปัจจุบัน">📍 GPS</button>'
+    +'</div>'
+    +'<div id="hvMapSuggest"></div>'
+    +'<div id="hvMapDiv" style="width:100%;height:300px;border-radius:10px;border:1.5px solid #d6dde6;overflow:hidden;background:#e8edf2;display:flex;align-items:center;justify-content:center;">'
+    +'<span style="color:#90a4ae;font-size:15.6px;">กดแท็บ "แผนที่บ้าน" เพื่อโหลดแผนที่</span></div>'
+    +'<div style="font-size:14.4px;color:var(--text3);margin-top:5px;">💡 คลิก/แตะบนแผนที่เพื่อปักหมุดตำแหน่งบ้าน &nbsp;|&nbsp; พิกัด: <b id="hvCoordDisplay">'
+    +(st.lat&&st.lng?st.lat+', '+st.lng:'— ยังไม่ได้กำหนด —')+'</b></div>'
+    +'<a id="hvNavBtn" href="#" target="_blank" rel="noopener" style="display:none;"></a>'
+    +'</div>'
+    +'</div>';
+  // แท็บ 2: รูปถ่าย
+  h+='<div class="hv-tabpane" id="hvTab2">'
+    +'<div class="hv-sec">📷 ภาพถ่ายบ้าน / นักเรียน / ผู้ปกครอง</div>'
+    +'<div class="hv-photos" id="hvPhotos">'+hvPhotosHtml()+'</div>'
+    +'<input type="file" id="hvFile" accept="image/*" capture="environment" style="display:none" onchange="hvAddPhotos(this.files)">'
+    +'</div>';
+  h+='<div class="hv-savebar"><button class="btn btn-primary" style="flex:1;min-width:160px;" onclick="stuHvSave()" id="hvSaveBtn">📤 ส่งข้อมูลให้ครู</button></div>';
+  h+='</div>';
+  hvMap=null;hvMapMark=null;
+  document.getElementById('spBody').innerHTML=h;
+}
+async function stuHvSave(){
+  var st=hvState;
+  st.data._stu_submitted=new Date().toISOString();
+  st.data._stu_filled=true;
+  // ส่งเฉพาะคอลัมน์ที่นักเรียนเป็นเจ้าของ — คอลัมน์คัดกรอง/วันเยี่ยม/ครู ของครูไม่ถูกแตะ (merge-duplicates)
+  var row={student_id:st.sid,year:HV_YEAR,data:st.data,photos:st.photos,
+    lat:st.lat!=null?st.lat:null,lng:st.lng!=null?st.lng:null,updated_at:new Date().toISOString()};
+  var btn=document.getElementById('hvSaveBtn');if(btn){btn.disabled=true;btn.textContent='กำลังส่ง...';}
+  try{
+    await api('/rest/v1/home_visits?on_conflict=student_id,year',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+    toast('✅ ส่งข้อมูลให้ครูแล้ว ขอบคุณครับ');
+    renderStuPortal(STU.student);
+  }catch(e){toast('❌ '+(e.message||''),'err');if(btn){btn.disabled=false;btn.textContent='📤 ส่งข้อมูลให้ครู';}}
 }
 
 // ---------- แปลง URL รูป → dataURL (กัน canvas taint ตอนทำ PDF) ----------
