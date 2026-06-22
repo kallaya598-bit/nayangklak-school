@@ -2064,12 +2064,12 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="pt1"><span class="pt-ic ms-blue">groups</span> ข้อมูลนักเรียน</div>
         </div>
 
-        <!-- 4-card sub-module nav -->
-        <div class="mgrid" style="padding:10px 14px 0;">
-          <div class="mc" onclick="showSpSub('info')"><div class="mico mico-t">🧑‍🎓</div><div class="mlbl">ข้อมูล<br>นักเรียน</div></div>
-          <div class="mc" onclick="showSpSub('search')"><div class="mico mico-b">🔍</div><div class="mlbl">ค้นหา<br>นักเรียน</div></div>
-          <div class="mc" onclick="openStudentForm(null)"><div class="mico mico-g">➕</div><div class="mlbl">เพิ่ม<br>นักเรียน</div></div>
-          <div class="mc" onclick="spExport()"><div class="mico mico-gold">📊</div><div class="mlbl">Export<br>Excel</div></div>
+        <!-- top button row (sub-module nav) -->
+        <div class="filter-bar spTabs" style="gap:6px;overflow-x:auto;padding:10px 14px 0;">
+          <button id="spTabInfo" class="btn btn-sm btn-primary" onclick="showSpSub('info')">🧑‍🎓 ข้อมูลนักเรียน</button>
+          <button id="spTabSearch" class="btn btn-sm btn-outline" onclick="showSpSub('search')">🔍 ค้นหานักเรียน</button>
+          <button class="btn btn-sm btn-green" onclick="openStudentForm(null)">➕ เพิ่มนักเรียน</button>
+          <button class="btn btn-sm" style="background:#f57f17;color:#fff;border:none;" onclick="spExport()">📊 Export Excel</button>
         </div>
 
         <!-- Sub-view: ข้อมูลนักเรียน -->
@@ -8480,6 +8480,9 @@ function exportStudentsExcel(){
 function showSpSub(tab){
   document.getElementById('spInfoView').style.display=tab==='info'?'':'none';
   document.getElementById('spSearchView').style.display=tab==='search'?'':'none';
+  var ti=document.getElementById('spTabInfo'),ts=document.getElementById('spTabSearch');
+  if(ti)ti.className='btn btn-sm '+(tab==='info'?'btn-primary':'btn-outline');
+  if(ts)ts.className='btn btn-sm '+(tab==='search'?'btn-primary':'btn-outline');
   if(tab==='search'){
     // populate room dropdown if not yet done
     var ssRoomEl=document.getElementById('ssRoom');
