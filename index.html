@@ -969,7 +969,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 @media(max-width:600px){#grContent input[type=number]{width:34px!important;}#grContent .cName{max-width:90px;}}
 
 /* ===== ตารางเช็คชื่อแบบเรดิโอ (ใช้ร่วมทุกหน้าเช็คชื่อ) ===== */
-.att-grid{width:100%;border-collapse:collapse;font-size:15.6px;background:#fff;}
+.att-grid{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;}
 .att-grid th,.att-grid td{border:1px solid var(--border);padding:5px 4px;text-align:center;vertical-align:middle;}
 .att-grid thead th{background:var(--blue);color:#fff;}
 .att-grid th.l,.att-grid td.l{text-align:left;}
@@ -981,7 +981,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 .ag-radio{display:inline-block;width:23px;height:23px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
 .ag-radio:hover{border-color:var(--c);transform:scale(1.1);}
 .ag-radio.on{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 3px #fff;}
-@media(max-width:560px){.att-grid{font-size:12.5px;min-width:370px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:80px;}.ag-radio{width:19px;height:19px;}.att-grid .agNo{width:26px;}}
+@media(max-width:560px){.att-grid{font-size:11px;min-width:330px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:80px;}.ag-radio{width:19px;height:19px;}.att-grid .agNo{width:24px;}}
 /* ===== เยี่ยมบ้านนักเรียน ===== */
 .hv-table{width:100%;border-collapse:collapse;font-size:15.6px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
 .hv-table th{background:var(--bluel);color:var(--blue);padding:9px 8px;text-align:left;font-weight:700;white-space:nowrap;}
@@ -5499,9 +5499,9 @@ async function loadEvening(){
 // ================= ATT GRID (ตารางเช็คชื่อแบบเรดิโอ ใช้ร่วมทุกหน้า) =================
 var ATTGRID={};
 var ATT_DEFS={
-  morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#e8f5e9'},{k:'late',label:'สาย',c:'#e65100',bg:'#fff3e0'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'leave',label:'ลา',c:'#00695c',bg:'#e0f2f1'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#f3e5f5'}],
-  evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#e8f5e9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#e0f2f1'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'special_leave',label:'พิเศษ',c:'#6a1b9a',bg:'#f3e5f5'},{k:'skip',label:'หนีเรียน',c:'#ad1457',bg:'#fce4ec'}],
-  subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#e8f5e9'},{k:'late',label:'สาย',c:'#e65100',bg:'#fff3e0'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffebee'},{k:'leave',label:'ลา',c:'#00695c',bg:'#e0f2f1'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#f3e5f5'}]
+  morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}],
+  evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#c8e6c9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#b2dfdb'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'special_leave',label:'พิเศษ',c:'#6a1b9a',bg:'#e1bee7'},{k:'skip',label:'หนีเรียน',c:'#ad1457',bg:'#f8bbd0'}],
+  subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}]
 };
 function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap){
@@ -5517,7 +5517,7 @@ function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap){
     var cur=att[s.id]&&att[s.id].status,def=null;defs.forEach(function(d){if(d.k===cur)def=d;});
     h+='<tr style="background:'+(def?def.bg:'#fff')+';">'+
       '<td class="agNo">'+(s.order_no||i+1)+'</td>'+
-      '<td class="agName l">'+s.fullname+'<div class="ag-no">'+(s.student_code||'')+'</div></td>'+
+      '<td class="agName l">'+s.fullname+'</td>'+
       (hasEntry?'<td>'+(entryMap[s.id]?attSym(entryMap[s.id]):'-')+'</td>':'')+
       defs.map(function(d){return '<td><span class="ag-radio'+(cur===d.k?' on':'')+'" style="--c:'+d.c+';" onclick="attGridSet(\''+gridId+'\','+s.id+',\''+d.k+'\')"></span></td>';}).join('')+
     '</tr>';
