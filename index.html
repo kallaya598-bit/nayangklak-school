@@ -8218,6 +8218,7 @@ function renderStudentGrid(list){
           '<span class="scard2-pill b">รหัส '+s.student_code+'</span>'+
           (s.nickname?'<span class="scard2-pill">'+s.nickname+'</span>':'')+
         '</div>'+
+        '<div style="font-size:11.5px;color:var(--text3);margin-top:4px;">ครูที่ปรึกษา: '+advisorOf(s.classroom_id)+'</div>'+
       '</div>'+
       '<div class="scard2-acts">'+
         '<button class="scard2-act" onclick="openStudentDetail('+s.id+')"><span class="ico">📋</span>รายละเอียด</button>'+
