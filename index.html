@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StudentCare 360° — โรงเรียนนายางกลักพิทยาคม</title>
-<link rel="apple-touch-icon" sizes="180x180" href="logo2.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon.png.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="StudentCare 360°">
+<meta name="theme-color" content="#1565c0">
 <script>
 (function(){
   var PI=Math.PI;
@@ -10034,9 +10038,17 @@ async function hvAddPhotos(files){
   }catch(e){toast('❌ '+e.message,'err');}
   document.getElementById('hvFile').value='';
 }
-function hvDelPhotoCat(cat){
+async function hvDelPhotoCat(cat){
   hvState.photos=hvState.photos.filter(function(p){return p.cat!==cat;});
   hvRefreshPhotos();
+  await hvPersistPhotos();
+}
+// บันทึกเฉพาะคอลัมน์ photos ทันที (กรณีมีบันทึกอยู่แล้ว) เพื่อให้สถานะ "รูปถ่าย" อัปเดตจริง
+async function hvPersistPhotos(){
+  if(!hvState.id)return;   // ยังไม่เคยบันทึก → จะถูกบันทึกตอนกด "บันทึกการเยี่ยมบ้าน"
+  try{
+    await api('/rest/v1/home_visits?id=eq.'+hvState.id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({photos:hvState.photos,updated_at:new Date().toISOString()})});
+  }catch(e){toast('บันทึกการลบรูปไม่สำเร็จ: '+e.message,'err');}
 }
 
 // ---------- Leaflet + OpenStreetMap ----------
