@@ -5022,11 +5022,16 @@ function initIphome(){
   var dotsEl=document.getElementById('iphomeDots');
   var pages=track.children.length;
   var cur=0,startX=0,startY=0,dragging=false,dragDx=0,locked=false;
-  function pageW(){return wrap.offsetWidth||window.innerWidth;}
-  function goTo(n){
+  // กำหนดความกว้าง track = N เท่าของ wrap, แต่ละหน้า = 1/N ของ track = 100% ของ wrap
+  function resize(){
+    track.style.width=(pages*100)+'%';
+    Array.from(track.children).forEach(function(p){p.style.width=(100/pages)+'%';});
+  }
+  function goTo(n,instant){
     cur=Math.max(0,Math.min(n,pages-1));
-    track.style.transition='transform .35s cubic-bezier(.4,0,.2,1)';
-    track.style.transform='translateX(-'+(cur*pageW())+'px)';
+    track.style.transition=instant?'none':'transform .35s cubic-bezier(.4,0,.2,1)';
+    // translateX(-X%) ที่ X = cur/pages*100 → เลื่อน 1 page พอดี
+    track.style.transform='translateX(-'+(cur/pages*100)+'%)';
     if(dotsEl)Array.from(dotsEl.children).forEach(function(d,i){d.className='iphome-dot'+(i===cur?' iphome-active':'');});
   }
   track.addEventListener('touchstart',function(e){
@@ -5036,11 +5041,14 @@ function initIphome(){
   track.addEventListener('touchmove',function(e){
     if(!dragging||locked)return;
     var dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
-    if(!dragDx&&Math.abs(dy)>Math.abs(dx)){locked=true;dragging=false;goTo(cur);return;}
+    if(Math.abs(dragDx)<5&&Math.abs(dy)>Math.abs(dx)){locked=true;dragging=false;goTo(cur);return;}
     dragDx=dx;
-    var px=cur*pageW()-dx;
+    var wW=wrap.offsetWidth||window.innerWidth;
+    var tW=wW*pages; // ความกว้าง track จริง
+    var px=cur*wW-dx; // offset pixel จากขอบซ้าย
+    var clamp=Math.max(0,Math.min((pages-1)*wW,px));
     track.style.transition='none';
-    track.style.transform='translateX(-'+Math.max(0,Math.min((pages-1)*pageW(),px))+'px)';
+    track.style.transform='translateX(-'+(clamp/tW*100)+'%)';
   },{passive:true});
   track.addEventListener('touchend',function(){
     if(!dragging){goTo(cur);return;}
@@ -5048,8 +5056,9 @@ function initIphome(){
     goTo(Math.abs(dragDx)>55?(dragDx<0?cur+1:cur-1):cur);
   },{passive:true});
   if(dotsEl)Array.from(dotsEl.children).forEach(function(d,i){d.addEventListener('click',function(){goTo(i);});});
-  window.addEventListener('resize',function(){goTo(cur);});
-  goTo(0);
+  window.addEventListener('resize',function(){resize();goTo(cur,true);});
+  resize();
+  goTo(0,true);
 }
 
 function _showAppInit(){
