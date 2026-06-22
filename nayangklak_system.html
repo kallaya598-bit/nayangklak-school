@@ -467,6 +467,38 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .scard-blue .slbl,.scard-green .slbl,.scard-red .slbl,.scard-purple .slbl{color:rgba(255,255,255,.8);}
 .scard-blue:hover,.scard-green:hover,.scard-red:hover,.scard-purple:hover{box-shadow:0 14px 32px rgba(0,0,0,.25);}
 
+/* ===== STUDENT-PROFILE DASHBOARD (redesigned) ===== */
+.sp-stat{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+  display:flex;align-items:center;gap:12px;box-shadow:var(--shadow2);min-height:64px;
+  transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s;}
+.sp-stat:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.sp-stat .ic{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px;background:var(--cb);color:var(--c);}
+.sp-stat .v{font-size:27px;font-weight:800;line-height:1;color:var(--c);font-variant-numeric:tabular-nums;}
+.sp-stat .l{font-size:13px;color:var(--text2);margin-top:4px;font-weight:600;}
+.sp-chart-h{font-size:15.6px;font-weight:700;color:var(--blue);margin-bottom:12px;}
+/* donut */
+.sp-donut-wrap{display:flex;align-items:center;gap:18px;}
+.sp-donut{width:128px;height:128px;flex-shrink:0;}
+.sp-donut svg{width:100%;height:100%;display:block;}
+.sp-arc{stroke-linecap:round;}
+.sp-donut-tot{font-size:30px;font-weight:800;fill:var(--blue);}
+.sp-donut-lbl{font-size:11.5px;font-weight:600;fill:var(--text3);}
+.sp-legend{font-size:14.4px;display:flex;flex-direction:column;gap:10px;min-width:0;}
+.sp-leg-row{display:flex;align-items:baseline;gap:8px;line-height:1.2;}
+.sp-leg-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0;align-self:center;}
+.sp-leg-nm{color:var(--text);font-weight:600;}
+.sp-leg-v{color:var(--text2);font-weight:700;font-variant-numeric:tabular-nums;}
+.sp-leg-pct{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;}
+/* bars */
+.sp-bars{display:flex;align-items:flex-end;gap:10px;min-height:150px;padding-top:6px;border-bottom:1px solid var(--border);}
+.sp-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;}
+.sp-bar-v{font-size:13.2px;font-weight:800;color:var(--blue);margin-bottom:5px;font-variant-numeric:tabular-nums;}
+.sp-bar-col{width:100%;max-width:40px;border-radius:9px 9px 3px 3px;
+  background:linear-gradient(180deg,#26c6b0,#00897b 55%,#00695c);box-shadow:0 5px 12px rgba(0,105,92,.22);transition:filter .15s;}
+.sp-bar:hover .sp-bar-col{filter:brightness(1.06);}
+.sp-bar-x{font-size:12.6px;color:var(--text2);margin-top:7px;font-weight:600;}
+@media(max-width:480px){.sp-donut-wrap{gap:12px;}.sp-donut{width:108px;height:108px;}}
+
 /* SECTION PILLS */
 .sec-head{display:flex;align-items:center;gap:10px;margin:16px 14px 10px;}
 .sec-bar{display:none;}
@@ -1628,24 +1660,24 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div id="spInfoView">
           <!-- Dashboard stats -->
           <div class="stat-row" style="grid-template-columns:repeat(4,1fr);">
-            <div class="scard"><div class="sico sico-b">👥</div><div><div class="sval" id="spTotal">-</div><div class="slbl">นักเรียนทั้งหมด</div></div></div>
-            <div class="scard"><div class="sico sico-t">👦</div><div><div class="sval" style="color:var(--teal);" id="spMale">-</div><div class="slbl">ชาย</div></div></div>
-            <div class="scard"><div class="sico sico-p">👧</div><div><div class="sval" style="color:var(--purple);" id="spFemale">-</div><div class="slbl">หญิง</div></div></div>
-            <div class="scard"><div class="sico sico-g">🏫</div><div><div class="sval" style="color:var(--green);" id="spRooms">-</div><div class="slbl">ห้องเรียน</div></div></div>
+            <div class="sp-stat" style="--c:#1a4f8a;--cb:#e7f0fb;"><div class="ic">👥</div><div><div class="v" id="spTotal">-</div><div class="l">นักเรียนทั้งหมด</div></div></div>
+            <div class="sp-stat" style="--c:#00897b;--cb:#e0f2f1;"><div class="ic">👦</div><div><div class="v" id="spMale">-</div><div class="l">ชาย</div></div></div>
+            <div class="sp-stat" style="--c:#8e24aa;--cb:#f3e5f5;"><div class="ic">👧</div><div><div class="v" id="spFemale">-</div><div class="l">หญิง</div></div></div>
+            <div class="sp-stat" style="--c:#2e7d32;--cb:#e8f5e9;"><div class="ic">🏫</div><div><div class="v" id="spRooms">-</div><div class="l">ห้องเรียน</div></div></div>
           </div>
 
           <!-- Charts -->
           <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:12px;padding:0 14px 4px;" id="spCharts">
             <div class="card">
-              <div style="font-size:15.6px;font-weight:700;color:var(--blue);margin-bottom:10px;">สัดส่วน ชาย / หญิง</div>
-              <div style="display:flex;align-items:center;gap:16px;">
-                <div id="spPie" style="width:110px;height:110px;border-radius:50%;flex-shrink:0;background:#eee;"></div>
-                <div id="spPieLegend" style="font-size:14.4px;"></div>
+              <div class="sp-chart-h">สัดส่วน ชาย / หญิง</div>
+              <div class="sp-donut-wrap">
+                <div id="spPie" class="sp-donut"></div>
+                <div id="spPieLegend" class="sp-legend"></div>
               </div>
             </div>
             <div class="card">
-              <div style="font-size:15.6px;font-weight:700;color:var(--blue);margin-bottom:10px;">จำนวนนักเรียนแต่ละระดับชั้น</div>
-              <div id="spBar" style="display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:8px;"></div>
+              <div class="sp-chart-h">จำนวนนักเรียนแต่ละระดับชั้น</div>
+              <div id="spBar" class="sp-bars"></div>
             </div>
           </div>
 
@@ -6806,23 +6838,37 @@ function renderStudentStats(){
   document.getElementById('spMale').textContent=male;
   document.getElementById('spFemale').textContent=female;
   document.getElementById('spRooms').textContent=Object.keys(roomSet).length;
-  // PIE (conic-gradient)
+  // DONUT (SVG) — ชาย=teal, หญิง=ม่วง
   var tot=male+female||1;
-  var mPct=(male/tot*100);
-  document.getElementById('spPie').style.background='conic-gradient(var(--teal) 0% '+mPct+'%, var(--purple) '+mPct+'% 100%)';
+  var mPct=male/tot*100, fPct=100-mPct;
+  var cM='#00897b', cF='#8e24aa';
+  var R=46, C=2*Math.PI*R, GAP=(male&&female)?5:0;   // เว้นช่องเล็กระหว่างส่วนเมื่อมีทั้งสองเพศ
+  var segM=Math.max(0,male/tot*C-GAP), segF=Math.max(0,female/tot*C-GAP);
+  var arc=function(seg,color,rot){
+    return '<circle class="sp-arc" cx="60" cy="60" r="'+R+'" fill="none" stroke="'+color+'" stroke-width="15" '+
+      'stroke-dasharray="'+seg.toFixed(2)+' '+(C-seg).toFixed(2)+'" style="--len:'+seg.toFixed(2)+';transform:rotate('+rot+'deg);transform-origin:60px 60px;"></circle>';
+  };
+  document.getElementById('spPie').innerHTML=
+    '<svg viewBox="0 0 120 120">'+
+      '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="#eef3f1" stroke-width="15"></circle>'+
+      (male?arc(segM,cM,-90):'')+
+      (female?arc(segF,cF,-90+mPct/100*360):'')+
+      '<text class="sp-donut-tot" x="60" y="58" text-anchor="middle" dominant-baseline="middle">'+(male+female)+'</text>'+
+      '<text class="sp-donut-lbl" x="60" y="74" text-anchor="middle" dominant-baseline="middle">คน</text>'+
+    '</svg>';
   document.getElementById('spPieLegend').innerHTML=
-    '<div style="margin-bottom:6px;"><span style="display:inline-block;width:12px;height:12px;background:var(--teal);border-radius:3px;margin-right:6px;"></span>ชาย '+male+' คน ('+mPct.toFixed(1)+'%)</div>'+
-    '<div><span style="display:inline-block;width:12px;height:12px;background:var(--purple);border-radius:3px;margin-right:6px;"></span>หญิง '+female+' คน ('+(100-mPct).toFixed(1)+'%)</div>';
+    '<div class="sp-leg-row"><span class="sp-leg-dot" style="background:'+cM+';"></span><span class="sp-leg-nm">ชาย</span><span class="sp-leg-v">'+male+' คน</span><span class="sp-leg-pct" style="color:'+cM+';">'+mPct.toFixed(1)+'%</span></div>'+
+    '<div class="sp-leg-row"><span class="sp-leg-dot" style="background:'+cF+';"></span><span class="sp-leg-nm">หญิง</span><span class="sp-leg-v">'+female+' คน</span><span class="sp-leg-pct" style="color:'+cF+';">'+fPct.toFixed(1)+'%</span></div>';
   // BAR by level
   var byLevel=[0,0,0,0,0,0];
   list.forEach(function(s){var lv=levelOf(s.classroom_id);if(lv>=1&&lv<=6)byLevel[lv-1]++;});
   var maxV=Math.max.apply(null,byLevel)||1;
   document.getElementById('spBar').innerHTML=byLevel.map(function(v,i){
-    var h=Math.round((v/maxV)*100);
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">'+
-      '<div style="font-size:13.2px;font-weight:700;color:var(--blue);margin-bottom:2px;">'+v+'</div>'+
-      '<div style="width:100%;max-width:34px;height:'+h+'%;min-height:4px;background:linear-gradient(180deg,var(--blue2),var(--blue));border-radius:6px 6px 0 0;"></div>'+
-      '<div style="font-size:12.6px;color:var(--text2);margin-top:4px;">ม.'+(i+1)+'</div></div>';
+    var h=Math.max(6,Math.round((v/maxV)*120));
+    return '<div class="sp-bar">'+
+      '<div class="sp-bar-v">'+v+'</div>'+
+      '<div class="sp-bar-col" style="height:'+h+'px;"></div>'+
+      '<div class="sp-bar-x">ม.'+(i+1)+'</div></div>';
   }).join('');
 }
 
