@@ -838,6 +838,13 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .iapp-gray{background:linear-gradient(145deg,#78909c,#37474f);}
 .iapp-pink{background:linear-gradient(145deg,#ec407a,#ad1457);}
 .iapp-gold{background:linear-gradient(145deg,#ffa726,#e65100);}
+/* iPhone-style icon grid */
+.dico-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;padding:16px 14px 8px;}
+.dico{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:5px 3px;border-radius:14px;transition:opacity .12s,transform .12s;}
+.dico:active{opacity:.6;transform:scale(.91);}
+.dico-ico{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.22);}
+.dico-ico .ms{font-size:27px;color:#fff;}
+.dico-lbl{font-size:11.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;width:66px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
@@ -1503,66 +1510,32 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <button class="btn btn-sm admOnly" id="adminLineSummaryBtn" style="background:#06c755;color:#fff;border:none;font-weight:700;" onclick="sendSchoolSummary()"><span class="ms" style="font-size:15px;vertical-align:middle;">send</span> ส่งสรุป LINE</button>
           </div>
         </div>
-        <div style="padding:14px 0 4px;" id="dashMenuGrid">
-          <!-- เช็คชื่อ -->
-          <div class="menu-section">
-            <div class="menu-section-hd">เช็คชื่อ</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgStudents')"><div class="iapp-ico iapp-blue"><span class="ms">groups</span></div><div class="iapp-lbl">ข้อมูลนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgMorning')"><div class="iapp-ico iapp-red"><span class="ms">flag</span></div><div class="iapp-lbl">เสาธงเช้า</div></div>
-              <div class="iapp" onclick="openPage('pgEvening')"><div class="iapp-ico iapp-orange"><span class="ms">wb_twilight</span></div><div class="iapp-lbl">ตอนเย็น</div></div>
-              <div class="iapp" onclick="openPage('pgSubjectAtt')"><div class="iapp-ico iapp-blue"><span class="ms">schedule</span></div><div class="iapp-lbl">เช็คเวลาเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgAttReport')"><div class="iapp-ico iapp-teal"><span class="ms">assignment</span></div><div class="iapp-lbl">รายงานเช็คชื่อ</div></div>
-              <div class="iapp" onclick="openPage('pgAbsentRep')"><div class="iapp-ico iapp-red"><span class="ms">person_off</span></div><div class="iapp-lbl">นักเรียนขาด</div></div>
-            </div>
-          </div>
-          <!-- บันทึก -->
-          <div class="menu-section">
-            <div class="menu-section-hd">บันทึก</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgGood')"><div class="iapp-ico iapp-pink"><span class="ms">favorite</span></div><div class="iapp-lbl">บันทึกความดี</div></div>
-              <div class="iapp" onclick="openPage('pgBehave')"><div class="iapp-ico iapp-orange"><span class="ms">warning</span></div><div class="iapp-lbl">บันทึกพฤติกรรม</div></div>
-              <div class="iapp" onclick="openPage('pgScore')"><div class="iapp-ico iapp-green"><span class="ms">bar_chart</span></div><div class="iapp-lbl">คะแนนสุทธิ</div></div>
-            </div>
-          </div>
-          <!-- ดูแลช่วยเหลือ -->
-          <div class="menu-section">
-            <div class="menu-section-hd">ดูแลช่วยเหลือ</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgHomeVisit')"><div class="iapp-ico iapp-teal"><span class="ms">home_work</span></div><div class="iapp-lbl">เยี่ยมบ้านนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgHvMap')"><div class="iapp-ico iapp-teal"><span class="ms">map</span></div><div class="iapp-lbl">แผนที่บ้านนักเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgMH')"><div class="iapp-ico iapp-purple"><span class="ms">psychology</span></div><div class="iapp-lbl">สุขภาพจิต</div></div>
-              <div class="iapp" onclick="openPage('pgActivities')"><div class="iapp-ico iapp-indigo"><span class="ms">diversity_3</span></div><div class="iapp-lbl">กิจกรรมชุมนุม</div></div>
-              <div class="iapp" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="iapp-ico iapp-indigo"><span class="ms">checklist</span></div><div class="iapp-lbl">ภาพรวมชุมนุม</div></div>
-            </div>
-          </div>
-          <!-- การสอน -->
-          <div class="menu-section">
-            <div class="menu-section-hd">การสอน</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgTeachSubjects')"><div class="iapp-ico iapp-blue"><span class="ms">calendar_month</span></div><div class="iapp-lbl">ตารางสอน</div></div>
-              <div class="iapp" onclick="openPage('pgGrades')"><div class="iapp-ico iapp-gold"><span class="ms">grade</span></div><div class="iapp-lbl">คะแนนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgSubjAttReport')"><div class="iapp-ico iapp-green"><span class="ms">analytics</span></div><div class="iapp-lbl">เวลาเรียนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgRoomAttReport')"><div class="iapp-ico iapp-blue"><span class="ms">school</span></div><div class="iapp-lbl">เวลาเรียนรายห้อง</div></div>
-              <div class="iapp" onclick="openPage('pgTimetable')"><div class="iapp-ico iapp-teal"><span class="ms">event_note</span></div><div class="iapp-lbl">ตารางนักเรียน</div></div>
-            </div>
-          </div>
-          <!-- รายงาน -->
-          <div class="menu-section">
-            <div class="menu-section-hd">รายงาน</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgSubjAbsentRep')"><div class="iapp-ico iapp-orange"><span class="ms">event_busy</span></div><div class="iapp-lbl">ขาดเรียนรายวิชา</div></div>
-              <div class="iapp" onclick="openPage('pgSkipRep')"><div class="iapp-ico iapp-red"><span class="ms">directions_run</span></div><div class="iapp-lbl">นักเรียนหนีเรียน</div></div>
-              <div class="iapp" onclick="openPage('pgReport')"><div class="iapp-ico iapp-blue"><span class="ms">picture_as_pdf</span></div><div class="iapp-lbl">ออกรายงาน PDF</div></div>
-            </div>
-          </div>
-          <!-- Admin (เฉพาะ admin) -->
-          <div class="menu-section" id="iappAdminSection" style="display:none;">
-            <div class="menu-section-hd">Admin</div>
-            <div class="iapp-grid">
-              <div class="iapp" onclick="openPage('pgAdmin')"><div class="iapp-ico iapp-gray"><span class="ms">settings</span></div><div class="iapp-lbl">จัดการระบบ</div></div>
-              <div class="mc mc-purple" id="adminDashBtn" style="display:none;" onclick="openPage('pgAdmin')"><div class="mico"><span class="ms">settings</span></div><div class="mlbl">จัดการ<br>ระบบ</div></div>
-            </div>
+        <div id="dashMenuGrid">
+          <div class="dico-grid">
+            <div class="dico" onclick="openPage('pgStudents')"><div class="dico-ico iapp-blue"><span class="ms">groups</span></div><div class="dico-lbl">ข้อมูลนักเรียน</div></div>
+            <div class="dico" onclick="openPage('pgMorning')"><div class="dico-ico iapp-red"><span class="ms">flag</span></div><div class="dico-lbl">เสาธงเช้า</div></div>
+            <div class="dico" onclick="openPage('pgEvening')"><div class="dico-ico iapp-orange"><span class="ms">wb_twilight</span></div><div class="dico-lbl">ตอนเย็น</div></div>
+            <div class="dico" onclick="openPage('pgSubjectAtt')"><div class="dico-ico iapp-blue"><span class="ms">schedule</span></div><div class="dico-lbl">เช็คเวลาเรียน</div></div>
+            <div class="dico" onclick="openPage('pgAttReport')"><div class="dico-ico iapp-teal"><span class="ms">assignment</span></div><div class="dico-lbl">รายงานเช็คชื่อ</div></div>
+            <div class="dico" onclick="openPage('pgAbsentRep')"><div class="dico-ico iapp-red"><span class="ms">person_off</span></div><div class="dico-lbl">นักเรียนขาด</div></div>
+            <div class="dico" onclick="openPage('pgGood')"><div class="dico-ico iapp-pink"><span class="ms">favorite</span></div><div class="dico-lbl">บันทึกความดี</div></div>
+            <div class="dico" onclick="openPage('pgBehave')"><div class="dico-ico iapp-orange"><span class="ms">warning</span></div><div class="dico-lbl">บันทึกพฤติกรรม</div></div>
+            <div class="dico" onclick="openPage('pgScore')"><div class="dico-ico iapp-green"><span class="ms">bar_chart</span></div><div class="dico-lbl">คะแนนสุทธิ</div></div>
+            <div class="dico" onclick="openPage('pgHomeVisit')"><div class="dico-ico iapp-teal"><span class="ms">home_work</span></div><div class="dico-lbl">เยี่ยมบ้านนักเรียน</div></div>
+            <div class="dico" onclick="openPage('pgHvMap')"><div class="dico-ico iapp-teal"><span class="ms">map</span></div><div class="dico-lbl">แผนที่บ้านนักเรียน</div></div>
+            <div class="dico" onclick="openPage('pgMH')"><div class="dico-ico iapp-purple"><span class="ms">psychology</span></div><div class="dico-lbl">สุขภาพจิต</div></div>
+            <div class="dico" onclick="openPage('pgActivities')"><div class="dico-ico iapp-indigo"><span class="ms">diversity_3</span></div><div class="dico-lbl">กิจกรรมชุมนุม</div></div>
+            <div class="dico" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="dico-ico iapp-indigo"><span class="ms">checklist</span></div><div class="dico-lbl">ภาพรวมชุมนุม</div></div>
+            <div class="dico" onclick="openPage('pgTeachSubjects')"><div class="dico-ico iapp-blue"><span class="ms">calendar_month</span></div><div class="dico-lbl">ตารางสอน</div></div>
+            <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico iapp-gold"><span class="ms">grade</span></div><div class="dico-lbl">คะแนนรายวิชา</div></div>
+            <div class="dico" onclick="openPage('pgSubjAttReport')"><div class="dico-ico iapp-green"><span class="ms">analytics</span></div><div class="dico-lbl">เวลาเรียนรายวิชา</div></div>
+            <div class="dico" onclick="openPage('pgRoomAttReport')"><div class="dico-ico iapp-blue"><span class="ms">school</span></div><div class="dico-lbl">เวลาเรียนรายห้อง</div></div>
+            <div class="dico" onclick="openPage('pgTimetable')"><div class="dico-ico iapp-teal"><span class="ms">event_note</span></div><div class="dico-lbl">ตารางนักเรียน</div></div>
+            <div class="dico" onclick="openPage('pgSubjAbsentRep')"><div class="dico-ico iapp-orange"><span class="ms">event_busy</span></div><div class="dico-lbl">ขาดเรียนรายวิชา</div></div>
+            <div class="dico" onclick="openPage('pgSkipRep')"><div class="dico-ico iapp-red"><span class="ms">directions_run</span></div><div class="dico-lbl">นักเรียนหนีเรียน</div></div>
+            <div class="dico" onclick="openPage('pgReport')"><div class="dico-ico iapp-blue"><span class="ms">picture_as_pdf</span></div><div class="dico-lbl">ออกรายงาน PDF</div></div>
+            <div class="dico" id="iappAdminSection" style="display:none;" onclick="openPage('pgAdmin')"><div class="dico-ico iapp-gray"><span class="ms">settings</span></div><div class="dico-lbl">จัดการระบบ</div></div>
+            <div id="adminDashBtn" style="display:none;"></div>
           </div>
         </div>
         <div class="footer">
