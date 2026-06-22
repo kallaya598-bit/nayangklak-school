@@ -927,12 +927,14 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 /* ===== STUDENT PROFILE CARD (compact) ===== */
 .scard2{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow2);overflow:hidden;transition:transform .15s,box-shadow .15s;}
 .scard2:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
-.scard2-top{display:flex;gap:12px;padding:12px 14px;align-items:center;}
-.scard2-photo{width:56px;height:56px;border-radius:14px;flex-shrink:0;border:2px solid var(--border2);background:#eef4fb;display:flex;align-items:center;justify-content:center;color:var(--blue3);overflow:hidden;}
+.scard2-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:16px 14px 12px;}
+.scard2-photo{width:64px;height:64px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2);background:#eef4fb;display:flex;align-items:center;justify-content:center;color:var(--blue3);overflow:hidden;}
 .scard2-photo img{width:100%;height:100%;object-fit:cover;}
-.scard2-photo svg{width:60%;height:60%;}
-.scard2-name{font-size:16.2px;font-weight:800;color:var(--blue);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.scard2-meta{font-size:13.2px;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.scard2-photo svg{width:62%;height:62%;}
+.scard2-name{font-size:15.6px;font-weight:800;color:var(--blue);line-height:1.25;}
+.scard2-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;}
+.scard2-pill{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:8px;background:var(--teall);color:var(--blue);white-space:nowrap;}
+.scard2-pill.b{background:#e7f0fb;color:#1a4f8a;}
 .scard2-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
 .scard2-act{background:#fff;border:none;padding:8px 4px;font-size:11.8px;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:background .12s,color .12s;font-family:'Sarabun',sans-serif;}
 .scard2-act:hover{background:var(--bluel);color:var(--blue);}
@@ -8215,7 +8217,6 @@ function renderStudentGrid(list){
   var personSvg='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2.2c-4.3 0-9 2.1-9 6.3V22h18v-1.5c0-4.2-4.7-6.3-9-6.3z"/></svg>';
   grid.innerHTML=list.map(function(s){
     var photo=s.photo_url?'<img src="'+s.photo_url+'" alt="">':personSvg;
-    var meta2='🆔 '+s.student_code+' · '+roomNameOf(s.classroom_id)+' · เลขที่ '+(s.order_no||'-');
     var canEdit=canEditRoom(s.classroom_id);
     var care=function(label,ic,fn){
       return canEdit
@@ -8228,10 +8229,12 @@ function renderStudentGrid(list){
     return '<div class="scard2">'+
       '<div class="scard2-top">'+
         '<div class="scard2-photo">'+photo+'</div>'+
-        '<div style="min-width:0;flex:1;">'+
-          '<div class="scard2-name">'+s.fullname+'</div>'+
-          '<div class="scard2-meta">'+meta2+'</div>'+
-          (s.nickname?'<div class="scard2-meta">ชื่อเล่น '+s.nickname+'</div>':'')+
+        '<div class="scard2-name">'+s.fullname+'</div>'+
+        '<div class="scard2-pills">'+
+          '<span class="scard2-pill">'+roomNameOf(s.classroom_id)+'</span>'+
+          '<span class="scard2-pill b">เลขที่ '+(s.order_no||'-')+'</span>'+
+          '<span class="scard2-pill b">รหัส '+s.student_code+'</span>'+
+          (s.nickname?'<span class="scard2-pill">'+s.nickname+'</span>':'')+
         '</div>'+
       '</div>'+
       '<div class="scard2-acts">'+
