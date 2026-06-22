@@ -2240,6 +2240,11 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               <div style="font-weight:700;color:#283593;">ภาพรวมชุมนุม</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">รายชื่อ · จำนวน · รายงานผล</div>
             </div>
+            <div class="card" style="cursor:pointer;border:2px solid #e8f5e9;grid-column:1/-1;" onclick="openAdmin('overview')">
+              <span class="ms-card ms-green">dashboard</span>
+              <div style="font-weight:700;color:#2e7d32;">Dashboard ภาพรวมทุกห้อง</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">เช็คชื่อวันนี้ · สถิติรายห้อง · ภาพรวมโรงเรียน</div>
+            </div>
           </div>
           <div id="adminContent" style="margin-top:14px;"></div>
         </div>
@@ -3084,8 +3089,8 @@ async function doLogin(){
     G.user=data[0];G.semester=1;
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
     try{var tEx=await api('/rest/v1/teachers?id=eq.'+G.user.id+'&select=is_academic,shortcuts&limit=1');if(tEx&&tEx[0]){G.user.is_academic=!!tEx[0].is_academic;if(tEx[0].shortcuts&&tEx[0].shortcuts.length)G.user.shortcuts=tEx[0].shortcuts;}}catch(e){}
-    // โหลด school_year + semester จาก system_settings → ตั้ง HV_YEAR อัตโนมัติ
-    try{var ss=await api('/rest/v1/system_settings?key=in.(school_year,semester)&select=key,value').catch(function(){return[];});(ss||[]).forEach(function(r){if(r.key==='school_year'&&+r.value)HV_YEAR=+r.value;if(r.key==='semester')G.semester=+r.value||1;});}catch(e){}
+    // โหลด school_year + semester จาก system_settings → ตั้ง HV_YEAR + MH_YEAR + ACT_YEAR อัตโนมัติ
+    try{var ss=await api('/rest/v1/system_settings?key=in.(school_year,semester)&select=key,value').catch(function(){return[];});(ss||[]).forEach(function(r){if(r.key==='school_year'&&+r.value){HV_YEAR=+r.value;MH_YEAR=+r.value;ACT_YEAR=+r.value;}if(r.key==='semester'){G.semester=+r.value||1;MH_TERM=+r.value||1;ACT_TERM=+r.value||1;}});}catch(e){}
     // ผู้บริหาร (viewer) → เข้าแดชบอร์ดผู้บริหารโดยตรง (ไม่ใช้เมนูครู)
     if(G.user.role==='viewer'){
       G.viewOnly=true;await loadCategories();
@@ -8675,6 +8680,7 @@ async function openAdmin(section){
     if(section==='school_year')return admSchoolYear();
     if(section==='mh_admin')return admMhPanel();
     if(section==='clubs_admin')return clubsAdminHome();
+    if(section==='overview')return admOverview();
     el.innerHTML='<div class="loading">กำลังพัฒนา...</div>';
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
@@ -9338,6 +9344,101 @@ async function saveTeacher(){
   btn.disabled=false;btn.textContent='💾 บันทึก';
 }
 
+// ---------- Dashboard ภาพรวมทุกห้อง ----------
+async function admOverview(){
+  var el=document.getElementById('adminContent');
+  el.innerHTML='<div class="loading">กำลังโหลดข้อมูล...</div>';
+  var rooms=await admRooms();
+  // ครูที่ปรึกษา
+  var rt=await api('/rest/v1/room_teachers?select=classroom_id,teachers(fullname)')||[];
+  var advMap={};
+  rt.forEach(function(x){(advMap[x.classroom_id]=advMap[x.classroom_id]||[]).push((x.teachers&&x.teachers.fullname)||'');});
+  // นักเรียน active ทั้งหมด
+  var allStus=await api('/rest/v1/students?status=eq.active&select=id,classroom_id')||[];
+  var cntMap={},stuRoomMap={};
+  allStus.forEach(function(s){cntMap[s.classroom_id]=(cntMap[s.classroom_id]||0)+1;stuRoomMap[s.id]=s.classroom_id;});
+  // เช็คชื่อเสาธงวันนี้
+  var allIds=allStus.map(function(s){return s.id;});
+  var ma=[];
+  if(allIds.length){
+    // ดึงเป็น batch เพื่อไม่ให้ URL ยาวเกิน (แบ่ง 500)
+    for(var i=0;i<allIds.length;i+=500){
+      var chunk=allIds.slice(i,i+500);
+      var rows=await api('/rest/v1/morning_attendance?att_date=eq.'+today()+'&student_id=in.('+chunk.join(',')+')'+'&select=student_id,status').catch(function(){return[];});
+      ma=ma.concat(rows||[]);
+    }
+  }
+  // จัดกลุ่มเช็คชื่อตามห้อง
+  var attMap={};
+  ma.forEach(function(a){
+    var cid=stuRoomMap[a.student_id];if(!cid)return;
+    if(!attMap[cid])attMap[cid]={present:0,late:0,absent:0,leave:0};
+    attMap[cid][a.status]=(attMap[cid][a.status]||0)+1;
+  });
+  // KPI ทั้งโรงเรียน
+  var totalStu=allStus.length,totP=0,totL=0,totAb=0,totLv=0,totChk=0;
+  rooms.forEach(function(r){var a=attMap[r.id]||{};totP+=a.present||0;totL+=a.late||0;totAb+=a.absent||0;totLv+=a.leave||0;totChk+=(a.present||0)+(a.late||0)+(a.absent||0)+(a.leave||0);});
+  var totNotChk=totalStu-totChk;
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'
+    +'<h3 style="font-weight:800;color:var(--blue);margin:0;">📊 Dashboard ภาพรวมทุกห้อง</h3>'
+    +'<div style="display:flex;align-items:center;gap:8px;">'
+    +'<span style="font-size:14.4px;color:var(--text3);">'+thaiDate()+'</span>'
+    +'<button class="btn btn-sm" onclick="admOverview()" style="background:#e3f2fd;color:var(--blue);border:1px solid #bbdefb;">🔄 รีเฟรช</button>'
+    +'</div></div>';
+  // KPI cards
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:18px;">'
+    +'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid var(--blue);"><div style="font-size:26px;font-weight:800;color:var(--blue);">'+totalStu+'</div><div style="font-size:12px;color:var(--text3);">นักเรียนทั้งหมด</div></div>'
+    +'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid #2e7d32;"><div style="font-size:26px;font-weight:800;color:#2e7d32;">'+totP+'</div><div style="font-size:12px;color:var(--text3);">มาเรียน</div></div>'
+    +'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid #f57c00;"><div style="font-size:26px;font-weight:800;color:#f57c00;">'+totL+'</div><div style="font-size:12px;color:var(--text3);">มาสาย</div></div>'
+    +'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid var(--red);"><div style="font-size:26px;font-weight:800;color:var(--red);">'+totAb+'</div><div style="font-size:12px;color:var(--text3);">ขาดเรียน</div></div>'
+    +'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid #7b1fa2;"><div style="font-size:26px;font-weight:800;color:#7b1fa2;">'+totLv+'</div><div style="font-size:12px;color:var(--text3);">ลา</div></div>'
+    +(totNotChk>0?'<div class="card" style="padding:12px 8px;text-align:center;border-top:4px solid #9e9e9e;"><div style="font-size:26px;font-weight:800;color:#9e9e9e;">'+totNotChk+'</div><div style="font-size:12px;color:var(--text3);">ยังไม่เช็ค</div></div>':'')
+    +'</div>';
+  // ห้องเรียนแยกตามระดับ
+  var byLevel={};
+  rooms.forEach(function(r){if(!byLevel[r.level])byLevel[r.level]=[];byLevel[r.level].push(r);});
+  [1,2,3,4,5,6].forEach(function(lv){
+    var rs=byLevel[lv];if(!rs||!rs.length)return;
+    h+='<div style="font-weight:700;color:var(--text2);font-size:13px;margin:16px 0 6px;letter-spacing:.3px;">ชั้นมัธยมศึกษาปีที่ '+lv+'</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">';
+    rs.forEach(function(r){
+      var a=attMap[r.id]||{};
+      var p=a.present||0,lt=a.late||0,ab=a.absent||0,lv2=a.leave||0;
+      var chk=p+lt+ab+lv2, total=cntMap[r.id]||0, notChk=total-chk;
+      var pct=total>0?Math.round((p+lt)/total*100):0;
+      var bar=pct>=90?'#2e7d32':pct>=70?'#f57c00':'#c62828';
+      var advisor=(advMap[r.id]&&advMap[r.id].length)?advMap[r.id].join(', '):'—';
+      h+='<div class="card" style="padding:11px 12px;border-top:3px solid '+bar+';display:flex;flex-direction:column;gap:5px;">'
+        // หัวห้อง
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
+        +'<span style="font-weight:800;font-size:16px;color:var(--blue);">'+r.room_name+'</span>'
+        +'<span style="font-size:12px;color:var(--text3);">'+total+' คน</span></div>'
+        // ครูที่ปรึกษา
+        +'<div style="font-size:11.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+advisor+'">'+advisor+'</div>';
+      if(chk>0){
+        // Pills สถานะ
+        h+='<div style="display:flex;gap:4px;flex-wrap:wrap;">'
+          +(p>0?'<span style="background:#e8f5e9;color:#2e7d32;padding:1px 7px;border-radius:10px;font-size:12.5px;font-weight:700;">มา '+p+'</span>':'')
+          +(lt>0?'<span style="background:#fff3e0;color:#f57c00;padding:1px 7px;border-radius:10px;font-size:12.5px;font-weight:700;">สาย '+lt+'</span>':'')
+          +(ab>0?'<span style="background:#ffebee;color:#c62828;padding:1px 7px;border-radius:10px;font-size:12.5px;font-weight:700;">ขาด '+ab+'</span>':'')
+          +(lv2>0?'<span style="background:#f3e5f5;color:#7b1fa2;padding:1px 7px;border-radius:10px;font-size:12.5px;">ลา '+lv2+'</span>':'')
+          +(notChk>0?'<span style="background:#f5f5f5;color:#888;padding:1px 7px;border-radius:10px;font-size:12.5px;">รอ '+notChk+'</span>':'')
+          +'</div>'
+        // Progress bar
+        +'<div style="background:#f0f0f0;border-radius:4px;height:5px;overflow:hidden;">'
+        +'<div style="background:'+bar+';height:5px;width:'+pct+'%;border-radius:4px;"></div></div>'
+        +'<div style="font-size:11.5px;color:'+bar+';font-weight:700;">เข้าเรียน '+pct+'%</div>';
+      }else{
+        h+='<div style="font-size:12px;color:#bbb;text-align:center;padding:4px 0;">ยังไม่มีการเช็คชื่อวันนี้</div>';
+      }
+      h+='<button class="btn btn-primary btn-xs" style="width:100%;margin-top:2px;" onclick="adminViewRoom('+r.id+',\''+r.room_name+'\')">👁️ ดูห้องนี้</button>'
+        +'</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
 // ---------- ห้องเรียน + สลับมุมมอง (ดูรายงานทุกห้อง) ----------
 async function admClassrooms(){
   var el=document.getElementById('adminContent');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
@@ -9521,7 +9622,7 @@ async function admConfirmSemRollover(){
     // อัปเดต semester ใน system_settings
     var newSem=G.semester===1?2:1, newYear=G.semester===1?HV_YEAR:HV_YEAR+1;
     await api('/rest/v1/system_settings?on_conflict=key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{key:'semester',value:String(newSem)},{key:'school_year',value:String(newYear)}])}).catch(function(){});
-    G.semester=newSem; HV_YEAR=newYear;
+    G.semester=newSem; HV_YEAR=newYear; MH_YEAR=newYear; MH_TERM=newSem; ACT_YEAR=newYear; ACT_TERM=newSem;
     if(G.myAssigns)G.myAssigns=[];
     msgs.push('✅ เสร็จสิ้น — ปัจจุบัน: ภาคเรียน '+newSem+'/'+newYear);
     log.innerHTML='<div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;">'+msgs.map(function(m){return '• '+m;}).join('<br>')+'</div>';
@@ -9582,7 +9683,7 @@ async function admConfirmYearRollover(){
     // 4) อัปเดต system_settings → ปี+1, เทอม 1
     var newYear=HV_YEAR+1;
     await api('/rest/v1/system_settings?on_conflict=key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{key:'school_year',value:String(newYear)},{key:'semester',value:'1'}])}).catch(function(){});
-    HV_YEAR=newYear; G.semester=1;
+    HV_YEAR=newYear; MH_YEAR=newYear; MH_TERM=1; ACT_YEAR=newYear; ACT_TERM=1; G.semester=1;
     if(G.myAssigns)G.myAssigns=[];ADM.rooms=[];
     msgs.push('✅ เสร็จสิ้น — ปีการศึกษาใหม่: 1/'+newYear+' (ห้อง ม.1 ว่าง รอเพิ่มนักเรียนใหม่)');
     log.innerHTML='<div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;">'+msgs.map(function(m){return '• '+m;}).join('<br>')+'</div>';
