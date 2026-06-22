@@ -5499,9 +5499,9 @@ async function loadEvening(){
 // ================= ATT GRID (ตารางเช็คชื่อแบบเรดิโอ ใช้ร่วมทุกหน้า) =================
 var ATTGRID={};
 var ATT_DEFS={
-  morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}],
+  morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'special_leave',label:'กิจกรรม',c:'#283593',bg:'#c5cae9'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}],
   evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#c8e6c9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#b2dfdb'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'special_leave',label:'กิจกรรม',c:'#6a1b9a',bg:'#e1bee7'},{k:'skip',label:'หนีเรียน',c:'#ad1457',bg:'#f8bbd0'}],
-  subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}]
+  subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'special_leave',label:'กิจกรรม',c:'#283593',bg:'#c5cae9'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}]
 };
 function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap){
@@ -5539,7 +5539,7 @@ function setEveAtt(sid,status){if(!G.eveningAtt[sid])G.eveningAtt[sid]={};G.even
 // RENDER MORNING (ใช้ grid กลาง)
 function renderAtt(elId,list,attObj,type){
   buildAttGrid('morning',elId,list,attObj,'morning',function(){
-    var p=0,ab=0,ll=0;list.forEach(function(s){var st=attObj[s.id]&&attObj[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
+    var p=0,ab=0,ll=0;list.forEach(function(s){var st=attObj[s.id]&&attObj[s.id].status;if(st==='present'||st==='special_leave')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
     setTxt('maAll',list.length);setTxt('maP',p);setTxt('maL',ab);setTxt('maA',ll);
   });
 }
@@ -5794,7 +5794,7 @@ function stopCheckedHTML(btnLabel,onclickStr,saved){
 
 function renderSubjectAtt(){
   buildAttGrid('subject','saList',SA.stus,SA.att,'subject',function(){
-    var p=0,ab=0,ll=0;SA.stus.forEach(function(s){var st=SA.att[s.id]&&SA.att[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
+    var p=0,ab=0,ll=0;SA.stus.forEach(function(s){var st=SA.att[s.id]&&SA.att[s.id].status;if(st==='present'||st==='special_leave')p++;else if(st==='absent')ab++;else if(st==='late'||st==='leave')ll++;});
     setTxt('saAll',SA.stus.length);setTxt('saP',p);setTxt('saAb',ab);setTxt('saLt',ll);
   },SA.entry);
 }
@@ -6998,7 +6998,7 @@ function sarWeekMonday(ds){var d=new Date(ds+'T00:00:00');var day=d.getDay();d.s
 
 // สัญลักษณ์สถานะในตารางรายงาน
 function attSym(status){
-  var m={present:['/','#2e7d32'],late:['(ส)','#e65100'],leave:['(ล)','#00695c'],absent:['(ข)','#c62828'],gone_home:['(กลับ)','#00695c'],special_leave:['(พ)','#6a1b9a'],skip:['(หนี)','#6a1b9a']};
+  var m={present:['/','#2e7d32'],late:['(ส)','#e65100'],leave:['(ล)','#00695c'],absent:['(ข)','#c62828'],gone_home:['(กลับ)','#00695c'],special_leave:['(ก)','#283593'],skip:['(หนี)','#6a1b9a']};
   var x=m[status]||['-','#bbb'];
   return '<span style="color:'+x[1]+';font-weight:700;">'+x[0]+'</span>';
 }
