@@ -4647,7 +4647,7 @@ async function loadEvening(){
 var ATTGRID={};
 var ATT_DEFS={
   morning:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'special_leave',label:'กิจกรรม',c:'#283593',bg:'#c5cae9'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}],
-  evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#c8e6c9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#b2dfdb'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'special_leave',label:'กิจกรรม',c:'#6a1b9a',bg:'#e1bee7'},{k:'skip',label:'หนีเรียน',c:'#ad1457',bg:'#f8bbd0'}],
+  evening:[{k:'present',label:'อยู่ครบ',c:'#2e7d32',bg:'#c8e6c9'},{k:'gone_home',label:'กลับบ้าน',c:'#00695c',bg:'#b2dfdb'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00897b',bg:'#b2dfdb'},{k:'special_leave',label:'กิจกรรม',c:'#6a1b9a',bg:'#e1bee7'},{k:'skip',label:'หนีเรียน',c:'#ad1457',bg:'#f8bbd0'}],
   subject:[{k:'present',label:'มาเรียน',c:'#2e7d32',bg:'#c8e6c9'},{k:'late',label:'สาย',c:'#e65100',bg:'#ffe0b2'},{k:'absent',label:'ขาด',c:'#c62828',bg:'#ffcdd2'},{k:'leave',label:'ลา',c:'#00695c',bg:'#b2dfdb'},{k:'special_leave',label:'กิจกรรม',c:'#283593',bg:'#c5cae9'},{k:'skip',label:'หนีเรียน',c:'#6a1b9a',bg:'#e1bee7'}]
 };
 function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
@@ -6349,7 +6349,7 @@ function renderAttSummary(stus, rows){
   // status keys per type
   var cols=isMorning?
     [['present','มาเรียน','var(--green)'],['absent','ขาด','var(--red)'],['leave','ลา','var(--teal)'],['late','มาสาย','var(--purple)'],['skip','หนีเรียน','var(--purple)']]:
-    [['present','อยู่ครบ','var(--green)'],['gone_home','กลับบ้าน','var(--teal)'],['absent','ขาด','var(--red)'],['special_leave','พิเศษ','var(--purple)'],['skip','หนีเรียน','var(--purple)']];
+    [['present','อยู่ครบ','var(--green)'],['gone_home','กลับบ้าน','var(--teal)'],['absent','ขาด','var(--red)'],['leave','ลา','var(--teal)'],['special_leave','พิเศษ','var(--purple)'],['skip','หนีเรียน','var(--purple)']];
   // collect distinct dates (school days checked)
   var dateSet={}; rows.forEach(function(r){dateSet[r.att_date]=1;});
   var totalDays=Object.keys(dateSet).length;
@@ -6401,7 +6401,7 @@ function openStudentRangeEdit(sid){
   G_reStudent=stu;
   var opts=isMorning?
     [['present','มาเรียน'],['absent','ขาด'],['late','มาสาย'],['leave','ลา'],['skip','หนีเรียน']]:
-    [['present','อยู่ครบ'],['gone_home','กลับบ้าน'],['absent','ขาด'],['special_leave','พิเศษ'],['skip','หนีเรียน']];
+    [['present','อยู่ครบ'],['gone_home','กลับบ้าน'],['absent','ขาด'],['leave','ลา'],['special_leave','พิเศษ'],['skip','หนีเรียน']];
   // distinct dates in range
   var dateSet={}; G_arSumRows.forEach(function(r){dateSet[r.att_date]=1;});
   var dates=Object.keys(dateSet).sort();
@@ -6473,7 +6473,7 @@ function renderAttReport(stus, dt){
   var isMorning=G_arTab==='morning';
   var statLabels=isMorning?
     {present:'มาเรียน',absent:'ขาด',late:'มาสาย',leave:'ลา',skip:'หนีเรียน'}:
-    {present:'อยู่ครบ',gone_home:'กลับบ้าน',absent:'ขาด',special_leave:'พิเศษ',skip:'หนีเรียน'};
+    {present:'อยู่ครบ',gone_home:'กลับบ้าน',absent:'ขาด',leave:'ลา',special_leave:'พิเศษ',skip:'หนีเรียน'};
   var statKeys=Object.keys(statLabels);
   var p=0,ab=0,other=0;
   stus.forEach(function(s){
@@ -6515,7 +6515,7 @@ function renderAttReport(stus, dt){
 
 function setArAtt(sid, status, btn){
   var isMorning=G_arTab==='morning';
-  var keys=isMorning?['present','absent','late','leave','skip']:['present','gone_home','absent','special_leave','skip'];
+  var keys=isMorning?['present','absent','late','leave','skip']:['present','gone_home','absent','leave','special_leave','skip'];
   var item=btn.closest('.stu-item');
   var btns=item.querySelectorAll('button');
   var statusColor={present:'var(--green)',absent:'var(--red)',late:'var(--purple)',leave:'var(--teal)',gone_home:'var(--teal)',special_leave:'var(--purple)',skip:'var(--purple)'};
@@ -6530,7 +6530,7 @@ function setArAtt(sid, status, btn){
   G_arAtt[sid].status=status;
   var statLabels=isMorning?
     {present:'มาเรียน',absent:'ขาด',late:'มาสาย',leave:'ลา',skip:'หนีเรียน'}:
-    {present:'อยู่ครบ',gone_home:'กลับบ้าน',absent:'ขาด',special_leave:'พิเศษ',skip:'หนีเรียน'};
+    {present:'อยู่ครบ',gone_home:'กลับบ้าน',absent:'ขาด',leave:'ลา',special_leave:'พิเศษ',skip:'หนีเรียน'};
   var noEl=item.querySelector('.stu-no');
   if(noEl) noEl.innerHTML=noEl.textContent.split('·')[0].trim()+' · <span style="color:'+statusColor[status]+';">'+statLabels[status]+'</span>';
   G_arChanged=true;
