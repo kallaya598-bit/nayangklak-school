@@ -1,0 +1,24 @@
+{
+  "name": "StudentCare 360° โรงเรียนนายางกลักพิทยาคม",
+  "short_name": "StudentCare",
+  "description": "ระบบดูแลช่วยเหลือนักเรียน โรงเรียนนายางกลักพิทยาคม",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d2d5e",
+  "theme_color": "#1565c0",
+  "icons": [
+    {
+      "src": "icon-192.png?v=20260623-2",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png?v=20260623-2",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
