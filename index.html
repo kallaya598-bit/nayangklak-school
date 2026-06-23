@@ -62,10 +62,10 @@
     var fl=document.createElement('link');
     fl.rel='icon';fl.type='image/svg+xml';
     fl.href='data:image/svg+xml,'+encodeURIComponent(s);
-    document.head.appendChild(fl);
+    // Keep the selected PNG favicon declared in the page head
     // Canvas PNG สำหรับ apple-touch-icon (iOS home screen)
     var al=document.querySelector('link[rel="apple-touch-icon"]');
-    if(al)al.href=buildIcon(512);
+    if(al){var pl=document.querySelector('link[rel="icon"][type="image/png"]');if(pl)al.href=pl.href;}
   }catch(e){}
 })();
 </script>
