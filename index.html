@@ -2153,6 +2153,21 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               <div style="font-weight:700;color:var(--blue);">โอนรายวิชา</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px;">เปลี่ยนครูผู้สอน (ครูย้าย)</div>
             </div>
+            <div class="card admOnly" style="cursor:pointer;border:2px solid #e3f2fd;" onclick="openAdmin('access_logs')">
+              <span class="ms-card ms-blue">login</span>
+              <div style="font-weight:700;color:#1565c0;">บันทึกการเข้าใช้งาน</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">ใครเข้า · จากไหน · เวลาใด</div>
+            </div>
+            <div class="card admOnly" style="cursor:pointer;border:2px solid #ffebee;" onclick="openAdmin('edit_history')">
+              <span class="ms-card ms-red">history</span>
+              <div style="font-weight:700;color:#c62828;">ประวัติแก้ไข</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">เพิ่ม · แก้ไข · ลบ · โอน</div>
+            </div>
+            <div class="card admOnly" style="cursor:pointer;border:2px solid #ede7f6;" onclick="openAdmin('permissions')">
+              <span class="ms-card ms-purple">admin_panel_settings</span>
+              <div style="font-weight:700;color:#7b1fa2;">สิทธิ์ผู้ใช้</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">เปิด/ปิดสิทธิ์รายคน</div>
+            </div>
             <div class="card" style="cursor:pointer;" onclick="openAdmin('good_categories')">
               <span class="ms-card ms-red">favorite</span>
               <div style="font-weight:700;color:var(--blue);">ประเภทความดี</div>
@@ -2882,6 +2897,16 @@ async function api(path,opts){
   var text=await res.text();
   var data=text?JSON.parse(text):null;
   if(!res.ok)throw new Error((data&&(data.message||data.hint||data.error))||'HTTP '+res.status);
+  if(_m!=='GET'&&!admSkipAudit(path)&&G&&G.user&&G.user.id){
+    setTimeout(function(){
+      admAudit({
+        action:_m,
+        entity:admEntityFromPath(path),
+        summary:admSummaryFromBody(opts.body),
+        path:path
+      });
+    },0);
+  }
   return data;
 }
 
@@ -3027,9 +3052,10 @@ async function doLogin(){
   btn.disabled=true;btn.textContent='กำลังเข้า...';err.textContent='';
   try{
     var data=await api('/rest/v1/rpc/login',{method:'POST',body:JSON.stringify({p_username:u,p_password:p})});
-    if(!data||!data.length){err.textContent='Username หรือ Password ไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
+    if(!data||!data.length){admLoginEvent({action:'login',success:false,entity:'auth',summary:'ล็อกอินไม่สำเร็จ'}, {actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='Username หรือ Password ไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
     // จดจำชื่อผู้ใช้
     G.user=data[0];G.semester=1;
+    admLoginEvent({action:'login',success:true,entity:'auth',summary:'เข้าสู่ระบบสำเร็จ',actor_username:u});
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
     try{var tEx=await api('/rest/v1/teachers?id=eq.'+G.user.id+'&select=is_academic,shortcuts&limit=1');if(tEx&&tEx[0]){G.user.is_academic=!!tEx[0].is_academic;if(tEx[0].shortcuts&&tEx[0].shortcuts.length)G.user.shortcuts=tEx[0].shortcuts;}}catch(e){}
     // โหลด school_year + semester จาก system_settings → ตั้ง HV_YEAR + MH_YEAR + ACT_YEAR อัตโนมัติ
@@ -3047,7 +3073,7 @@ async function doLogin(){
     await loadCategories();
     saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR});
     showApp();
-  }catch(e){err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
+  }catch(e){admLoginEvent({action:'login',success:false,entity:'auth',summary:'เกิดข้อผิดพลาด: '+((e.message||'').slice(0,80))},{actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
 }
 // แสดง/ซ่อนรหัสผ่าน
 function toggleLoginPw(){var i=document.getElementById('loginP'),e=document.getElementById('loginEye');if(i.type==='password'){i.type='text';e.textContent='🙈';}else{i.type='password';e.textContent='👁️';}}
@@ -3279,6 +3305,7 @@ function stuOpenAssessment(kind,form){
 }
 
 function stuLogout(){
+  admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบนักเรียน/ผู้ปกครอง'});
   clearSession();
   STU={mode:'student',student:null};
   document.getElementById('stuPortal').style.display='none';
@@ -3301,6 +3328,7 @@ function execStart(){
   execHome();
 }
 function execLogout(){
+  admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบผู้บริหาร'});
   clearSession();
   EX={room:null};G.viewOnly=false;G.user=null;
   document.getElementById('execPortal').style.display='none';
@@ -8618,6 +8646,9 @@ async function openAdmin(section){
     if(section==='teachers')return admTeachers();
     if(section==='assignments')return admAssignments();
     if(section==='classrooms')return admClassrooms();
+    if(section==='access_logs')return admAccessLogs();
+    if(section==='edit_history')return admEditHistory();
+    if(section==='permissions')return admPermissions();
     if(section==='good_categories')return admCats('good');
     if(section==='behave_categories')return admCats('behave');
     if(section==='deduct_settings')return admDeductSettings();
@@ -8628,6 +8659,83 @@ async function openAdmin(section){
     el.innerHTML='<div class="loading">กำลังพัฒนา...</div>';
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
+
+// ===== ADMIN SECURITY: login logs / edit history / permissions =====
+var ADMSEC={teacherPerms:{}};
+var NYK_AUDIT_KEY='nyk_audit_cache_v1';
+var NYK_LOGIN_KEY='nyk_login_cache_v1';
+var NYK_PERM_KEYS=[
+  ['view_login_logs','ดูบันทึกการเข้าใช้งาน'],
+  ['view_edit_history','ดูประวัติแก้ไข'],
+  ['manage_permissions','จัดการสิทธิ์ผู้ใช้'],
+  ['manage_teachers','จัดการครู'],
+  ['manage_students','จัดการนักเรียน'],
+  ['manage_rooms','จัดการห้องเรียน'],
+  ['manage_assignments','โอนรายวิชา'],
+  ['manage_reports','ดูรายงานทุกห้อง']
+];
+
+function admSafeParse(v,fallback){try{return v?JSON.parse(v):fallback;}catch(e){return fallback;}}
+function admLocalRead(key){return admSafeParse(localStorage.getItem(key),[]);}
+function admLocalWrite(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+function admPushLocal(key,row){var arr=admLocalRead(key);arr.unshift(row);if(arr.length>300)arr.length=300;admLocalWrite(key,arr);}
+function admSummaryFromBody(body){
+  if(!body)return '';
+  try{
+    var obj=typeof body==='string'?JSON.parse(body):body;
+    if(Array.isArray(obj))return 'records:'+obj.length;
+    if(obj&&typeof obj==='object'){
+      var keys=Object.keys(obj).slice(0,5);
+      return keys.map(function(k){
+        var v=obj[k],lk=String(k).toLowerCase();
+        if(/pass|password|secret|token|key/.test(lk))return k+':[redacted]';
+        return k+':'+(typeof v==='string'?v:(Array.isArray(v)?('['+v.length+']'):(v&&typeof v==='object'?'{...}':String(v))));
+      }).join(', ');
+    }
+  }catch(e){}
+  return String(body).slice(0,180);
+}
+function admEntityFromPath(path){
+  var p=(path||'').replace(/^\/rest\/v1\//,'').split('?')[0];
+  return p.indexOf('/rpc/')>=0?'rpc':p;
+}
+function admSkipAudit(path){
+  return !path||path.indexOf('/rest/v1/audit_log')>=0||path.indexOf('/rest/v1/login_events')>=0||path.indexOf('/rest/v1/user_permissions')>=0;
+}
+async function admWriteRemote(table,row){
+  try{
+    var body=Object.assign({},row);
+    delete body.id;
+    await fetch(SB+'/rest/v1/'+table,{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify([body])});
+    return true;
+  }catch(e){return false;}
+}
+function admActor(){
+  return {actor_id:G.user?G.user.id:null,actor_name:G.user?G.user.fullname:'',actor_role:G.user?G.user.role:'',actor_username:G.user?G.user.username:''};
+}
+function admAudit(entry){
+  var row=Object.assign({id:'local-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),created_at:new Date().toISOString(),source:'web'},admActor(),entry||{});
+  admPushLocal(NYK_AUDIT_KEY,row);
+  admWriteRemote('audit_log',row);
+  return row;
+}
+function admLoginEvent(entry,actor){
+  var row=Object.assign({id:'local-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),created_at:new Date().toISOString(),source:'web'},admActor(),actor||{},entry||{});
+  admPushLocal(NYK_LOGIN_KEY,row);
+  admWriteRemote('login_events',row);
+  return row;
+}
+function admReadRemoteOrLocal(table,key){
+  return api('/rest/v1/'+table+'?select=*'+key).catch(function(){return admLocalRead(table==='login_events'?NYK_LOGIN_KEY:NYK_AUDIT_KEY);});
+}
+function admPermObj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
+function admPermSet(v,key,on){var p=admPermObj(v);p[key]=!!on;return p;}
+function admHasPerm(v,key){v=admPermObj(v);return !!v[key];}
+function admPermLabel(key){
+  for(var i=0;i<NYK_PERM_KEYS.length;i++)if(NYK_PERM_KEYS[i][0]===key)return NYK_PERM_KEYS[i][1];
+  return key;
+}
+function admPermBadge(on){return '<span class="badge '+(on?'badge-green':'badge-gray')+'">'+(on?'เปิด':'ปิด')+'</span>';}
 
 /* ============================================================
    Admin: ภาพรวมสุขภาพจิตนักเรียน (EQ / SDQ / PHQ ข้ามห้อง)
@@ -9209,7 +9317,7 @@ async function admTeachers(){
   var el=document.getElementById('adminContent');
   el.innerHTML='<div class="loading">กำลังโหลด...</div>';
   var rooms=await admRooms();
-  var teachers=await api('/rest/v1/teachers?select=id,username,fullname,role,active,is_academic&order=fullname')||[];
+  var teachers=await api('/rest/v1/teachers?select=id,username,fullname,role,active,is_academic,permissions&order=fullname')||[];
   var rt=await api('/rest/v1/room_teachers?select=teacher_id,classroom_id')||[];
   ADM.teachers=teachers;
   var roomMap={};rooms.forEach(function(r){roomMap[r.id]=r.room_name;});
@@ -9286,6 +9394,110 @@ async function saveTeacher(){
     toast('✅ บันทึกข้อมูลครูแล้ว');closeModal('modalTeacher');admTeachers();
   }catch(e){var m=e.message||'';if(/admin_create_teacher|admin_set_password|schema cache|function/i.test(m))m='ยังไม่ได้ติดตั้ง RPC — รันไฟล์ admin_rpc.sql ก่อน';if(/duplicate/i.test(m))m='username ซ้ำ';err.textContent=m;toast('❌ '+m,'err');}
   btn.disabled=false;btn.textContent='💾 บันทึก';
+}
+
+async function admAccessLogs(){
+  var el=document.getElementById('adminContent');
+  el.innerHTML='<div class="loading">กำลังโหลดบันทึกการเข้าใช้งาน...</div>';
+  var rows=[];
+  try{
+    rows=await api('/rest/v1/login_events?select=created_at,actor_name,actor_username,actor_role,success,action,source,ip,user_agent&order=created_at.desc&limit=120');
+  }catch(e){rows=admLocalRead(NYK_LOGIN_KEY);}
+  var todayCount=rows.filter(function(r){return String(r.created_at||'').slice(0,10)===today();}).length;
+  var okCount=rows.filter(function(r){return r.success!==false;}).length;
+  var failCount=rows.length-okCount;
+  var h='<div class="flex gap8 mb12" style="flex-wrap:wrap;align-items:center;">'
+    +'<h3 style="font-weight:800;color:#1565c0;flex:1;">🔐 บันทึกการเข้าใช้งาน</h3>'
+    +'<button class="btn btn-outline btn-sm" onclick="openAdmin(\'access_logs\')">🔄 รีเฟรช</button></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #1565c0;"><div style="font-size:26px;font-weight:800;color:#1565c0;">'+rows.length+'</div><div style="font-size:12px;color:var(--text3);">ทั้งหมด</div></div>'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #2e7d32;"><div style="font-size:26px;font-weight:800;color:#2e7d32;">'+todayCount+'</div><div style="font-size:12px;color:var(--text3);">วันนี้</div></div>'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #c62828;"><div style="font-size:26px;font-weight:800;color:#c62828;">'+failCount+'</div><div style="font-size:12px;color:var(--text3);">เข้าไม่ได้</div></div>'
+    +'</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>บทบาท</th><th>ผล</th><th>รายละเอียด</th></tr></thead><tbody>';
+  if(!rows.length)h+='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:18px;">ยังไม่มีข้อมูล</td></tr>';
+  rows.forEach(function(r){
+    var ok=r.success!==false,dt=(r.created_at||'').replace('T',' ').replace('Z','').slice(0,19);
+    h+='<tr><td>'+dt+'</td><td>'+(r.actor_name||r.actor_username||'-')+'</td><td><span class="badge '+(r.actor_role==='admin'?'badge-purple':r.actor_role==='viewer'?'badge-gray':'badge-blue')+'">'+(r.actor_role||'-')+'</span></td>'
+      +'<td><span class="badge '+(ok?'badge-green':'badge-red')+'">'+(ok?'สำเร็จ':'ผิดพลาด')+'</span></td><td style="font-size:13px;color:var(--text2);">'+((r.action||'login')+(r.ip?' · IP '+r.ip:'')+(r.user_agent?' · '+r.user_agent.slice(0,60):''))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(!rows.length)h+='<div style="margin-top:10px;font-size:13px;color:#757575;">ถ้ายังไม่เห็นข้อมูล ให้รัน SQL ของตาราง <code>login_events</code> ก่อน หรือระบบจะเก็บสำรองไว้ในเครื่องนี้ชั่วคราว</div>';
+  el.innerHTML=h;
+}
+
+async function admEditHistory(){
+  var el=document.getElementById('adminContent');
+  el.innerHTML='<div class="loading">กำลังโหลดประวัติแก้ไข...</div>';
+  var rows=[];
+  try{
+    rows=await api('/rest/v1/audit_log?select=created_at,actor_name,actor_username,actor_role,action,entity,entity_id,summary,source&order=created_at.desc&limit=140');
+  }catch(e){rows=admLocalRead(NYK_AUDIT_KEY);}
+  var todayCount=rows.filter(function(r){return String(r.created_at||'').slice(0,10)===today();}).length;
+  var h='<div class="flex gap8 mb12" style="flex-wrap:wrap;align-items:center;">'
+    +'<h3 style="font-weight:800;color:#c62828;flex:1;">📝 ประวัติแก้ไข</h3>'
+    +'<button class="btn btn-outline btn-sm" onclick="openAdmin(\'edit_history\')">🔄 รีเฟรช</button></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #c62828;"><div style="font-size:26px;font-weight:800;color:#c62828;">'+rows.length+'</div><div style="font-size:12px;color:var(--text3);">ทั้งหมด</div></div>'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #2e7d32;"><div style="font-size:26px;font-weight:800;color:#2e7d32;">'+todayCount+'</div><div style="font-size:12px;color:var(--text3);">วันนี้</div></div>'
+    +'<div class="card" style="padding:10px;text-align:center;border-top:4px solid #1565c0;"><div style="font-size:26px;font-weight:800;color:#1565c0;">'+(rows.filter(function(r){return /POST|PATCH|DELETE/i.test(r.action||'');}).length)+'</div><div style="font-size:12px;color:var(--text3);">เขียนข้อมูล</div></div>'
+    +'</div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>การกระทำ</th><th>เป้าหมาย</th><th>สรุป</th></tr></thead><tbody>';
+  if(!rows.length)h+='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:18px;">ยังไม่มีข้อมูล</td></tr>';
+  rows.forEach(function(r){
+    var dt=(r.created_at||'').replace('T',' ').replace('Z','').slice(0,19),act=(r.action||'-').toUpperCase();
+    var color=/DELETE/i.test(act)?'#c62828':/PATCH|POST/i.test(act)?'#ef6c00':'#1565c0';
+    h+='<tr><td>'+dt+'</td><td>'+(r.actor_name||r.actor_username||'-')+'</td><td><span class="badge" style="background:'+color+';color:#fff;">'+act+'</span></td><td>'+((r.entity||'-')+(r.entity_id?' #'+r.entity_id:''))+'</td><td style="font-size:13px;color:var(--text2);">'+(r.summary||'-')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(!rows.length)h+='<div style="margin-top:10px;font-size:13px;color:#757575;">ถ้ายังไม่เห็นข้อมูล ให้รัน SQL ของตาราง <code>audit_log</code> ก่อน หรือระบบจะเก็บสำรองไว้ในเครื่องนี้ชั่วคราว</div>';
+  el.innerHTML=h;
+}
+
+async function admPermissions(){
+  var el=document.getElementById('adminContent');
+  el.innerHTML='<div class="loading">กำลังโหลดสิทธิ์ผู้ใช้...</div>';
+  var teachers=[];
+  try{
+    teachers=await api('/rest/v1/teachers?select=id,username,fullname,role,active,is_academic,permissions&order=fullname');
+  }catch(e){
+    teachers=(ADM.teachers||[]).map(function(t){return Object.assign({},t,{permissions:{}});});
+  }
+  ADMSEC.teacherPerms={};
+  teachers.forEach(function(t){ADMSEC.teacherPerms[t.id]=admPermObj(t.permissions);});
+  var h='<div class="flex gap8 mb12" style="flex-wrap:wrap;align-items:center;">'
+    +'<h3 style="font-weight:800;color:#7b1fa2;flex:1;">🛡️ สิทธิ์ผู้ใช้</h3>'
+    +'<button class="btn btn-outline btn-sm" onclick="openAdmin(\'permissions\')">🔄 รีเฟรช</button></div>'
+    +'<div class="card" style="padding:12px 14px;margin-bottom:12px;background:#f3e5f5;border:1px solid #e1bee7;">'
+    +'<div style="font-weight:700;color:#7b1fa2;">ตั้งค่าสิทธิ์รายคน</div>'
+    +'<div style="font-size:13px;color:#6a1b9a;margin-top:4px;">เลือกเปิด/ปิดสิทธิ์ให้ครูแต่ละคน โดยเก็บลงคอลัมน์ <code>teachers.permissions</code></div></div>';
+  h+='<div class="tbl-wrap"><table><thead><tr><th>ครู</th><th>บทบาท</th><th>เปิดใช้งาน</th>';
+  NYK_PERM_KEYS.forEach(function(p){h+='<th>'+admPermLabel(p[0])+'</th>';});
+  h+='<th>บันทึก</th></tr></thead><tbody>';
+  teachers.forEach(function(t){
+    var perm=admPermObj(t.permissions),tid=t.id;
+    h+='<tr data-pid="'+tid+'"><td>'+t.fullname+'<div style="font-size:12px;color:var(--text3);">'+t.username+'</div></td>'
+      +'<td><span class="badge '+(t.role==='admin'?'badge-purple':t.role==='viewer'?'badge-gray':'badge-blue')+'">'+t.role+'</span></td>'
+      +'<td style="text-align:center;">'+admPermBadge(t.active)+'</td>';
+    NYK_PERM_KEYS.forEach(function(p){
+      var k=p[0];
+      h+='<td style="text-align:center;"><input type="checkbox" class="permCk" data-pid="'+tid+'" data-key="'+k+'" '+(admHasPerm(perm,k)?'checked':'')+' style="width:18px;height:18px;"></td>';
+    });
+    h+='<td style="text-align:center;"><button class="btn btn-outline btn-xs" onclick="admPermSave('+tid+')">💾</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div style="margin-top:10px;font-size:13px;color:#757575;">หมายเหตุ: ถ้ายังไม่ได้สร้างคอลัมน์ <code>permissions</code> ให้รัน SQL ที่แนบไปก่อน ระบบจะยังแสดงได้จากข้อมูลสำรองในเครื่องนี้</div>';
+  el.innerHTML=h;
+}
+
+async function admPermSave(tid){
+  var perm={};
+  document.querySelectorAll('.permCk[data-pid="'+tid+'"]').forEach(function(ck){perm[ck.dataset.key]=ck.checked;});
+  try{
+    await api('/rest/v1/teachers?id=eq.'+tid,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({permissions:perm})});
+    ADMSEC.teacherPerms[tid]=perm;
+    toast('✅ บันทึกสิทธิ์แล้ว');
+  }catch(e){toast('❌ บันทึกสิทธิ์ไม่สำเร็จ: '+(e.message||''),'err');}
 }
 
 // ---------- Dashboard ภาพรวมทุกห้อง ----------
@@ -11032,6 +11244,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(function(n){
 
 // LOGOUT
 document.getElementById('logoutBtn').addEventListener('click',function(){
+  admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบ'});
   clearSession();
   G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[]};
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
