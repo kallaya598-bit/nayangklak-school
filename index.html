@@ -3153,7 +3153,8 @@ function examBindDrop(){
 function examOmrLayout(numQ,choicesCount){
   var n=Math.min(Math.max(numQ,1),60),choices=examChoices(choicesCount),cols=n<=16?1:n<=38?2:3,rowsPerCol=Math.ceil(n/cols);
   var areaTop=492,areaBottom=1058,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
-  for(var i=0;i<n;i++){var c=Math.floor(i/rowsPerCol),r=i%rowsPerCol,x0=areaLeft+c*colW,y=areaTop+r*rowH+rowH/2,numX=x0+20,optStart=x0+52,step=(colW-72)/choices.length,opts=[];for(var k=0;k<choices.length;k++){var cx=optStart+step*(k+0.5);opts.push({label:choices[k],x:cx,y:y});bubbles.push({q:i+1,choice:k,x:cx,y:y});}cells.push({q:i+1,numX:numX,numY:y,opts:opts});}
+  var step=(colW-72)/choices.length,cOff=Math.round(colW/2-(5+52+step*(choices.length-0.5)+R)/2);
+  for(var i=0;i<n;i++){var c=Math.floor(i/rowsPerCol),r=i%rowsPerCol,x0=areaLeft+c*colW,y=areaTop+r*rowH+rowH/2,numX=x0+20+cOff,optStart=x0+52+cOff,opts=[];for(var k=0;k<choices.length;k++){var cx=optStart+step*(k+0.5);opts.push({label:choices[k],x:cx,y:y});bubbles.push({q:i+1,choice:k,x:cx,y:y});}cells.push({q:i+1,numX:numX,numY:y,opts:opts});}
   return {n:n,cols:cols,R:R,bubbles:bubbles,cells:cells,srcQuad:[[EX_MK.tl.x,EX_MK.tl.y],[EX_MK.tr.x,EX_MK.tr.y],[EX_MK.br.x,EX_MK.br.y],[EX_MK.bl.x,EX_MK.bl.y]]};
 }
 function examOmrToGray(img){
