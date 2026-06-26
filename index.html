@@ -727,6 +727,16 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-camera-view video{width:100%;height:100%;object-fit:cover;display:block;}
 .exam-camera-view canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 .exam-camera-foot{padding:12px 14px;color:#cfd8dc;font-size:13px;line-height:1.6;}
+.ex-smeta-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3100;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto;}
+.ex-smeta-box{background:#fff;border-radius:12px;width:500px;max-width:100%;padding:20px 22px 18px;}
+.ex-smeta-box h3{margin:0 0 16px;font-size:16px;font-weight:700;color:#1565c0;}
+.ex-smeta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-bottom:12px;}
+.ex-smeta-box label{font-size:12px;color:#666;display:block;margin-bottom:3px;}
+.ex-smeta-box input,.ex-smeta-box textarea{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:6px;padding:7px 10px;font-size:14px;font-family:Sarabun,sans-serif;outline:none;}
+.ex-smeta-box input:focus,.ex-smeta-box textarea:focus{border-color:#1976d2;}
+.ex-smeta-box textarea{resize:vertical;min-height:54px;}
+.ex-smeta-full{margin-bottom:12px;}
+.ex-smeta-hint{font-size:11px;color:#aaa;margin-top:2px;}
 @media(max-width:900px){
   .exam-grid{grid-template-columns:1fr;}
   #exKeyGrid{grid-template-columns:1fr;max-height:420px;}
@@ -2432,6 +2442,25 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   </div>
 </div>
 
+<div class="ex-smeta-modal" id="exSheetMetaModal">
+  <div class="ex-smeta-box">
+    <h3>⚙️ ตั้งค่ากระดาษคำตอบ</h3>
+    <div class="ex-smeta-grid">
+      <div><label>วันที่สอบ</label><input type="text" id="exMetaDate" placeholder="เช่น 20 มิถุนายน 2569"></div>
+      <div><label>เวลาสอบ</label><input type="text" id="exMetaTime" placeholder="เช่น 09:00–10:30 น."></div>
+      <div><label>คะแนนเต็ม</label><input type="number" id="exMetaScore" placeholder="30" min="1"></div>
+      <div><label>เวลาที่ใช้ (นาที)</label><input type="number" id="exMetaDuration" placeholder="50" min="1"></div>
+    </div>
+    <div class="ex-smeta-full"><label>จุดประสงค์การเรียนรู้</label><textarea id="exMetaObjectives" rows="2" placeholder="เช่น ว 2.2 ตัวชี้วัด 5.1, 5.2 — อธิบายหลักการ..."></textarea></div>
+    <div class="ex-smeta-full"><label>คำชี้แจง</label><textarea id="exMetaInstructions" rows="2" placeholder="ให้นักเรียนทำเครื่องหมาย (X) ในช่องตัวเลือกที่ถูกต้องที่สุด..."></textarea><div class="ex-smeta-hint">ถ้าเว้นว่างจะใช้คำชี้แจงมาตรฐาน</div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn btn-sm" onclick="examSheetMetaCancel()">ยกเลิก</button>
+      <button class="btn btn-sm" onclick="examSheetMetaPrint(false)">พิมพ์เลย</button>
+      <button class="btn btn-primary btn-sm" onclick="examSheetMetaPrint(true)">💾 บันทึกและพิมพ์</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalGood">
   <div class="modal">
     <div class="modal-head">➕ บันทึกความดี <button class="modal-close" onclick="closeModal('modalGood')">✕</button></div>
@@ -3123,7 +3152,7 @@ function examBindDrop(){
 }
 function examOmrLayout(numQ,choicesCount){
   var n=Math.min(Math.max(numQ,1),60),choices=examChoices(choicesCount),cols=n<=16?1:n<=38?2:3,rowsPerCol=Math.ceil(n/cols);
-  var areaTop=282,areaBottom=980,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
+  var areaTop=492,areaBottom=1058,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
   for(var i=0;i<n;i++){var c=Math.floor(i/rowsPerCol),r=i%rowsPerCol,x0=areaLeft+c*colW,y=areaTop+r*rowH+rowH/2,numX=x0+20,optStart=x0+52,step=(colW-72)/choices.length,opts=[];for(var k=0;k<choices.length;k++){var cx=optStart+step*(k+0.5);opts.push({label:choices[k],x:cx,y:y});bubbles.push({q:i+1,choice:k,x:cx,y:y});}cells.push({q:i+1,numX:numX,numY:y,opts:opts});}
   return {n:n,cols:cols,R:R,bubbles:bubbles,cells:cells,srcQuad:[[EX_MK.tl.x,EX_MK.tl.y],[EX_MK.tr.x,EX_MK.tr.y],[EX_MK.br.x,EX_MK.br.y],[EX_MK.bl.x,EX_MK.bl.y]]};
 }
@@ -3573,31 +3602,93 @@ function examExportCsv(){
 
 async function examPrintSheets(){
   if(!await examEnsureReady())return;
+  var key='exSheetMeta_'+(EX.subject&&EX.subject.id||'x');
+  var saved=JSON.parse(localStorage.getItem(key)||'{}');
+  var def={date:'',time:'',score:'',duration:'',objectives:'',instructions:''};
+  var m=Object.assign({},def,saved);
+  document.getElementById('exMetaDate').value=m.date;
+  document.getElementById('exMetaTime').value=m.time;
+  document.getElementById('exMetaScore').value=m.score;
+  document.getElementById('exMetaDuration').value=m.duration;
+  document.getElementById('exMetaObjectives').value=m.objectives;
+  document.getElementById('exMetaInstructions').value=m.instructions;
+  document.getElementById('exSheetMetaModal').style.display='flex';
+}
+function examSheetMetaCancel(){document.getElementById('exSheetMetaModal').style.display='none';}
+function examSheetMetaPrint(save){
+  var meta={
+    date:document.getElementById('exMetaDate').value.trim(),
+    time:document.getElementById('exMetaTime').value.trim(),
+    score:document.getElementById('exMetaScore').value.trim(),
+    duration:document.getElementById('exMetaDuration').value.trim(),
+    objectives:document.getElementById('exMetaObjectives').value.trim(),
+    instructions:document.getElementById('exMetaInstructions').value.trim()
+  };
+  if(save){var key='exSheetMeta_'+(EX.subject&&EX.subject.id||'x');localStorage.setItem(key,JSON.stringify(meta));}
+  document.getElementById('exSheetMetaModal').style.display='none';
+  examDoPrintSheets(meta);
+}
+async function examDoPrintSheets(meta){
   EX.qrPrintFallbackCount=0;
   var html='';
-  for(var i=0;i<EX.students.length;i++)html+='<section class="sheet">'+await examBuildSheetSVG(EX.subject,EX.students[i])+'</section>';
-  if(EX.qrPrintFallbackCount)toast('สร้าง QR ไม่สำเร็จ '+EX.qrPrintFallbackCount+' ใบ ระบบพิมพ์รหัสตรวจสำรองให้แล้ว','err');
+  for(var i=0;i<EX.students.length;i++)html+='<section class="sheet">'+await examBuildSheetSVG(EX.subject,EX.students[i],meta)+'</section>';
+  if(EX.qrPrintFallbackCount)toast('สร้าง QR ไม่สำเร็จ '+EX.qrPrintFallbackCount+' ใบ','err');
   var w=window.open('','_blank');
   w.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><title>กระดาษคำตอบ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#eee;font-family:Sarabun,sans-serif}.sheet{width:210mm;height:297mm;margin:0 auto;background:#fff;page-break-after:always;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;display:block}@page{size:A4 portrait;margin:0}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
   w.document.close();
 }
-async function examBuildSheetSVG(subject,student){
-  var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=EX_SHEET_W/2,qr='';
+async function examBuildSheetSVG(subject,student,meta){
+  meta=meta||{};
+  var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=400,qr='';
   var payload=examSheetPayload(subject,student),code=examSheetCode(payload);
   try{qr=await examMakeQr(payload);}catch(e){EX.qrPrintFallbackCount=(EX.qrPrintFallbackCount||0)+1;}
-  var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',room=student._room_name||subject.room||'';
-  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background:#fff;font-family:Sarabun,sans-serif">';
+  var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',subCode=subject.subject_code||'',room=student._room_name||subject.room||'';
+  var instrDefault='ให้นักเรียนทำเครื่องหมาย (X) ในช่องตัวเลือกที่ถูกต้องที่สุดเพียงข้อเดียว ห้ามใช้ดินสอ ใช้ปากกาน้ำเงินหรือดำ';
+  var instr=meta.instructions||instrDefault;
+  var iL1=instr.slice(0,76),iL2=instr.slice(76,152);
+  var obj=meta.objectives||'',oL1=obj.slice(0,80),oL2=obj.slice(80,155);
+  var svg='<svg viewBox="0 0 800 1130" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background:#fff;font-family:Sarabun,sans-serif">';
+  // corner markers
   [EX_MK.tl,EX_MK.tr,EX_MK.br,EX_MK.bl].forEach(function(m){svg+='<rect x="'+(m.x-hf)+'" y="'+(m.y-hf)+'" width="'+EX_MK.size+'" height="'+EX_MK.size+'" fill="#000"/>';});
-  svg+='<rect x="82" y="78" width="636" height="160" rx="3" fill="none" stroke="#000" stroke-width="1.5"/>';
-  svg+=examSheetQrMarkup(qr,code);
-  svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text><text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text><text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
-  svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text><text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text><text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
-  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม · QR ระบุตัวตนอยู่ด้านล่างกระดาษ</text>';
+  // ── HEADER BOX (y=78–313, h=235) ──
+  svg+='<rect x="82" y="78" width="636" height="235" rx="2" fill="none" stroke="#000" stroke-width="1.5"/>';
+  // QR box top-right
+  svg+='<rect x="638" y="84" width="72" height="100" rx="3" fill="none" stroke="#ccc" stroke-width="1"/>';
+  svg+='<text x="674" y="98" text-anchor="middle" font-size="9" fill="#888">QR ตรวจข้อสอบ</text>';
+  if(qr)svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="642" y="101" width="64" height="64"/>';
+  else svg+='<text x="674" y="136" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';
+  svg+='<text x="674" y="177" text-anchor="middle" font-size="7.5" fill="#777">'+examEsc(code)+'</text>';
+  // title (centered over x=82..638)
+  var tCX=360;
+  svg+='<text x="'+tCX+'" y="108" text-anchor="middle" font-size="22" font-weight="700">'+examEsc(school)+'</text>';
+  svg+='<text x="'+tCX+'" y="129" text-anchor="middle" font-size="15">'+examEsc(exam)+'</text>';
+  var subjLine=(subCode?examEsc(subCode)+' · ':'')+examEsc(subj)+(room?' · '+examEsc(room):'');
+  svg+='<text x="'+tCX+'" y="148" text-anchor="middle" font-size="13" fill="#444">'+subjLine+'</text>';
+  // divider 1
+  svg+='<line x1="82" y1="160" x2="718" y2="160" stroke="#999" stroke-width="1"/>';
+  // info row: 4 cells
+  var infoCells=[{l:'วันที่สอบ',v:meta.date||'–'},{l:'เวลาสอบ',v:meta.time||'–'},{l:'คะแนนเต็ม',v:meta.score?meta.score+' คะแนน':'–'},{l:'เวลาที่ใช้',v:meta.duration?meta.duration+' นาที':'–'}];
+  var cw=636/4;
+  infoCells.forEach(function(c,i){var cx=82+cw*i+cw/2;svg+='<text x="'+cx+'" y="177" text-anchor="middle" font-size="11" fill="#777">'+examEsc(c.l)+'</text><text x="'+cx+'" y="198" text-anchor="middle" font-size="14" font-weight="700" fill="#111">'+examEsc(c.v)+'</text>';if(i>0)svg+='<line x1="'+(82+cw*i)+'" y1="160" x2="'+(82+cw*i)+'" y2="313" stroke="#eee" stroke-width="1"/>';});
+  // divider 2 + objectives
+  svg+='<line x1="82" y1="212" x2="718" y2="212" stroke="#e0e0e0" stroke-width="0.8"/>';
+  svg+='<text x="98" y="232" font-size="12" fill="#333"><tspan font-weight="700">จุดประสงค์: </tspan>'+examEsc(oL1||'–')+'</text>';
+  if(oL2)svg+='<text x="98" y="250" font-size="12" fill="#555">'+examEsc(oL2)+'</text>';
+  // ── INSTRUCTIONS BOX (y=319–389) ──
+  svg+='<rect x="82" y="319" width="636" height="72" rx="2" fill="#f8f8f8" stroke="#ddd" stroke-width="1"/>';
+  svg+='<text x="98" y="340" font-size="13" font-weight="700" fill="#222">คำชี้แจง: <tspan font-weight="400" fill="#333">'+examEsc(iL1)+'</tspan></text>';
+  if(iL2)svg+='<text x="98" y="360" font-size="13" fill="#333">'+examEsc(iL2)+'</text>';
+  // ── STUDENT INFO BOX (y=397–462) ──
+  svg+='<rect x="82" y="397" width="636" height="65" rx="2" fill="none" stroke="#000" stroke-width="1.5"/>';
+  svg+='<text x="100" y="429" font-size="17" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text>';
+  svg+='<text x="618" y="429" text-anchor="end" font-size="17" font-weight="700">เลขที่ '+examEsc(String(student.order_no||''))+'</text>';
+  svg+='<text x="100" y="452" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||String(student.id)||'')+'</text>';
+  svg+='<text x="400" y="452" font-size="13">ห้อง '+examEsc(room||'–')+'</text>';
+  // scan note
+  svg+='<text x="400" y="478" text-anchor="middle" font-size="11" fill="#bbb">ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
+  // ── OMR cells ──
   var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
   L.cells.forEach(function(cell){svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});});
-  svg+='<line x1="90" y1="986" x2="710" y2="986" stroke="#aaa" stroke-width="0.8" stroke-dasharray="5,3"/>';
-  if(qr){svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="345" y="997" width="110" height="110"/>';}
-  else{svg+='<rect x="345" y="997" width="110" height="110" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="3"/><text x="400" y="1055" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';}
   return svg+'</svg>';
 }
 function examSheetPayload(subject,student){
