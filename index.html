@@ -3653,7 +3653,6 @@ async function examBuildSheetSVG(subject,student,meta){
   // ── HEADER BOX (y=78–313, h=235) ──
   svg+='<rect x="82" y="78" width="636" height="235" rx="2" fill="none" stroke="#000" stroke-width="1.5"/>';
   // QR box top-right
-  svg+='<rect x="638" y="84" width="72" height="100" rx="3" fill="none" stroke="#ccc" stroke-width="1"/>';
   svg+='<text x="674" y="98" text-anchor="middle" font-size="9" fill="#888">QR ตรวจข้อสอบ</text>';
   if(qr)svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="642" y="101" width="64" height="64"/>';
   else svg+='<text x="674" y="136" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';
