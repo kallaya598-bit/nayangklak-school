@@ -710,6 +710,18 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-badge.ok{background:#e8f5e9;color:#2e7d32;}
 .exam-badge.warn{background:#fff8e1;color:#e65100;}
 .exam-badge.err{background:#ffebee;color:#c62828;}
+.exam-key-row{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #e3edf8;border-radius:10px;padding:7px;}
+.exam-key-row b{width:28px;color:var(--blue);}
+.exam-key-choice{min-width:34px;height:34px;border:1px solid #c5d3ee;border-radius:9px;background:#fff;color:#1a3a6b;font-weight:800;font-family:Sarabun,sans-serif;cursor:pointer;}
+.exam-key-choice.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.exam-score-input{width:72px;height:38px;border:1px solid var(--border);border-radius:8px;text-align:center;font-family:Sarabun,sans-serif;}
+.exam-camera-modal{position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:3000;display:none;align-items:center;justify-content:center;padding:14px;}
+.exam-camera-box{width:min(560px,100%);background:#101820;border-radius:18px;overflow:hidden;color:#fff;box-shadow:0 18px 60px rgba(0,0,0,.45);}
+.exam-camera-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-weight:800;}
+.exam-camera-view{position:relative;aspect-ratio:3/4;background:#000;}
+.exam-camera-view video{width:100%;height:100%;object-fit:cover;display:block;}
+.exam-camera-view canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.exam-camera-foot{padding:12px 14px;color:#cfd8dc;font-size:13px;line-height:1.6;}
 @media(max-width:900px){
   .exam-grid{grid-template-columns:1fr;}
   .exam-summary{grid-template-columns:repeat(2,1fr);}
@@ -1857,23 +1869,55 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div class="exam-shell">
           <div class="exam-grid">
             <div class="exam-panel">
-              <h3><span class="ms ms-purple">fact_check</span> ชุดข้อสอบ</h3>
+              <h3><span class="ms ms-purple">fact_check</span> ตั้งค่าชุดข้อสอบ</h3>
               <div class="form-group">
-                <label class="form-label">เลือกชุดข้อสอบ / เฉลย</label>
-                <select class="form-control" id="exSubject" onchange="examSelectSubject()"><option value="">กำลังโหลด...</option></select>
+                <label class="form-label">รายวิชาที่สอน</label>
+                <select class="form-control" id="exAssign" onchange="examSelectAssignment()"><option value="">กำลังโหลด...</option></select>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">ห้องเรียน</label>
-                  <select class="form-control" id="exRoom" onchange="examLoadStudents()"><option value="">เลือกห้อง...</option></select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">จับคู่ผลตรวจ</label>
-                  <select class="form-control" id="exMapMode">
-                    <option value="order">ตามลำดับรายชื่อ</option>
-                    <option value="manual">เลือกเองหลังตรวจ</option>
+                  <label class="form-label">ใช้ชุดข้อสอบกับ</label>
+                  <select class="form-control" id="exScope" onchange="examSelectAssignment()">
+                    <option value="single">เฉพาะห้อง/กลุ่มนี้</option>
+                    <option value="shared">ทุกห้องของวิชานี้</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label class="form-label">ช่องคะแนนปลายทาง</label>
+                  <select class="form-control" id="exStructure" onchange="examLoadLinkedExam()"><option value="">เลือกช่องคะแนน...</option></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ชื่อชุดข้อสอบ</label>
+                <input class="form-control" id="exTitle" placeholder="เช่น สอบกลางภาค / สอบเรื่อง SHM">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">จำนวนข้อปรนัย</label>
+                  <input class="form-control" type="number" id="exNumQ" min="1" max="60" value="20" oninput="examSyncKeyGrid()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ตัวเลือก</label>
+                  <select class="form-control" id="exChoices" onchange="examSyncKeyGrid()"><option value="4">ก ข ค ง</option><option value="5">ก ข ค ง จ</option></select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">คะแนนเต็มปรนัย</label>
+                  <input class="form-control" type="number" id="exObjFull" min="0" step="1" value="20">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">คะแนนเต็มอัตนัย</label>
+                  <input class="form-control" type="number" id="exSubjFull" min="0" step="1" value="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">เฉลยปรนัย</label>
+                <div id="exKeyGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:7px;max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px;background:#fafcff;"></div>
+              </div>
+              <div class="exam-actions">
+                <button class="btn btn-green btn-sm" onclick="examSaveConfig()">💾 บันทึก/แก้ชุดข้อสอบ</button>
+                <button class="btn btn-outline btn-sm" onclick="examClearKey()">ล้างเฉลย</button>
               </div>
               <div class="exam-step">
                 <div class="exam-step-num">1</div>
@@ -1881,7 +1925,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               </div>
               <div class="exam-actions">
                 <button class="btn btn-primary btn-sm" onclick="examPrintSheets()"><span class="ms" style="font-size:15px;vertical-align:middle;">print</span> พิมพ์รายห้อง</button>
-                <button class="btn btn-outline btn-sm" onclick="examLoadAll()"><span class="ms" style="font-size:15px;vertical-align:middle;">refresh</span> โหลดใหม่</button>
+                <button class="btn btn-outline btn-sm" onclick="examOpenCamera()"><span class="ms" style="font-size:15px;vertical-align:middle;">photo_camera</span> สแกนทีละใบ</button>
               </div>
               <div class="exam-step">
                 <div class="exam-step-num">2</div>
@@ -1916,8 +1960,8 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               </div>
               <div class="exam-table-wrap">
                 <table class="exam-table">
-                  <thead><tr><th>หน้า</th><th>นักเรียน</th><th>สถานะ</th><th>คะแนน</th><th>คำตอบ</th></tr></thead>
-                  <tbody id="exResultBody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr></tbody>
+                  <thead><tr><th>หน้า</th><th>นักเรียน</th><th>OMR</th><th>อัตนัย</th><th>คะแนนลงช่อง</th><th>สถานะ</th></tr></thead>
+                  <tbody id="exResultBody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr></tbody>
                 </table>
               </div>
             </div>
@@ -2367,6 +2411,20 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 </div><!-- end app -->
 
 <!-- ===== MODALS ===== -->
+<div class="exam-camera-modal" id="exCameraModal">
+  <div class="exam-camera-box">
+    <div class="exam-camera-head">
+      <span><span class="ms" style="font-size:18px;vertical-align:middle;">photo_camera</span> สแกนคำตอบ</span>
+      <button class="btn btn-sm" style="background:#fff;color:#111;border:none;" onclick="examCloseCamera()">ปิด</button>
+    </div>
+    <div class="exam-camera-view">
+      <video id="exCamVideo" autoplay playsinline muted></video>
+      <canvas id="exCamCanvas"></canvas>
+    </div>
+    <div class="exam-camera-foot" id="exCamStatus">กำลังเปิดกล้อง...</div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalGood">
   <div class="modal">
     <div class="modal-head">➕ บันทึกความดี <button class="modal-close" onclick="closeModal('modalGood')">✕</button></div>
@@ -3316,6 +3374,359 @@ async function examPdfToCanvases(file){
   for(var p=1;p<=pdf.numPages;p++){var page=await pdf.getPage(p),vp=page.getViewport({scale:2});var cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;out.push(cv);}
   return out;
 }
+
+// ===== EXAM GRADER v2: link OMR to grade structures =====
+var EX={subjects:[],assigns:[],structs:[],students:[],subject:null,assign:null,structure:null,files:[],results:[],saved:0,inited:false,cam:null,camTimer:null,camLastPts:null,camStable:0,camDone:false,qrPromise:null,qrReadPromise:null,pdfPromise:null};
+
+async function initExamGrader(){
+  if(!EX.inited){
+    EX.inited=true;
+    examBindDrop();
+    examSyncKeyGrid();
+  }
+  try{
+    var assigns=await loadMyAssigns(true);
+    EX.assigns=assigns||[];
+    var sel=document.getElementById('exAssign');
+    if(sel){
+      sel.innerHTML='<option value="">เลือกรายวิชาที่สอน...</option>'+EX.assigns.map(function(a){
+        var sc=a.subjects?a.subjects.subject_code:'',sn=a.subjects?a.subjects.subject_name:'',rn=a.classrooms?a.classrooms.room_name:'';
+        return '<option value="'+a.id+'">'+examEsc(sc+' '+sn+' · '+rn)+'</option>';
+      }).join('');
+      if(!sel.value&&EX.assigns.length)sel.value=EX.assigns[0].id;
+    }
+    await examSelectAssignment();
+  }catch(e){examMsg('โหลดรายวิชาที่สอนไม่สำเร็จ: '+e.message,true);}
+}
+
+async function examSelectAssignment(){
+  var id=document.getElementById('exAssign')?.value;
+  EX.assign=EX.assigns.find(function(a){return String(a.id)===String(id);})||null;
+  EX.subject=null;EX.structure=null;EX.structs=[];EX.students=[];EX.results=[];EX.saved=0;
+  var stSel=document.getElementById('exStructure');
+  if(stSel)stSel.innerHTML='<option value="">เลือกช่องคะแนน...</option>';
+  if(!EX.assign){examRenderResults();return;}
+  try{
+    var key=gradeStructKey(EX.assign.id);
+    EX.structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+key+'&select=id,name,max_score,grade_type,order_no&order=order_no')||[];
+    if(stSel){
+      stSel.innerHTML='<option value="">เลือกช่องคะแนน...</option>'+EX.structs.map(function(s){return '<option value="'+s.id+'">'+examEsc(phaseLabel(s.grade_type)+' · '+s.name+' ('+s.max_score+')')+'</option>';}).join('');
+      if(EX.structs.length)stSel.value=EX.structs[0].id;
+    }
+    await examLoadStudents();
+    await examLoadLinkedExam();
+  }catch(e){examMsg('โหลดโครงสร้างคะแนนไม่สำเร็จ: '+e.message,true);}
+}
+
+function examRelevantAssigns(){
+  if(!EX.assign)return [];
+  if(document.getElementById('exScope')?.value!=='shared')return [EX.assign];
+  return (EX.assigns||[]).filter(function(a){return a.subject_id==EX.assign.subject_id&&a.teacher_id==EX.assign.teacher_id;});
+}
+
+async function examLoadStudents(){
+  EX.students=[];
+  var assigns=examRelevantAssigns();
+  for(var i=0;i<assigns.length;i++){
+    var a=assigns[i],stus=await loadEnrolledStudents(a.id);
+    (stus||[]).forEach(function(s){EX.students.push(Object.assign({},s,{_assignment_id:a.id,_room_name:a.classrooms?a.classrooms.room_name:(a.classrooms?.room_name||'')}));});
+  }
+  examRenderResults();
+}
+
+async function examLoadLinkedExam(){
+  if(!EX.assign)return;
+  var sid=document.getElementById('exStructure')?.value;
+  EX.structure=EX.structs.find(function(s){return String(s.id)===String(sid);})||null;
+  EX.subject=null;EX.results=[];EX.saved=0;
+  if(!EX.structure){examRenderResults();return;}
+  var rows=await api('/rest/v1/exam_subjects?structure_id=eq.'+EX.structure.id+'&select=*&order=updated_at.desc').catch(function(){return[];});
+  var scope=document.getElementById('exScope')?.value||'single';
+  EX.subject=(rows||[]).find(function(r){
+    return scope==='shared' ? r.scope==='shared' : r.scope!=='shared'&&String(r.assignment_id)===String(EX.assign.id);
+  })||null;
+  if(EX.subject)examLoadConfigToForm(EX.subject);
+  else examResetConfigForm();
+  examRenderResults();
+}
+
+function examResetConfigForm(){
+  var a=EX.assign||{},s=EX.structure||{};
+  document.getElementById('exTitle').value=s.name||'';
+  document.getElementById('exNumQ').value=20;
+  document.getElementById('exChoices').value='4';
+  document.getElementById('exObjFull').value=20;
+  document.getElementById('exSubjFull').value=0;
+  examSyncKeyGrid({});
+}
+
+function examLoadConfigToForm(cfg){
+  document.getElementById('exTitle').value=cfg.exam_title||cfg.subject_name||'';
+  document.getElementById('exNumQ').value=cfg.num_questions||20;
+  document.getElementById('exChoices').value=String(examChoiceCount(cfg.choices));
+  document.getElementById('exObjFull').value=Number(cfg.objective_full||cfg.num_questions||20);
+  document.getElementById('exSubjFull').value=Number(cfg.subjective_full||0);
+  examSyncKeyGrid(cfg.answer_key||{});
+}
+
+function examSyncKeyGrid(key){
+  var grid=document.getElementById('exKeyGrid');if(!grid)return;
+  var prev=key||examGetAnswerKey(),n=Math.min(Math.max(parseInt(document.getElementById('exNumQ')?.value)||20,1),60),choices=examChoices(document.getElementById('exChoices')?.value||4);
+  grid.innerHTML='';
+  for(var i=1;i<=n;i++){
+    var row=document.createElement('div');row.className='exam-key-row';
+    row.innerHTML='<b>'+i+'</b>'+choices.map(function(c){return '<button type="button" class="exam-key-choice '+(prev[i]===c?'on':'')+'" data-q="'+i+'" data-c="'+c+'" onclick="examToggleKey(this)">'+c+'</button>';}).join('');
+    grid.appendChild(row);
+  }
+}
+function examToggleKey(btn){var q=btn.dataset.q;document.querySelectorAll('#exKeyGrid .exam-key-choice[data-q="'+q+'"]').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');}
+function examGetAnswerKey(){var key={};document.querySelectorAll('#exKeyGrid .exam-key-choice.on').forEach(function(b){key[b.dataset.q]=b.dataset.c;});return key;}
+function examClearKey(){document.querySelectorAll('#exKeyGrid .exam-key-choice').forEach(function(b){b.classList.remove('on');});}
+
+async function examSaveConfig(){
+  if(!EX.assign){toast('เลือกรายวิชาที่สอนก่อน','err');return;}
+  if(!EX.structure){toast('เลือกช่องคะแนนปลายทางก่อน','err');return;}
+  var key=examGetAnswerKey(),numQ=Math.min(Math.max(parseInt(document.getElementById('exNumQ').value)||20,1),60);
+  if(!Object.keys(key).length){toast('กรอกเฉลยก่อน','err');return;}
+  var subj=EX.assign.subjects||{},room=EX.assign.classrooms||{},scope=document.getElementById('exScope').value||'single';
+  var payload={
+    assignment_id:scope==='shared'?gradeStructKey(EX.assign.id):EX.assign.id,
+    structure_id:EX.structure.id,
+    scope:scope,
+    subject_name:subj.subject_name||document.getElementById('exTitle').value.trim()||'ชุดข้อสอบ',
+    class_level:'',
+    room:scope==='shared'?'ทุกห้อง':(room.room_name||''),
+    exam_title:document.getElementById('exTitle').value.trim()||EX.structure.name,
+    school_name:'โรงเรียนนายางกลักพิทยาคม',
+    num_questions:numQ,
+    choices:examChoiceCount(document.getElementById('exChoices').value),
+    objective_full:Number(document.getElementById('exObjFull').value)||numQ,
+    subjective_full:Number(document.getElementById('exSubjFull').value)||0,
+    target_full:Number(EX.structure.max_score)||0,
+    answer_key:key,
+    question_scores:{}
+  };
+  try{
+    var saved;
+    if(EX.subject&&EX.subject.id){
+      saved=(await api('/rest/v1/exam_subjects?id=eq.'+EX.subject.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
+    }else{
+      saved=(await api('/rest/v1/exam_subjects',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
+    }
+    EX.subject=saved;toast('บันทึกชุดข้อสอบแล้ว');
+  }catch(e){toast('บันทึกชุดข้อสอบไม่สำเร็จ: '+e.message,'err');}
+}
+
+function examHandleFiles(files){
+  EX.files=Array.from(files||[]);
+  document.getElementById('exFileHint').textContent=EX.files.length?EX.files.length+' ไฟล์ที่เลือก':'ยังไม่ได้เลือกไฟล์';
+  document.getElementById('exRunBtn').disabled=!EX.files.length;
+  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
+}
+
+function examClearBatch(){
+  EX.files=[];EX.results=[];EX.saved=0;
+  var fi=document.getElementById('exFiles');if(fi)fi.value='';
+  var hint=document.getElementById('exFileHint');if(hint)hint.textContent='ยังไม่ได้เลือกไฟล์';
+  var run=document.getElementById('exRunBtn');if(run)run.disabled=true;
+  examSetProgress(0,0);examRenderResults();examMsg('');
+}
+
+async function examRunBatch(){
+  if(!await examEnsureReady())return;
+  if(!EX.files.length){examMsg('กรุณาเลือก PDF หรือรูปก่อน',true);return;}
+  var btn=document.getElementById('exRunBtn');btn.disabled=true;btn.textContent='กำลังตรวจ...';
+  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
+  try{
+    var pages=[];
+    for(var f=0;f<EX.files.length;f++){
+      var file=EX.files[f],isPdf=/pdf/i.test(file.type)||/\.pdf$/i.test(file.name);
+      if(isPdf){
+        var canvases=await examPdfToCanvases(file);
+        canvases.forEach(function(cv,i){pages.push({name:file.name,page:i+1,canvas:cv});});
+      }else pages.push({name:file.name,page:1,canvas:await examGetOrientedCanvas(file,1600)});
+    }
+    await examProcessPages(pages);
+    examMsg('ตรวจเสร็จ '+pages.length+' หน้า โปรดตรวจทานและแก้คะแนนก่อนบันทึก');
+  }catch(e){examMsg('ตรวจไม่สำเร็จ: '+e.message,true);}
+  finally{btn.disabled=false;btn.innerHTML='<span class="ms" style="font-size:16px;vertical-align:middle;">document_scanner</span> ตรวจทั้งหมด';}
+}
+
+async function examEnsureReady(){
+  if(!EX.subject||!EX.subject.id){toast('บันทึก/เลือกชุดข้อสอบก่อน','err');return false;}
+  if(!EX.students.length){await examLoadStudents();if(!EX.students.length){toast('ยังไม่มีรายชื่อนักเรียนในกลุ่มนี้','err');return false;}}
+  return true;
+}
+
+async function examProcessPages(pages){
+  var key=EX.subject.answer_key||{},numQ=EX.subject.num_questions||20,choices=examChoiceCount(EX.subject.choices);
+  for(var i=0;i<pages.length;i++){
+    examSetProgress(i,pages.length);
+    EX.results.push(await examGradeCanvas(pages[i],EX.results.length,key,numQ,choices));
+    examRenderResults();
+    await new Promise(function(resolve){setTimeout(resolve,20);});
+  }
+  examSetProgress(pages.length,pages.length);
+}
+
+async function examGradeCanvas(page,index,key,numQ,choices){
+  var qr=await examDecodeQrFromCanvas(page.canvas).catch(function(){return null;});
+  var student=examStudentFromQr(qr)||EX.students[index]||null;
+  var img=await examImageFromDataUrl(page.canvas.toDataURL('image/jpeg',0.9));
+  var omr=examChooseBestOMR(img,numQ,null,choices,key);
+  if(!omr.ok)return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',error:omr.reason,answers:{},objective_score:0,objective_total:Number(EX.subject.objective_full||numQ),subjective_score:0,subjective_total:Number(EX.subject.subjective_full||0),raw_score:0,raw_total:0,final_score:0,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
+  var g=examScoreResult(omr.answers,key);
+  var objTotal=Number(EX.subject.objective_full||numQ),objScore=g.keyCount?g.correct/g.keyCount*objTotal:0,subTotal=Number(EX.subject.subjective_full||0);
+  var res={page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',uncertain:omr.uncertain,blank:g.blank,answers:omr.answers,objective_score:objScore,objective_total:objTotal,subjective_score:0,subjective_total:subTotal,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
+  examRecalcResult(res);
+  return res;
+}
+
+function examScoreResult(answers,key){
+  var correct=0,blank=0,wrong=0,keyCount=0;
+  Object.keys(key||{}).forEach(function(q){keyCount++;var a=answers[q]||'-';if(a==='-'||a==='?')blank++;else if(a===key[q])correct++;else wrong++;});
+  return {correct:correct,blank:blank,wrong:wrong,keyCount:keyCount};
+}
+function examRecalcResult(r){
+  r.raw_score=(Number(r.objective_score)||0)+(Number(r.subjective_score)||0);
+  r.raw_total=(Number(r.objective_total)||0)+(Number(r.subjective_total)||0);
+  r.final_score=r.raw_total?Math.round(r.raw_score/r.raw_total*(Number(r.target_total)||0)):0;
+  r.percent=r.raw_total?Math.round(r.raw_score/r.raw_total*10000)/100:0;
+}
+function examRecalcFromInput(i,kind,val){
+  var r=EX.results[i];if(!r)return;
+  if(kind==='obj')r.objective_score=Math.max(0,Math.min(Number(r.objective_total)||0,Number(val)||0));
+  if(kind==='sub')r.subjective_score=Math.max(0,Math.min(Number(r.subjective_total)||0,Number(val)||0));
+  examRecalcResult(r);examRenderResults();
+}
+
+function examStudentFromQr(qr){
+  if(!qr||!qr.student_id)return null;
+  var stu=EX.students.find(function(s){return String(s.id)===String(qr.student_id);});
+  if(stu&&qr.exam_subject_id&&EX.subject&&String(qr.exam_subject_id)!==String(EX.subject.id))stu._qrWarn=true;
+  return stu||null;
+}
+
+async function examDecodeQrFromCanvas(cv){
+  var jsQR=await examLoadQrReader(),ctx=cv.getContext('2d'),img=ctx.getImageData(0,0,cv.width,cv.height),code=jsQR(img.data,cv.width,cv.height);
+  if(!code||!code.data)return null;
+  try{return JSON.parse(code.data);}catch(e){return null;}
+}
+function examLoadQrReader(){
+  if(window.jsQR)return Promise.resolve(window.jsQR);
+  if(EX.qrReadPromise)return EX.qrReadPromise;
+  EX.qrReadPromise=new Promise(function(resolve,reject){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';s.onload=function(){resolve(window.jsQR);};s.onerror=function(){reject(new Error('โหลดตัวอ่าน QR ไม่สำเร็จ'));};document.head.appendChild(s);});
+  return EX.qrReadPromise;
+}
+
+function examRenderStats(){
+  var ready=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;}).length;
+  var review=EX.results.filter(function(r){return !r.ok||!r.student||r.uncertain||r.blank;}).length;
+  var saved=EX.results.filter(function(r){return r.saved;}).length;
+  ['Pages','Ready','Review','Saved'].forEach(function(k){var el=document.getElementById('exSt'+k);if(el)el.textContent={Pages:EX.results.length,Ready:ready,Review:review,Saved:saved}[k];});
+  var btn=document.getElementById('exSaveBtn');if(btn)btn.disabled=!ready;
+}
+function examRenderResults(){
+  var body=document.getElementById('exResultBody');if(!body)return;
+  if(!EX.results.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr>';examRenderStats();return;}
+  var stuOpts='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+(s._room_name?' · '+examEsc(s._room_name):'')+'</option>';}).join('');
+  body.innerHTML=EX.results.map(function(r,i){
+    var status=r.saved?'<span class="exam-badge ok">บันทึกแล้ว</span>':!r.ok?'<span class="exam-badge err">อ่านไม่ได้</span>':(!r.student||r.uncertain||r.blank?'<span class="exam-badge warn">ตรวจทาน</span>':'<span class="exam-badge ok">พร้อม</span>');
+    var cls=r.ok&&r.student&&!r.uncertain&&!r.blank?'ready':'needs-review';
+    var select='<select class="exam-mini-select" onchange="examAssignStudent('+i+',this.value)">'+stuOpts+'</select>';
+    var omr='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.objective_total)+'" value="'+examFmt(r.objective_score)+'" onchange="examRecalcFromInput('+i+',\'obj\',this.value)"> / '+examFmt(r.objective_total);
+    var sub='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.subjective_total)+'" value="'+examFmt(r.subjective_score||0)+'" onchange="examRecalcFromInput('+i+',\'sub\',this.value)"> / '+examFmt(r.subjective_total);
+    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.mapMethod||'')+(r.qr?' · QR':' · ใช้ลำดับหน้า')+'</div></td><td>'+omr+'</td><td>'+sub+'</td><td><b>'+examFmt(r.final_score)+'</b><span class="exam-muted"> / '+examFmt(r.target_total)+' ('+r.percent+'%)</span></td><td>'+status+(r.error?'<div class="exam-muted" style="color:var(--red);">'+examEsc(r.error)+'</div>':r.uncertain?'<div class="exam-muted">ไม่ชัด '+r.uncertain+' ข้อ</div>':'')+'</td></tr>';
+  }).join('');
+  EX.results.forEach(function(r,i){var sel=body.querySelectorAll('select')[i];if(sel&&r.student)sel.value=r.student.id;});
+  examRenderStats();
+}
+function examAssignStudent(i,id){var r=EX.results[i];if(!r)return;r.student=EX.students.find(function(s){return String(s.id)===String(id);})||null;examRenderResults();}
+
+async function examSaveAll(){
+  var rows=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;});
+  if(!rows.length){toast('ยังไม่มีรายการพร้อมบันทึก','err');return;}
+  var ids=rows.map(function(r){return r.student.id;}).join(',');
+  var existing=await api('/rest/v1/grades?structure_id=eq.'+EX.structure.id+'&student_id=in.('+ids+')&select=student_id,score').catch(function(){return[];});
+  if(existing&&existing.length){
+    var names=existing.slice(0,5).map(function(g){var st=EX.students.find(function(s){return s.id==g.student_id;});return (st?st.fullname:g.student_id)+' ('+g.score+')';}).join('\n');
+    if(!confirm('พบคะแนนเดิมในช่องนี้ '+existing.length+' คน\n'+names+'\n\nต้องการเขียนทับคะแนนเดิมหรือไม่?'))return;
+  }
+  var gradePayload=rows.map(function(r){return {structure_id:EX.structure.id,student_id:r.student.id,teacher_id:G.user.id,score:r.final_score,note:'ตรวจข้อสอบ: '+(EX.subject.exam_title||'')};});
+  var resultPayload=rows.map(function(r){
+    return {subject_id:EX.subject.id,assignment_id:r.student._assignment_id||EX.assign.id,structure_id:EX.structure.id,student_id:r.student.id,student_name:r.student.fullname,student_no:String(r.student.order_no||r.student.student_code||''),room:r.student._room_name||'',objective_score:r.objective_score,objective_total:r.objective_total,subjective_score:r.subjective_score,subjective_total:r.subjective_total,raw_score:r.raw_score,raw_total:r.raw_total,score:r.final_score,total:r.target_total,percent:r.percent,answers:r.answers};
+  });
+  var btn=document.getElementById('exSaveBtn');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    await api('/rest/v1/grades?on_conflict=structure_id,student_id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(gradePayload)});
+    await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(resultPayload)});
+    rows.forEach(function(r){r.saved=true;});toast('บันทึกคะแนนเข้าตารางรายวิชาแล้ว '+rows.length+' คน');examRenderResults();
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+  finally{btn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
+}
+
+function examExportCsv(){
+  if(!EX.results.length){toast('ยังไม่มีผลตรวจ','err');return;}
+  var lines=['หน้า,นักเรียน,เลขที่,OMR,อัตนัย,รวมดิบ,คะแนนลงช่อง,คะแนนเต็มช่อง,ร้อยละ,สถานะ'];
+  EX.results.forEach(function(r){var st=r.student||{};lines.push([r.page,st.fullname||'',st.order_no||st.student_code||'',examFmt(r.objective_score)+'/'+examFmt(r.objective_total),examFmt(r.subjective_score)+'/'+examFmt(r.subjective_total),examFmt(r.raw_score)+'/'+examFmt(r.raw_total),r.final_score,r.target_total,r.percent,r.saved?'บันทึกแล้ว':r.ok?'ตรวจแล้ว':'อ่านไม่ได้'].map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(','));});
+  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exam-results-'+today()+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+async function examPrintSheets(){
+  if(!await examEnsureReady())return;
+  var html='';
+  for(var i=0;i<EX.students.length;i++)html+='<section class="sheet">'+await examBuildSheetSVG(EX.subject,EX.students[i])+'</section>';
+  var w=window.open('','_blank');
+  w.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><title>กระดาษคำตอบ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#eee;font-family:Sarabun,sans-serif}.sheet{width:210mm;height:297mm;margin:0 auto;background:#fff;page-break-after:always;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;display:block}@page{size:A4 portrait;margin:0}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
+  w.document.close();
+}
+async function examBuildSheetSVG(subject,student){
+  var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=EX_SHEET_W/2,qr='';
+  try{qr=await examMakeQr({assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,exam_subject_id:subject.id});}catch(e){}
+  var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',room=student._room_name||subject.room||'';
+  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:Sarabun,sans-serif">';
+  [EX_MK.tl,EX_MK.tr,EX_MK.br,EX_MK.bl].forEach(function(m){svg+='<rect x="'+(m.x-hf)+'" y="'+(m.y-hf)+'" width="'+EX_MK.size+'" height="'+EX_MK.size+'" fill="#000"/>';});
+  svg+='<rect x="82" y="78" width="636" height="160" rx="3" fill="none" stroke="#000" stroke-width="1.5"/>';
+  if(qr)svg+='<image href="'+qr+'" x="628" y="94" width="72" height="72"/>';
+  svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text><text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text><text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
+  svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text><text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text><text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
+  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบายวงให้เต็มและเข้ม เลือกข้อละ 1 ตัวเลือก · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
+  var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
+  L.cells.forEach(function(cell){svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});});
+  return svg+'</svg>';
+}
+function examMakeQr(payload){
+  return examLoadQrGen().then(function(QRCode){return new Promise(function(resolve,reject){QRCode.toDataURL(JSON.stringify(payload),{margin:1,width:96,errorCorrectionLevel:'M'},function(err,url){err?reject(err):resolve(url);});});});
+}
+function examLoadQrGen(){
+  if(window.QRCode&&window.QRCode.toDataURL)return Promise.resolve(window.QRCode);
+  if(EX.qrPromise)return EX.qrPromise;
+  EX.qrPromise=new Promise(function(resolve,reject){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';s.onload=function(){resolve(window.QRCode);};s.onerror=function(){reject(new Error('โหลดตัวสร้าง QR ไม่สำเร็จ'));};document.head.appendChild(s);});
+  return EX.qrPromise;
+}
+
+async function examOpenCamera(){
+  if(!await examEnsureReady())return;
+  if(!navigator.mediaDevices?.getUserMedia){toast('เบราว์เซอร์นี้ไม่รองรับกล้องสด','err');return;}
+  EX.camLastPts=null;EX.camStable=0;EX.camDone=false;
+  document.getElementById('exCameraModal').style.display='flex';
+  document.getElementById('exCamStatus').textContent='กำลังเปิดกล้อง...';
+  try{
+    EX.cam=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
+    var video=document.getElementById('exCamVideo');video.srcObject=EX.cam;await video.play();
+    EX.camTimer=setInterval(function(){examDetectLive(video);},450);
+  }catch(e){examCloseCamera();toast('เปิดกล้องไม่ได้: '+e.message,'err');}
+}
+function examDetectLive(video){
+  if(!video.videoWidth||EX.camDone)return;
+  var maxDim=640,sc=Math.min(1,maxDim/Math.max(video.videoWidth,video.videoHeight)),w=Math.round(video.videoWidth*sc),h=Math.round(video.videoHeight*sc),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(video,0,0,w,h);
+  var img=new Image();img.onload=function(){try{var g=examOmrToGray(img),det=examDetectMarkers(g.gray,g.w,g.h,examOtsu(g.gray)),status=document.getElementById('exCamStatus'),camCv=document.getElementById('exCamCanvas');if(det&&!det.extrapolated){examUpdateCamStability(det.pts,g.w,g.h);status.textContent=EX.camStable>=4?'ตรงและนิ่งแล้ว กำลังจับภาพ...':'พบจุดมุมครบ ถือให้นิ่ง';examDrawLiveQuad(camCv,video,det.pts,g.w,g.h);if(EX.camStable>=4){EX.camDone=true;setTimeout(examCaptureFrame,250);}}else{EX.camLastPts=null;EX.camStable=0;status.textContent='กำลังหาจุดดำ 4 มุม...';examClearCamCanvas(camCv);}}catch(e){}};img.src=cv.toDataURL('image/jpeg',0.72);
+}
+function examUpdateCamStability(pts,gw,gh){var diag=Math.hypot(gw,gh);if(!EX.camLastPts){EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});EX.camStable=1;return;}var move=pts.reduce(function(s,p,i){return s+Math.hypot(p[0]-EX.camLastPts[i][0],p[1]-EX.camLastPts[i][1]);},0)/(pts.length*diag);EX.camStable=move<0.012?EX.camStable+1:1;EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});}
+function examDrawLiveQuad(canvas,video,pts,gw,gh){var vw=video.clientWidth,vh=video.clientHeight,va=video.videoWidth/video.videoHeight,ca=vw/vh,rw,rh,ox,oy;if(va>ca){rh=vh;rw=vh*va;ox=(vw-rw)/2;oy=0;}else{rw=vw;rh=vw/va;oy=(vh-rh)/2;ox=0;}canvas.width=vw;canvas.height=vh;var ctx=canvas.getContext('2d');ctx.clearRect(0,0,vw,vh);var D=pts.map(function(p){return [ox+p[0]/gw*rw,oy+p[1]/gh*rh];});ctx.strokeStyle='rgba(25,195,125,.95)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.beginPath();ctx.moveTo(D[0][0],D[0][1]);for(var i=1;i<4;i++)ctx.lineTo(D[i][0],D[i][1]);ctx.closePath();ctx.stroke();ctx.setLineDash([]);D.forEach(function(d){ctx.beginPath();ctx.arc(d[0],d[1],11,0,7);ctx.fillStyle='rgba(25,195,125,.9)';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();});}
+function examClearCamCanvas(canvas){if(canvas&&canvas.width)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);}
+async function examCaptureFrame(){var video=document.getElementById('exCamVideo');if(!video.videoWidth)return;var cv=document.createElement('canvas');cv.width=video.videoWidth;cv.height=video.videoHeight;cv.getContext('2d').drawImage(video,0,0);examCloseCamera();await examProcessPages([{name:'camera.jpg',page:1,canvas:cv}]);toast('จับภาพและตรวจแล้ว โปรดตรวจทานก่อนบันทึก');}
+function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}document.getElementById('exCameraModal').style.display='none';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
 function openPage(id,fromPop){
   // ผลักประวัติการนำทาง (สำหรับปุ่มกลับในแอป + ปุ่ม back ของมือถือ/เบราว์เซอร์)

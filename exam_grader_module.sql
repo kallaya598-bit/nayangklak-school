@@ -3,6 +3,9 @@
 
 create table if not exists exam_subjects (
   id bigint generated always as identity primary key,
+  assignment_id integer,
+  structure_id integer,
+  scope text not null default 'single',
   subject_name text not null,
   class_level text,
   room text,
@@ -10,6 +13,9 @@ create table if not exists exam_subjects (
   school_name text default 'โรงเรียนนายางกลักพิทยาคม',
   num_questions int not null default 20,
   choices int not null default 4,
+  objective_full numeric not null default 0,
+  subjective_full numeric not null default 0,
+  target_full numeric,
   answer_key jsonb not null default '{}'::jsonb,
   question_scores jsonb not null default '{}'::jsonb,
   created_at timestamptz default now(),
@@ -18,6 +24,7 @@ create table if not exists exam_subjects (
 
 alter table exam_subjects disable row level security;
 create index if not exists idx_exam_subjects_name on exam_subjects(subject_name);
+create index if not exists idx_exam_subjects_target on exam_subjects(assignment_id, structure_id);
 
 create or replace function set_exam_updated_at()
 returns trigger as $$
@@ -35,9 +42,18 @@ create trigger trg_exam_subjects_updated
 create table if not exists exam_results (
   id bigint generated always as identity primary key,
   subject_id bigint references exam_subjects(id) on delete cascade,
+  assignment_id integer,
+  structure_id integer,
+  student_id integer,
   student_name text,
   student_no text,
   room text,
+  objective_score numeric,
+  objective_total numeric,
+  subjective_score numeric,
+  subjective_total numeric,
+  raw_score numeric,
+  raw_total numeric,
   score numeric,
   total numeric,
   percent numeric,
@@ -49,8 +65,25 @@ alter table exam_results disable row level security;
 create index if not exists idx_exam_results_subject on exam_results(subject_id);
 
 alter table exam_subjects
+  add column if not exists assignment_id integer,
+  add column if not exists structure_id integer,
+  add column if not exists scope text not null default 'single',
   add column if not exists choices int not null default 4,
+  add column if not exists objective_full numeric not null default 0,
+  add column if not exists subjective_full numeric not null default 0,
+  add column if not exists target_full numeric,
   add column if not exists question_scores jsonb not null default '{}'::jsonb;
+
+alter table exam_results
+  add column if not exists assignment_id integer,
+  add column if not exists structure_id integer,
+  add column if not exists student_id integer,
+  add column if not exists objective_score numeric,
+  add column if not exists objective_total numeric,
+  add column if not exists subjective_score numeric,
+  add column if not exists subjective_total numeric,
+  add column if not exists raw_score numeric,
+  add column if not exists raw_total numeric;
 
 alter table exam_results alter column score type numeric using score::numeric;
 alter table exam_results alter column total type numeric using total::numeric;
