@@ -23,14 +23,16 @@ create table if not exists exam_subjects (
 );
 
 alter table exam_subjects disable row level security;
-create index if not exists idx_exam_subjects_name on exam_subjects(subject_name);
-create index if not exists idx_exam_subjects_target on exam_subjects(assignment_id, structure_id);
-create unique index if not exists ux_exam_subjects_single_slot
-  on exam_subjects(structure_id, assignment_id)
-  where scope <> 'shared';
-create unique index if not exists ux_exam_subjects_shared_slot
-  on exam_subjects(structure_id)
-  where scope = 'shared';
+
+alter table exam_subjects
+  add column if not exists assignment_id integer,
+  add column if not exists structure_id integer,
+  add column if not exists scope text not null default 'single',
+  add column if not exists choices int not null default 4,
+  add column if not exists objective_full numeric not null default 0,
+  add column if not exists subjective_full numeric not null default 0,
+  add column if not exists target_full numeric,
+  add column if not exists question_scores jsonb not null default '{}'::jsonb;
 
 create or replace function set_exam_updated_at()
 returns trigger as $$
@@ -71,19 +73,9 @@ create table if not exists exam_results (
 );
 
 alter table exam_results disable row level security;
-create index if not exists idx_exam_results_subject on exam_results(subject_id);
-
-alter table exam_subjects
-  add column if not exists assignment_id integer,
-  add column if not exists structure_id integer,
-  add column if not exists scope text not null default 'single',
-  add column if not exists choices int not null default 4,
-  add column if not exists objective_full numeric not null default 0,
-  add column if not exists subjective_full numeric not null default 0,
-  add column if not exists target_full numeric,
-  add column if not exists question_scores jsonb not null default '{}'::jsonb;
 
 alter table exam_results
+  add column if not exists subject_id bigint references exam_subjects(id) on delete cascade,
   add column if not exists assignment_id integer,
   add column if not exists structure_id integer,
   add column if not exists student_id integer,
@@ -99,4 +91,35 @@ alter table exam_results
 
 alter table exam_results alter column score type numeric using score::numeric;
 alter table exam_results alter column total type numeric using total::numeric;
+
+create index if not exists idx_exam_subjects_name on exam_subjects(subject_name);
+create index if not exists idx_exam_subjects_target on exam_subjects(assignment_id, structure_id);
+create index if not exists idx_exam_results_subject on exam_results(subject_id);
 create index if not exists idx_exam_results_student_slot on exam_results(structure_id, student_id);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_class where relname = 'ux_exam_subjects_single_slot'
+  ) and not exists (
+    select 1
+    from exam_subjects
+    where scope <> 'shared' and structure_id is not null and assignment_id is not null
+    group by structure_id, assignment_id
+    having count(*) > 1
+  ) then
+    execute 'create unique index ux_exam_subjects_single_slot on exam_subjects(structure_id, assignment_id) where scope <> ''shared'' and structure_id is not null and assignment_id is not null';
+  end if;
+
+  if not exists (
+    select 1 from pg_class where relname = 'ux_exam_subjects_shared_slot'
+  ) and not exists (
+    select 1
+    from exam_subjects
+    where scope = 'shared' and structure_id is not null
+    group by structure_id
+    having count(*) > 1
+  ) then
+    execute 'create unique index ux_exam_subjects_shared_slot on exam_subjects(structure_id) where scope = ''shared'' and structure_id is not null';
+  end if;
+end $$;
