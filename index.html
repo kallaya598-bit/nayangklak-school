@@ -711,6 +711,9 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-badge.ok{background:#e8f5e9;color:#2e7d32;}
 .exam-badge.warn{background:#fff8e1;color:#e65100;}
 .exam-badge.err{background:#ffebee;color:#c62828;}
+.exam-struct-hint{margin-top:7px;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.45;border:1px solid #d7e8fb;background:#f7fbff;color:#33516f;}
+.exam-struct-hint.ok{border-color:#c8e6c9;background:#e8f5e9;color:#1b5e20;font-weight:700;}
+.exam-struct-hint.new{border-color:#ffe0b2;background:#fff8e1;color:#8a4b00;}
 #exKeyGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;max-height:340px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--border);border-radius:12px;padding:10px;background:#fafcff;}
 .exam-key-row{display:flex;align-items:center;gap:7px;min-width:0;background:#fff;border:1px solid #e3edf8;border-radius:10px;padding:8px;}
 .exam-key-row b{width:34px;min-width:34px;text-align:center;color:var(--blue);}
@@ -1888,6 +1891,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
                 <div class="form-group">
                   <label class="form-label">ช่องคะแนนปลายทาง</label>
                   <select class="form-control" id="exStructure" onchange="examLoadLinkedExam()"><option value="">เลือกช่องคะแนน...</option></select>
+                  <div id="exStructureHint" class="exam-struct-hint">เลือกช่องคะแนนเพื่อดูสถานะชุดข้อสอบ</div>
                 </div>
               </div>
               <div class="form-group">
@@ -3379,7 +3383,7 @@ async function examPdfToCanvases(file){
 }
 
 // ===== EXAM GRADER v2: link OMR to grade structures =====
-var EX={subjects:[],assigns:[],structs:[],students:[],subject:null,assign:null,structure:null,files:[],results:[],saved:0,inited:false,cam:null,camTimer:null,camLastPts:null,camStable:0,camDone:false,qrPromise:null,qrReadPromise:null,pdfPromise:null};
+var EX={subjects:[],assigns:[],structs:[],students:[],subject:null,assign:null,structure:null,examLinks:{},files:[],results:[],saved:0,inited:false,cam:null,camTimer:null,camLastPts:null,camStable:0,camDone:false,qrPromise:null,qrReadPromise:null,pdfPromise:null};
 
 async function initExamGrader(){
   if(!EX.inited){
@@ -3405,17 +3409,16 @@ async function initExamGrader(){
 async function examSelectAssignment(){
   var id=document.getElementById('exAssign')?.value;
   EX.assign=EX.assigns.find(function(a){return String(a.id)===String(id);})||null;
-  EX.subject=null;EX.structure=null;EX.structs=[];EX.students=[];EX.results=[];EX.saved=0;
+  EX.subject=null;EX.structure=null;EX.structs=[];EX.students=[];EX.results=[];EX.saved=0;EX.examLinks={};
   var stSel=document.getElementById('exStructure');
   if(stSel)stSel.innerHTML='<option value="">เลือกช่องคะแนน...</option>';
+  examUpdateStructureHint();
   if(!EX.assign){examRenderResults();return;}
   try{
     var key=gradeStructKey(EX.assign.id);
     EX.structs=await api('/rest/v1/grade_structures?assignment_id=eq.'+key+'&select=id,name,max_score,grade_type,order_no&order=order_no')||[];
-    if(stSel){
-      stSel.innerHTML='<option value="">เลือกช่องคะแนน...</option>'+EX.structs.map(function(s){return '<option value="'+s.id+'">'+examEsc(phaseLabel(s.grade_type)+' · '+s.name+' ('+s.max_score+')')+'</option>';}).join('');
-      if(EX.structs.length)stSel.value=EX.structs[0].id;
-    }
+    await examLoadStructureLinks();
+    examRenderStructureOptions();
     await examLoadStudents();
     await examLoadLinkedExam();
   }catch(e){examMsg(examFriendlySqlError(e,'โหลดโครงสร้างคะแนนไม่สำเร็จ'),true);}
@@ -3435,6 +3438,51 @@ function examRelevantAssigns(){
   return (EX.assigns||[]).filter(function(a){return a.subject_id==EX.assign.subject_id&&a.teacher_id==EX.assign.teacher_id;});
 }
 
+async function examLoadStructureLinks(){
+  EX.examLinks={};
+  if(!EX.structs.length)return;
+  var ids=EX.structs.map(function(s){return s.id;}).join(',');
+  var scope=document.getElementById('exScope')?.value||'single';
+  var rows=await api('/rest/v1/exam_subjects?structure_id=in.('+ids+')&select=id,structure_id,assignment_id,scope,exam_title,updated_at&order=updated_at.desc').catch(function(e){
+    examMsg(examFriendlySqlError(e,'โหลดสถานะชุดข้อสอบไม่สำเร็จ'),true);
+    return [];
+  });
+  (rows||[]).forEach(function(r){
+    var match=scope==='shared' ? r.scope==='shared' : r.scope!=='shared'&&String(r.assignment_id)===String(EX.assign.id);
+    if(match&&!EX.examLinks[String(r.structure_id)])EX.examLinks[String(r.structure_id)]=r;
+  });
+}
+function examStructLabel(s){
+  return phaseLabel(s.grade_type)+' · '+s.name+' ('+examFmt(s.max_score)+')';
+}
+function examRenderStructureOptions(keepId){
+  var sel=document.getElementById('exStructure');if(!sel)return;
+  keepId=keepId||sel.value;
+  sel.innerHTML='<option value="">เลือกช่องคะแนน...</option>'+EX.structs.map(function(s){
+    var linked=!!EX.examLinks[String(s.id)], mark=linked?'✓ ':'  ';
+    return '<option value="'+s.id+'">'+examEsc(mark+examStructLabel(s)+(linked?' · มีชุดข้อสอบแล้ว':''))+'</option>';
+  }).join('');
+  if(keepId&&EX.structs.some(function(s){return String(s.id)===String(keepId);}))sel.value=keepId;
+  else if(EX.structs.length)sel.value=EX.structs[0].id;
+  examUpdateStructureHint();
+}
+function examUpdateStructureHint(){
+  var el=document.getElementById('exStructureHint');if(!el)return;
+  if(!EX.structure){
+    el.className='exam-struct-hint';
+    el.textContent='เลือกช่องคะแนนเพื่อดูสถานะชุดข้อสอบ';
+    return;
+  }
+  var link=EX.subject||EX.examLinks[String(EX.structure.id)];
+  if(link){
+    el.className='exam-struct-hint ok';
+    el.textContent='✓ มีชุดข้อสอบแล้ว: '+(link.exam_title||EX.structure.name||'ชุดข้อสอบ')+' · บันทึกครั้งถัดไปคือแก้ชุดเดิม';
+  }else{
+    el.className='exam-struct-hint new';
+    el.textContent='ยังไม่มีชุดข้อสอบในช่องนี้ · กรอกเฉลยแล้วกดบันทึกเพื่อสร้างใหม่';
+  }
+}
+
 async function examLoadStudents(){
   EX.students=[];
   var assigns=examRelevantAssigns();
@@ -3450,7 +3498,7 @@ async function examLoadLinkedExam(){
   var sid=document.getElementById('exStructure')?.value;
   EX.structure=EX.structs.find(function(s){return String(s.id)===String(sid);})||null;
   EX.subject=null;EX.results=[];EX.saved=0;
-  if(!EX.structure){examRenderResults();return;}
+  if(!EX.structure){examUpdateStructureHint();examRenderResults();return;}
   var rows=await api('/rest/v1/exam_subjects?structure_id=eq.'+EX.structure.id+'&select=*&order=updated_at.desc').catch(function(e){
     examMsg(examFriendlySqlError(e,'โหลดชุดข้อสอบไม่สำเร็จ'),true);
     return [];
@@ -3461,6 +3509,7 @@ async function examLoadLinkedExam(){
   })||null;
   if(EX.subject)examLoadConfigToForm(EX.subject);
   else examResetConfigForm();
+  examUpdateStructureHint();
   examRenderResults();
 }
 
@@ -3527,7 +3576,11 @@ async function examSaveConfig(){
     }else{
       saved=(await api('/rest/v1/exam_subjects',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
     }
-    EX.subject=saved;toast('บันทึกชุดข้อสอบแล้ว');
+    EX.subject=saved;
+    EX.examLinks[String(saved.structure_id)]=saved;
+    examRenderStructureOptions(saved.structure_id);
+    examUpdateStructureHint();
+    toast('บันทึกชุดข้อสอบแล้ว');
   }catch(e){toast('บันทึกชุดข้อสอบไม่สำเร็จ: '+e.message,'err');}
 }
 
