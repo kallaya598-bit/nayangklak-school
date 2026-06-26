@@ -678,6 +678,44 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .p5-drop-menu button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;font-weight:600;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;font-family:'Sarabun',sans-serif;color:var(--text);}
 .p5-drop-menu button:last-child{border-bottom:none;}
 .p5-drop-menu button:hover{background:var(--bluel);color:var(--blue);}
+
+/* ===== EXAM GRADER ===== */
+.exam-shell{padding:14px 14px 90px;}
+.exam-grid{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:12px;align-items:start;}
+.exam-panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.exam-panel h3{font-size:16.5px;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.exam-step{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:#f8fbff;border:1px solid #e3f2fd;margin-top:9px;}
+.exam-step-num{width:28px;height:28px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;}
+.exam-muted{font-size:13.2px;color:var(--text3);line-height:1.6;}
+.exam-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.exam-drop{position:relative;border:2px dashed #b7d7f2;border-radius:16px;background:#f7fbff;min-height:160px;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;cursor:pointer;transition:.18s;}
+.exam-drop:hover,.exam-drop.drag{border-color:var(--blue);background:#eef7ff;}
+.exam-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.exam-drop .ms{font-size:38px;color:var(--blue);display:block;margin-bottom:6px;}
+.exam-progress{height:8px;background:#e3f2fd;border-radius:99px;overflow:hidden;margin-top:12px;display:none;}
+.exam-progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--blue),#42a5f5);transition:width .2s;}
+.exam-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;}
+.exam-stat{border-radius:12px;padding:11px;background:#f5f9ff;border:1px solid #e3f2fd;text-align:center;}
+.exam-stat .v{font-size:22px;font-weight:800;color:var(--blue);}
+.exam-stat .l{font-size:12px;color:var(--text3);}
+.exam-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px;background:#fff;}
+.exam-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.exam-table th{background:#e3f2fd;color:#0d47a1;text-align:left;padding:9px;white-space:nowrap;}
+.exam-table td{padding:8px 9px;border-top:1px solid #eef3f8;vertical-align:top;}
+.exam-table tr.needs-review{background:#fff8e1;}
+.exam-table tr.ready{background:#f7fff8;}
+.exam-ans{font-family:ui-monospace,Consolas,monospace;font-size:12px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#455a64;}
+.exam-mini-select{min-width:150px;height:38px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-family:Sarabun,sans-serif;}
+.exam-badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700;}
+.exam-badge.ok{background:#e8f5e9;color:#2e7d32;}
+.exam-badge.warn{background:#fff8e1;color:#e65100;}
+.exam-badge.err{background:#ffebee;color:#c62828;}
+@media(max-width:900px){
+  .exam-grid{grid-template-columns:1fr;}
+  .exam-summary{grid-template-columns:repeat(2,1fr);}
+  .exam-table{font-size:13px;}
+  .exam-table th:nth-child(5),.exam-table td:nth-child(5){display:none;}
+}
 .kpi-pill.pg{background:var(--greenl);color:var(--green);}
 .kpi-pill.pr{background:var(--redl);color:var(--red);}
 .kpi-pill.pb{background:var(--bluel);color:var(--blue);}
@@ -1392,6 +1430,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div class="nav-group-bd">
           <div class="nav-item" data-page="pgTeachSubjects"><span class="ni ms-blue">calendar_month</span> <span>ตารางสอน</span></div>
           <div class="nav-item" data-page="pgGrades"><span class="ni ms-orange">grade</span> <span>คะแนนรายวิชา</span></div>
+          <div class="nav-item" data-page="pgExam"><span class="ni ms-purple">fact_check</span> <span>ตรวจข้อสอบ</span></div>
           <div class="nav-item" data-page="pgSubjAttReport"><span class="ni ms-green">analytics</span> <span>เวลาเรียนรายวิชา</span></div>
           <div class="nav-item" data-page="pgRoomAttReport"><span class="ni ms-blue">school</span> <span>เวลาเรียนรายห้อง</span></div>
           <div class="nav-item" data-page="pgTimetable"><span class="ni ms-blue">event_note</span> <span>ตารางนักเรียน</span></div>
@@ -1498,6 +1537,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <div class="dico" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="dico-ico iapp-indigo"><span class="ms">checklist</span></div><div class="dico-lbl">ภาพรวมชุมนุม</div></div>
             <div class="dico" onclick="openPage('pgTeachSubjects')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/14-teaching-schedule.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางสอน</div></div>
             <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/15-subject-grades.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">คะแนนรายวิชา</div></div>
+            <div class="dico" onclick="openPage('pgExam')"><div class="dico-ico iapp-purple"><span class="ms">fact_check</span></div><div class="dico-lbl">ตรวจข้อสอบ</div></div>
             <div class="dico" onclick="openPage('pgSubjAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/16-subject-time.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เวลาเรียนรายวิชา</div></div>
             <div class="dico" onclick="openPage('pgRoomAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/17-classroom-time.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เวลาเรียนรายห้อง</div></div>
             <div class="dico" onclick="openPage('pgTimetable')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/18-student-timetable.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางนักเรียน</div></div>
@@ -1805,7 +1845,84 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             </div>
           </div>
         </div>
-        <div id="grContent" style="padding:0 14px 80px;"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
+      <div id="grContent" style="padding:0 14px 80px;"><div class="loading" style="padding:20px;text-align:center;color:var(--text3);">เลือกกลุ่มเรียนก่อนครับ</div></div>
+      </div>
+
+      <!-- ===== EXAM GRADER ===== -->
+      <div class="page" id="pgExam">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="goBack()">← กลับ</button><button class="back-btn" onclick="goHome()" style="margin-left:6px;">🏠 หน้าหลัก</button>
+          <div class="pt1"><span class="pt-ic ms-purple">fact_check</span> ตรวจข้อสอบ</div>
+        </div>
+        <div class="exam-shell">
+          <div class="exam-grid">
+            <div class="exam-panel">
+              <h3><span class="ms ms-purple">fact_check</span> ชุดข้อสอบ</h3>
+              <div class="form-group">
+                <label class="form-label">เลือกชุดข้อสอบ / เฉลย</label>
+                <select class="form-control" id="exSubject" onchange="examSelectSubject()"><option value="">กำลังโหลด...</option></select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">ห้องเรียน</label>
+                  <select class="form-control" id="exRoom" onchange="examLoadStudents()"><option value="">เลือกห้อง...</option></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">จับคู่ผลตรวจ</label>
+                  <select class="form-control" id="exMapMode">
+                    <option value="order">ตามลำดับรายชื่อ</option>
+                    <option value="manual">เลือกเองหลังตรวจ</option>
+                  </select>
+                </div>
+              </div>
+              <div class="exam-step">
+                <div class="exam-step-num">1</div>
+                <div><b>พิมพ์กระดาษคำตอบ</b><div class="exam-muted">ระบบใส่ชื่อ เลขที่ ห้อง และรหัสนักเรียนให้แต่ละหน้า</div></div>
+              </div>
+              <div class="exam-actions">
+                <button class="btn btn-primary btn-sm" onclick="examPrintSheets()"><span class="ms" style="font-size:15px;vertical-align:middle;">print</span> พิมพ์รายห้อง</button>
+                <button class="btn btn-outline btn-sm" onclick="examLoadAll()"><span class="ms" style="font-size:15px;vertical-align:middle;">refresh</span> โหลดใหม่</button>
+              </div>
+              <div class="exam-step">
+                <div class="exam-step-num">2</div>
+                <div><b>ตรวจพร้อมกัน</b><div class="exam-muted">รองรับ PDF หลายหน้า หรือรูปหลายใบในครั้งเดียว</div></div>
+              </div>
+              <div class="exam-drop" id="exDrop">
+                <input type="file" id="exFiles" accept="image/*,.pdf,application/pdf" multiple onchange="examHandleFiles(this.files)">
+                <div>
+                  <span class="ms">upload_file</span>
+                  <b>เลือก PDF / รูปกระดาษคำตอบ</b>
+                  <div class="exam-muted" id="exFileHint">ยังไม่ได้เลือกไฟล์</div>
+                </div>
+              </div>
+              <div class="exam-progress" id="exProgress"><div></div></div>
+              <div class="exam-actions">
+                <button class="btn btn-green" id="exRunBtn" onclick="examRunBatch()" disabled><span class="ms" style="font-size:16px;vertical-align:middle;">document_scanner</span> ตรวจทั้งหมด</button>
+                <button class="btn btn-outline" onclick="examClearBatch()">ล้างผล</button>
+              </div>
+              <div id="exMsg" class="login-err" style="margin-top:10px;"></div>
+            </div>
+            <div class="exam-panel">
+              <h3><span class="ms ms-blue">rule</span> ผลตรวจทาน</h3>
+              <div class="exam-summary">
+                <div class="exam-stat"><div class="v" id="exStPages">0</div><div class="l">หน้า/รูป</div></div>
+                <div class="exam-stat"><div class="v" id="exStReady">0</div><div class="l">พร้อมบันทึก</div></div>
+                <div class="exam-stat"><div class="v" id="exStReview">0</div><div class="l">ต้องตรวจทาน</div></div>
+                <div class="exam-stat"><div class="v" id="exStSaved">0</div><div class="l">บันทึกแล้ว</div></div>
+              </div>
+              <div class="exam-actions" style="margin-bottom:10px;">
+                <button class="btn btn-primary btn-sm" id="exSaveBtn" onclick="examSaveAll()" disabled>💾 บันทึกคะแนนทั้งหมด</button>
+                <button class="btn btn-green btn-sm" onclick="examExportCsv()">📊 Excel</button>
+              </div>
+              <div class="exam-table-wrap">
+                <table class="exam-table">
+                  <thead><tr><th>หน้า</th><th>นักเรียน</th><th>สถานะ</th><th>คะแนน</th><th>คำตอบ</th></tr></thead>
+                  <tbody id="exResultBody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ===== TIMETABLE ===== -->
@@ -2737,6 +2854,7 @@ var SC_ALL=[
   {id:'pgAttReport',label:'รายงานเช็คชื่อ',icon:'assignment',color:'#00695c'},
   {id:'pgTeachSubjects',label:'ตารางสอน',icon:'calendar_month',color:'#1565c0'},
   {id:'pgGrades',label:'คะแนนรายวิชา',icon:'grade',color:'#f57f17'},
+  {id:'pgExam',label:'ตรวจข้อสอบ',icon:'fact_check',color:'#7b1fa2'},
   {id:'pgSubjAttReport',label:'เวลาเรียนรายวิชา',icon:'analytics',color:'#2e7d32'},
   {id:'pgRoomAttReport',label:'เวลาเรียนรายห้อง',icon:'school',color:'#1565c0'},
   {id:'pgHomeVisit',label:'เยี่ยมบ้านนักเรียน',icon:'home',color:'#2e7d32'},
@@ -2910,6 +3028,295 @@ async function api(path,opts){
   return data;
 }
 
+// ===== EXAM GRADER (OMR batch) =====
+var EX={subjects:[],rooms:[],students:[],subject:null,files:[],results:[],saved:0,inited:false};
+var EX_CHOICES=['ก','ข','ค','ง','จ'];
+var EX_DEFAULT_CHOICES=4;
+var EX_SHEET_W=800,EX_SHEET_H=1130;
+var EX_MK={size:50,tl:{x:55,y:55},tr:{x:745,y:55},br:{x:745,y:1075},bl:{x:55,y:1075}};
+var EX_DARK_MIN=18,EX_AMBIG=0.55;
+var EX_ORIENT_TEST_IMG='data:image/jpeg;base64,/9j/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAYAAAAAAAD/2wCEAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAIDAREAAhEBAxEB/8QAVAABAQAAAAAAAAAAAAAAAAAAAAr/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AKpgAH//2Q==';
+var EX_autoOrient=null,EX_pdfPromise=null;
+
+function examEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function examFmt(n){return Number.isInteger(Number(n))?String(Number(n)):Number(n||0).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');}
+function examMsg(msg,isErr){var el=document.getElementById('exMsg');if(el){el.style.color=isErr?'var(--red)':'var(--green)';el.textContent=msg||'';}}
+function examChoiceCount(v){var n=parseInt(v,10);return n===5?5:4;}
+function examChoices(v){return EX_CHOICES.slice(0,examChoiceCount(v));}
+function examSetProgress(done,total){
+  var wrap=document.getElementById('exProgress'),bar=wrap&&wrap.querySelector('div');
+  if(!wrap||!bar)return;
+  wrap.style.display=total?'block':'none';
+  bar.style.width=total?Math.round(done/total*100)+'%':'0';
+}
+async function initExamGrader(){
+  if(EX.inited){examRenderStats();return;}
+  EX.inited=true;
+  examBindDrop();
+  await examLoadAll();
+}
+async function examLoadAll(){
+  examMsg('กำลังโหลดข้อมูล...');
+  try{
+    var data=await Promise.all([examLoadSubjects(),examLoadRooms()]);
+    examMsg('');
+    return data;
+  }catch(e){
+    examMsg('โหลดข้อมูลตรวจข้อสอบไม่สำเร็จ: '+e.message+' — ถ้ายังไม่ได้รัน SQL ให้รัน exam_schema.sql ก่อน',true);
+  }
+}
+async function examLoadSubjects(){
+  var rows=await api('/rest/v1/exam_subjects?select=*&order=updated_at.desc');
+  EX.subjects=rows||[];
+  var sel=document.getElementById('exSubject');
+  if(!sel)return;
+  sel.innerHTML='<option value="">เลือกชุดข้อสอบ...</option>'+EX.subjects.map(function(s){
+    var title=[s.subject_name,s.exam_title,s.class_level+(s.room?'/'+s.room:'')].filter(Boolean).join(' · ');
+    return '<option value="'+s.id+'">'+examEsc(title||('ชุดข้อสอบ #'+s.id))+'</option>';
+  }).join('');
+  if(EX.subjects.length&&!sel.value){sel.value=EX.subjects[0].id;}
+  examSelectSubject();
+}
+async function examLoadRooms(){
+  var rows=await api('/rest/v1/classrooms?select=id,room_name&order=id.asc');
+  EX.rooms=rows||[];
+  var sel=document.getElementById('exRoom');
+  if(!sel)return;
+  sel.innerHTML='<option value="">เลือกห้อง...</option>'+EX.rooms.map(function(r){return '<option value="'+r.id+'">'+examEsc(r.room_name)+'</option>';}).join('');
+  if(G.room&&G.room.id)sel.value=G.room.id;
+  examLoadStudents();
+}
+function examSelectSubject(){
+  var id=document.getElementById('exSubject')?.value;
+  EX.subject=EX.subjects.find(function(s){return String(s.id)===String(id);})||null;
+  if(EX.subject&&EX.subject.room){
+    var wanted=String(EX.subject.room).replace(/^ม\./,'');
+    var room=EX.rooms.find(function(r){return String(r.room_name).replace(/^ม\./,'')===wanted;});
+    if(room){document.getElementById('exRoom').value=room.id;examLoadStudents();}
+  }
+  examClearBatch();
+}
+async function examLoadStudents(){
+  var roomId=document.getElementById('exRoom')?.value;
+  EX.students=[];
+  if(!roomId){examRenderResults();return;}
+  try{
+    EX.students=await api('/rest/v1/students?classroom_id=eq.'+roomId+'&status=eq.active&select=id,student_code,fullname,order_no,classroom_id&order=order_no.asc')||[];
+    examRenderResults();
+  }catch(e){examMsg('โหลดรายชื่อนักเรียนไม่สำเร็จ: '+e.message,true);}
+}
+function examBindDrop(){
+  var dz=document.getElementById('exDrop');
+  if(!dz||dz.dataset.bound)return;
+  dz.dataset.bound='1';
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+  dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');examHandleFiles(e.dataTransfer.files);});
+}
+function examHandleFiles(files){
+  EX.files=Array.from(files||[]);
+  document.getElementById('exFileHint').textContent=EX.files.length?EX.files.length+' ไฟล์ที่เลือก':'ยังไม่ได้เลือกไฟล์';
+  document.getElementById('exRunBtn').disabled=!EX.files.length;
+  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
+}
+function examClearBatch(){
+  EX.files=[];EX.results=[];EX.saved=0;
+  var fi=document.getElementById('exFiles');if(fi)fi.value='';
+  var hint=document.getElementById('exFileHint');if(hint)hint.textContent='ยังไม่ได้เลือกไฟล์';
+  var run=document.getElementById('exRunBtn');if(run)run.disabled=true;
+  examSetProgress(0,0);examRenderResults();examMsg('');
+}
+async function examRunBatch(){
+  if(!EX.subject){examMsg('กรุณาเลือกชุดข้อสอบก่อน',true);return;}
+  if(!EX.files.length){examMsg('กรุณาเลือก PDF หรือรูปก่อน',true);return;}
+  var key=EX.subject.answer_key||{},numQ=EX.subject.num_questions||20,choices=examChoiceCount(EX.subject.choices);
+  if(!Object.keys(key).length){examMsg('ชุดข้อสอบนี้ยังไม่มีเฉลย',true);return;}
+  var btn=document.getElementById('exRunBtn');btn.disabled=true;btn.textContent='กำลังตรวจ...';
+  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
+  try{
+    var pages=[];
+    for(var f=0;f<EX.files.length;f++){
+      var file=EX.files[f],isPdf=/pdf/i.test(file.type)||/\.pdf$/i.test(file.name);
+      if(isPdf){
+        var canvases=await examPdfToCanvases(file);
+        canvases.forEach(function(cv,i){pages.push({name:file.name,page:i+1,canvas:cv});});
+      }else{
+        pages.push({name:file.name,page:1,canvas:await examGetOrientedCanvas(file,1600)});
+      }
+    }
+    for(var i=0;i<pages.length;i++){
+      examSetProgress(i,pages.length);
+      var r=await examGradeCanvas(pages[i],i,numQ,choices,key);
+      EX.results.push(r);examRenderResults();
+      await new Promise(function(resolve){setTimeout(resolve,20);});
+    }
+    examSetProgress(pages.length,pages.length);
+    examMsg('ตรวจเสร็จ '+pages.length+' หน้า โปรดตรวจทานก่อนบันทึก');
+  }catch(e){examMsg('ตรวจไม่สำเร็จ: '+e.message,true);}
+  finally{btn.disabled=false;btn.innerHTML='<span class="ms" style="font-size:16px;vertical-align:middle;">document_scanner</span> ตรวจทั้งหมด';}
+}
+async function examGradeCanvas(page,index,numQ,choices,key){
+  var dataUrl=page.canvas.toDataURL('image/jpeg',0.9);
+  var img=await examImageFromDataUrl(dataUrl);
+  var omr=examChooseBestOMR(img,numQ,null,choices,key);
+  var student=document.getElementById('exMapMode').value==='order'?EX.students[index]:null;
+  if(!omr.ok){
+    return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,error:omr.reason,score:0,total:0,percent:0,answers:{}};
+  }
+  var g=examScore(omr.answers,key,numQ,EX.subject.question_scores||{});
+  return {page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,uncertain:omr.uncertain,blank:g.blank,score:g.score,total:g.total,percent:g.percent,answers:omr.answers};
+}
+function examScore(answers,key,numQ,scores){
+  var score=0,total=0,blank=0,wrong=0,correct=0;
+  for(var i=1;i<=numQ;i++){
+    var ca=key[i],a=answers[i]||'-',w=Math.max(0,Number(scores[i]??1)||0);
+    if(!ca)continue;
+    total+=w;
+    if(a==='-'||a==='?')blank++;
+    else if(a===ca){correct++;score+=w;}
+    else wrong++;
+  }
+  return {score:score,total:total,percent:total?Math.round(score/total*10000)/100:0,blank:blank,wrong:wrong,correct:correct};
+}
+function examRenderStats(){
+  var ready=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;}).length;
+  var review=EX.results.filter(function(r){return !r.ok||!r.student||r.uncertain||r.blank;}).length;
+  var saved=EX.results.filter(function(r){return r.saved;}).length;
+  ['Pages','Ready','Review','Saved'].forEach(function(k){var el=document.getElementById('exSt'+k);if(el)el.textContent={Pages:EX.results.length,Ready:ready,Review:review,Saved:saved}[k];});
+  var btn=document.getElementById('exSaveBtn');if(btn)btn.disabled=!ready;
+}
+function examRenderResults(){
+  var body=document.getElementById('exResultBody');if(!body)return;
+  if(!EX.results.length){body.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr>';examRenderStats();return;}
+  var stuOpts='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+'</option>';}).join('');
+  body.innerHTML=EX.results.map(function(r,i){
+    var status=r.saved?'<span class="exam-badge ok">บันทึกแล้ว</span>':!r.ok?'<span class="exam-badge err">อ่านไม่ได้</span>':(!r.student||r.uncertain||r.blank?'<span class="exam-badge warn">ตรวจทาน</span>':'<span class="exam-badge ok">พร้อม</span>');
+    var cls=r.ok&&r.student&&!r.uncertain&&!r.blank?'ready':'needs-review';
+    var select='<select class="exam-mini-select" onchange="examAssignStudent('+i+',this.value)">'+stuOpts+'</select>';
+    var ans=Object.keys(r.answers||{}).sort(function(a,b){return +a-+b;}).map(function(q){return q+':'+r.answers[q];}).join(' ');
+    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.file||'')+(r.pdfPage?' · หน้า '+r.pdfPage:'')+'</div></td><td>'+status+(r.error?'<div class="exam-muted" style="color:var(--red);">'+examEsc(r.error)+'</div>':r.uncertain?'<div class="exam-muted">ไม่ชัด '+r.uncertain+' ข้อ</div>':'')+'</td><td><b>'+examFmt(r.score)+'</b><span class="exam-muted"> / '+examFmt(r.total)+' ('+r.percent+'%)</span></td><td><div class="exam-ans">'+examEsc(ans)+'</div></td></tr>';
+  }).join('');
+  EX.results.forEach(function(r,i){var sel=body.querySelectorAll('select')[i];if(sel&&r.student)sel.value=r.student.id;});
+  examRenderStats();
+}
+function examAssignStudent(i,id){
+  var r=EX.results[i];if(!r)return;
+  r.student=EX.students.find(function(s){return String(s.id)===String(id);})||null;
+  examRenderResults();
+}
+async function examSaveAll(){
+  var rows=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;});
+  if(!rows.length){toast('ยังไม่มีรายการพร้อมบันทึก','err');return;}
+  var roomName=(EX.rooms.find(function(r){return String(r.id)===String(document.getElementById('exRoom').value);})||{}).room_name||EX.subject.room||'';
+  var payload=rows.map(function(r){
+    return {subject_id:EX.subject.id,student_name:r.student.fullname,student_no:String(r.student.order_no||r.student.student_code||''),room:roomName,score:r.score,total:r.total,percent:r.percent,answers:r.answers};
+  });
+  var btn=document.getElementById('exSaveBtn');btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    rows.forEach(function(r){r.saved=true;});EX.saved+=rows.length;toast('บันทึกคะแนนแล้ว '+rows.length+' รายการ');examRenderResults();
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+  finally{btn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
+}
+function examExportCsv(){
+  if(!EX.results.length){toast('ยังไม่มีผลตรวจ','err');return;}
+  var lines=['หน้า,นักเรียน,เลขที่,คะแนนเต็ม,คะแนนที่ได้,ร้อยละ,สถานะ,คำตอบ'];
+  EX.results.forEach(function(r){
+    var stu=r.student||{};
+    var ans=Object.keys(r.answers||{}).sort(function(a,b){return +a-+b;}).map(function(q){return q+':'+r.answers[q];}).join(' ');
+    lines.push([r.page,stu.fullname||'',stu.order_no||stu.student_code||'',r.total,r.score,r.percent,r.saved?'บันทึกแล้ว':r.ok?'ตรวจแล้ว':'อ่านไม่ได้',ans].map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(','));
+  });
+  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exam-results-'+today()+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+function examPrintSheets(){
+  if(!EX.subject){toast('เลือกชุดข้อสอบก่อน','err');return;}
+  if(!EX.students.length){toast('เลือกห้องและโหลดรายชื่อนักเรียนก่อน','err');return;}
+  var html=EX.students.map(function(s){return '<section class="sheet">'+examBuildSheetSVG(EX.subject,s)+'</section>';}).join('');
+  var w=window.open('','_blank');
+  w.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><title>กระดาษคำตอบ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#eee;font-family:Sarabun,sans-serif}.sheet{width:210mm;height:297mm;margin:0 auto;background:#fff;page-break-after:always;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;display:block}@page{size:A4 portrait;margin:0}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
+  w.document.close();
+}
+function examBuildSheetSVG(subject,student){
+  var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=EX_SHEET_W/2;
+  var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',room=(EX.rooms.find(function(r){return String(r.id)===String(document.getElementById('exRoom').value);})||{}).room_name||subject.room||'';
+  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:Sarabun,sans-serif">';
+  [EX_MK.tl,EX_MK.tr,EX_MK.br,EX_MK.bl].forEach(function(m){svg+='<rect x="'+(m.x-hf)+'" y="'+(m.y-hf)+'" width="'+EX_MK.size+'" height="'+EX_MK.size+'" fill="#000"/>';});
+  svg+='<rect x="82" y="78" width="636" height="150" rx="3" fill="none" stroke="#000" stroke-width="1.5"/>';
+  svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text>';
+  svg+='<text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text>';
+  svg+='<text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
+  svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text>';
+  svg+='<text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text>';
+  svg+='<text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
+  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบายวงให้เต็มและเข้ม เลือกข้อละ 1 ตัวเลือก · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
+  var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
+  L.cells.forEach(function(cell){
+    svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';
+    cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});
+  });
+  return svg+'</svg>';
+}
+function examOmrLayout(numQ,choicesCount){
+  var n=Math.min(Math.max(numQ,1),60),choices=examChoices(choicesCount),cols=n<=16?1:n<=38?2:3,rowsPerCol=Math.ceil(n/cols);
+  var areaTop=282,areaBottom=1058,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
+  for(var i=0;i<n;i++){var c=Math.floor(i/rowsPerCol),r=i%rowsPerCol,x0=areaLeft+c*colW,y=areaTop+r*rowH+rowH/2,numX=x0+20,optStart=x0+52,step=(colW-72)/choices.length,opts=[];for(var k=0;k<choices.length;k++){var cx=optStart+step*(k+0.5);opts.push({label:choices[k],x:cx,y:y});bubbles.push({q:i+1,choice:k,x:cx,y:y});}cells.push({q:i+1,numX:numX,numY:y,opts:opts});}
+  return {n:n,cols:cols,R:R,bubbles:bubbles,cells:cells,srcQuad:[[EX_MK.tl.x,EX_MK.tl.y],[EX_MK.tr.x,EX_MK.tr.y],[EX_MK.br.x,EX_MK.br.y],[EX_MK.bl.x,EX_MK.bl.y]]};
+}
+function examOmrToGray(img){
+  var maxDim=1200,w=img.naturalWidth||img.width,h=img.naturalHeight||img.height,sc=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);
+  var cv=document.createElement('canvas');cv.width=w;cv.height=h;var ctx=cv.getContext('2d');ctx.drawImage(img,0,0,w,h);
+  var d=ctx.getImageData(0,0,w,h).data,gray=new Uint8Array(w*h);for(var i=0,j=0;i<d.length;i+=4,j++)gray[j]=(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114)|0;return {gray:gray,w:w,h:h};
+}
+function examOtsu(gray){var hist=new Array(256).fill(0);for(var i=0;i<gray.length;i++)hist[gray[i]]++;var total=gray.length,sum=0;for(var t=0;t<256;t++)sum+=t*hist[t];var sumB=0,wB=0,max=0,thr=127;for(t=0;t<256;t++){wB+=hist[t];if(!wB)continue;var wF=total-wB;if(!wF)break;sumB+=t*hist[t];var bw=wB*wF*Math.pow(sumB/wB-(sum-sumB)/wF,2);if(bw>max){max=bw;thr=t;}}return thr;}
+function examDetectMarkers(gray,w,h,thr){var tries=[Math.min(thr*0.6,62),Math.min(thr*0.8,85),Math.min(thr,108)],best=null;for(var i=0;i<tries.length;i++){var r=examDetectMarkersAt(gray,w,h,tries[i]);if(r){if(!r.extrapolated)return r;if(!best)best=r;}}return best;}
+function examDetectMarkersAt(gray,w,h,markerThr){
+  var dark=new Uint8Array(w*h);for(var i=0;i<gray.length;i++)dark[i]=gray[i]<markerThr?1:0;
+  var label=new Int32Array(w*h),blobs=[],stack=[],cur=0;
+  for(var y=0;y<h;y++)for(var x=0;x<w;x++){var idx=y*w+x;if(dark[idx]&&!label[idx]){cur++;var area=0,sx=0,sy=0,minx=x,maxx=x,miny=y,maxy=y;stack.length=0;stack.push(idx);label[idx]=cur;while(stack.length){var p=stack.pop(),py=(p/w)|0,px=p-py*w;area++;sx+=px;sy+=py;if(px<minx)minx=px;if(px>maxx)maxx=px;if(py<miny)miny=py;if(py>maxy)maxy=py;if(px>0){var q=p-1;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(px<w-1){q=p+1;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(py>0){q=p-w;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(py<h-1){q=p+w;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}}blobs.push({area:area,cx:sx/area,cy:sy/area,minx:minx,maxx:maxx,miny:miny,maxy:maxy});}}
+  var imgArea=w*h,cand=blobs.filter(function(b){var bw=b.maxx-b.minx+1,bh=b.maxy-b.miny+1,ar=bw/bh,fill=b.area/(bw*bh);return b.area>imgArea*0.0004&&b.area<imgArea*0.016&&ar>0.78&&ar<1.28&&fill>0.86;});
+  if(cand.length<2)return null;
+  if(cand.length>4){var areas=cand.map(function(b){return b.area;}).sort(function(a,b){return a-b;}),med=areas[areas.length>>1],sized=cand.filter(function(b){return b.area>=med*0.45&&b.area<=med*2.3;});if(sized.length>=2)cand=sized;}
+  var corners=[[0,0],[w,0],[w,h],[0,h]],picked=[];
+  corners.forEach(function(c){var best=null,bd=Infinity;cand.forEach(function(b){var d=Math.pow(b.cx-c[0],2)+Math.pow(b.cy-c[1],2);if(d<bd){bd=d;best=b;}});picked.push(best);});
+  var uniq=new Set(picked.map(function(p){return p.cx+','+p.cy;}));
+  if(uniq.size>=4){var xs=picked.map(function(p){return p.cx;}),ys=picked.map(function(p){return p.cy;});if(Math.max.apply(null,xs)-Math.min.apply(null,xs)<w*0.18||Math.max.apply(null,ys)-Math.min.apply(null,ys)<h*0.18)return null;return {pts:picked.map(function(p){return [p.cx,p.cy];}),extrapolated:false};}
+  return null;
+}
+function examSolveHomography(src,dst){var A=[],b=[];for(var i=0;i<4;i++){var x=src[i][0],y=src[i][1],X=dst[i][0],Y=dst[i][1];A.push([x,y,1,0,0,0,-x*X,-y*X]);b.push(X);A.push([0,0,0,x,y,1,-x*Y,-y*Y]);b.push(Y);}var n=8;for(i=0;i<n;i++){var p=i;for(var r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;var ta=A[i];A[i]=A[p];A[p]=ta;var tb=b[i];b[i]=b[p];b[p]=tb;if(Math.abs(A[i][i])<1e-9)return null;for(r=0;r<n;r++){if(r===i)continue;var f=A[r][i]/A[i][i];for(var c=i;c<n;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}var out=[];for(i=0;i<n;i++)out[i]=b[i]/A[i][i];return out;}
+function examApplyH(h,x,y){var d=h[6]*x+h[7]*y+1;return [(h[0]*x+h[1]*y+h[2])/d,(h[3]*x+h[4]*y+h[5])/d];}
+function examSampleBubble(gray,w,h,cx,cy,r){var ri=Math.max(2,r*0.55),ri2=ri*ri,sum=0,cnt=0;for(var dy=-Math.ceil(ri);dy<=Math.ceil(ri);dy++)for(var dx=-Math.ceil(ri);dx<=Math.ceil(ri);dx++){if(dx*dx+dy*dy>ri2)continue;var x=(cx+dx)|0,y=(cy+dy)|0;if(x<0||y<0||x>=w||y>=h)continue;sum+=gray[y*w+x];cnt++;}return cnt?sum/cnt:255;}
+function examRunOMR(img,numQ,manualQuad,choicesCount){
+  var g=examOmrToGray(img),gray=g.gray,w=g.w,h=g.h,markers;
+  if(manualQuad&&manualQuad.length===4)markers=manualQuad.map(function(p){return [p[0],p[1]];});else{var det=examDetectMarkers(gray,w,h,examOtsu(gray));if(!det)return {ok:false,reason:'หาจุดดำ 4 มุมไม่เจอ'};markers=det.pts;}
+  var choices=examChoices(choicesCount),L=examOmrLayout(numQ,choices.length),Hm=examSolveHomography(L.srcQuad,markers);if(!Hm)return {ok:false,reason:'คำนวณตำแหน่งไม่สำเร็จ'};
+  var dPhoto=Math.hypot(markers[1][0]-markers[0][0],markers[1][1]-markers[0][1]),dCanon=Math.hypot(L.srcQuad[1][0]-L.srcQuad[0][0],L.srcQuad[1][1]-L.srcQuad[0][1]),bubbleR=Math.max(4,L.R*(dPhoto/dCanon));
+  var answers={},uncertain=0;
+  for(var q=1;q<=numQ;q++){var bubbles=[];for(var k=0;k<choices.length;k++){var b=L.bubbles[(q-1)*choices.length+k],pt=examApplyH(Hm,b.x,b.y),bright=examSampleBubble(gray,w,h,pt[0],pt[1],bubbleR);bubbles.push({choice:choices[k],bright:bright});}var paper=Math.max.apply(null,bubbles.map(function(b){return b.bright;}));bubbles.forEach(function(b){b.dark=paper-b.bright;});var dark=bubbles.map(function(b){return b.dark;}),wi=0;for(k=1;k<choices.length;k++)if(dark[k]>dark[wi])wi=k;var c0=dark[wi],c1=dark.slice().sort(function(a,b){return b-a;})[1]||0;if(c0<EX_DARK_MIN)answers[q]='-';else if(c1>EX_AMBIG*c0){answers[q]='?';uncertain++;}else answers[q]=choices[wi];}
+  var blankCount=Object.values(answers).filter(function(a){return a==='-';}).length;
+  return {ok:true,answers:answers,uncertain:uncertain,blankCount:blankCount,markedCount:numQ-blankCount,choicesCount:choices.length};
+}
+function examChooseBestOMR(img,numQ,manualQuad,preferredChoices,key){var first=examRunOMR(img,numQ,manualQuad,preferredChoices);if(!first.ok)return first;if(first.blankCount<Math.ceil(numQ*0.65)||Object.values(key||{}).indexOf('จ')>=0)return first;var other=preferredChoices===5?4:5,second=examRunOMR(img,numQ,manualQuad,other);if(!second.ok)return first;return second.markedCount>first.markedCount+Math.ceil(numQ*0.15)?second:first;}
+function examImageFromDataUrl(url){return new Promise(function(resolve,reject){var img=new Image();img.onload=function(){resolve(img);};img.onerror=function(){reject(new Error('โหลดรูปไม่ได้'));};img.src=url;});}
+function examGetOrientedCanvas(file,maxDim){
+  return new Promise(function(resolve,reject){
+    if(window.createImageBitmap){createImageBitmap(file,{imageOrientation:'from-image'}).then(function(bmp){var w=bmp.width,h=bmp.height,sc=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(bmp,0,0,w,h);if(bmp.close)bmp.close();resolve(cv);}).catch(fallback);}
+    else fallback();
+    function fallback(){var reader=new FileReader();reader.onload=function(e){var blob=new Blob([e.target.result],{type:file.type||'image/jpeg'}),url=URL.createObjectURL(blob),img=new Image();img.onload=function(){var w=img.naturalWidth,h=img.naturalHeight,sc=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);resolve(cv);};img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('อ่านรูปไม่ได้'));};img.src=url;};reader.onerror=function(){reject(new Error('อ่านไฟล์ไม่ได้'));};reader.readAsArrayBuffer(file);}
+  });
+}
+async function examLoadPdfJs(){
+  if(window.pdfjsLib)return window.pdfjsLib;
+  if(EX_pdfPromise)return EX_pdfPromise;
+  EX_pdfPromise=new Promise(function(resolve,reject){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=function(){window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';resolve(window.pdfjsLib);};s.onerror=function(){reject(new Error('โหลดตัวอ่าน PDF ไม่สำเร็จ'));};document.head.appendChild(s);});
+  return EX_pdfPromise;
+}
+async function examPdfToCanvases(file){
+  var pdfjs=await examLoadPdfJs(),buf=await file.arrayBuffer(),pdf=await pdfjs.getDocument({data:buf}).promise,out=[];
+  for(var p=1;p<=pdf.numPages;p++){var page=await pdf.getPage(p),vp=page.getViewport({scale:2});var cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;out.push(cv);}
+  return out;
+}
+
 function openPage(id,fromPop){
   // ผลักประวัติการนำทาง (สำหรับปุ่มกลับในแอป + ปุ่ม back ของมือถือ/เบราว์เซอร์)
   var _cur=document.querySelector('.page.active');
@@ -2939,6 +3346,7 @@ function openPage(id,fromPop){
   if(id==='pgSubjAbsentRep')arOpen('subjabsent');
   if(id==='pgSkipRep')arOpen('skip');
   if(id==='pgGrades')loadSubjectsForGrade();
+  if(id==='pgExam')initExamGrader();
   if(id==='pgTimetable')loadTimetable();
   if(id==='pgSubjectAtt')loadSubjectsForAtt();
   if(id==='pgStudents')loadStudentProfiles();
@@ -5360,7 +5768,7 @@ function openNavGroupFor(pageId){
   var map={
     navGroupStudents:['pgStudents','pgGood','pgBehave','pgScore'],
     navGroupCare:['pgHomeVisit','pgHvMap','pgMH','pgActivities','pgClubsAdmin'],
-    navGroupTeach:['pgTeachSubjects','pgGrades','pgSubjAttReport','pgRoomAttReport','pgTimetable'],
+    navGroupTeach:['pgTeachSubjects','pgGrades','pgExam','pgSubjAttReport','pgRoomAttReport','pgTimetable'],
     navGroupReport:['pgAttReport','pgAbsentRep','pgSubjAbsentRep','pgSkipRep','pgReport']
   };
   Object.keys(map).forEach(function(gid){
