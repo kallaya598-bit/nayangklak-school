@@ -3771,26 +3771,43 @@ function examExportCsv(){
 
 async function examPrintSheets(){
   if(!await examEnsureReady())return;
+  EX.qrPrintFallbackCount=0;
   var html='';
   for(var i=0;i<EX.students.length;i++)html+='<section class="sheet">'+await examBuildSheetSVG(EX.subject,EX.students[i])+'</section>';
+  if(EX.qrPrintFallbackCount)toast('สร้าง QR ไม่สำเร็จ '+EX.qrPrintFallbackCount+' ใบ ระบบพิมพ์รหัสตรวจสำรองให้แล้ว','err');
   var w=window.open('','_blank');
   w.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><title>กระดาษคำตอบ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#eee;font-family:Sarabun,sans-serif}.sheet{width:210mm;height:297mm;margin:0 auto;background:#fff;page-break-after:always;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;display:block}@page{size:A4 portrait;margin:0}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
   w.document.close();
 }
 async function examBuildSheetSVG(subject,student){
   var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=EX_SHEET_W/2,qr='';
-  try{qr=await examMakeQr({assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,exam_subject_id:subject.id});}catch(e){}
+  var payload=examSheetPayload(subject,student),code=examSheetCode(payload);
+  try{qr=await examMakeQr(payload);}catch(e){EX.qrPrintFallbackCount=(EX.qrPrintFallbackCount||0)+1;}
   var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',room=student._room_name||subject.room||'';
-  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:Sarabun,sans-serif">';
+  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background:#fff;font-family:Sarabun,sans-serif">';
   [EX_MK.tl,EX_MK.tr,EX_MK.br,EX_MK.bl].forEach(function(m){svg+='<rect x="'+(m.x-hf)+'" y="'+(m.y-hf)+'" width="'+EX_MK.size+'" height="'+EX_MK.size+'" fill="#000"/>';});
   svg+='<rect x="82" y="78" width="636" height="160" rx="3" fill="none" stroke="#000" stroke-width="1.5"/>';
-  if(qr)svg+='<image href="'+qr+'" x="628" y="94" width="72" height="72"/>';
+  svg+=examSheetQrMarkup(qr,code);
   svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text><text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text><text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
   svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text><text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text><text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
-  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบายวงให้เต็มและเข้ม เลือกข้อละ 1 ตัวเลือก · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
+  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบบอ่าน QR มุมขวาบนเพื่อจับคู่นักเรียน ถ้าอ่านไม่ได้จะใช้ลำดับหน้า · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
   var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
   L.cells.forEach(function(cell){svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});});
   return svg+'</svg>';
+}
+function examSheetPayload(subject,student){
+  return {assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,exam_subject_id:subject.id};
+}
+function examSheetCode(payload){
+  return 'E'+payload.exam_subject_id+'-A'+payload.assignment_id+'-S'+payload.student_id;
+}
+function examSheetQrMarkup(qr,code){
+  var svg='<rect x="610" y="88" width="96" height="118" rx="4" fill="#fff" stroke="#111" stroke-width="1"/>';
+  svg+='<text x="658" y="103" text-anchor="middle" font-size="9" font-weight="700">QR ตรวจข้อสอบ</text>';
+  if(qr)svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="622" y="108" width="72" height="72"/>';
+  else svg+='<text x="658" y="149" text-anchor="middle" font-size="10" fill="#c62828">QR ไม่โหลด</text>';
+  svg+='<text x="658" y="193" text-anchor="middle" font-size="8.5" fill="#333">'+examEsc(code)+'</text>';
+  return svg;
 }
 function examMakeQr(payload){
   return examLoadQrGen().then(function(QRCode){return new Promise(function(resolve,reject){QRCode.toDataURL(JSON.stringify(payload),{margin:1,width:96,errorCorrectionLevel:'M'},function(err,url){err?reject(err):resolve(url);});});});
