@@ -3596,15 +3596,8 @@ async function examBuildSheetSVG(subject,student){
   var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
   L.cells.forEach(function(cell){svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});});
   svg+='<line x1="90" y1="986" x2="710" y2="986" stroke="#aaa" stroke-width="0.8" stroke-dasharray="5,3"/>';
-  svg+='<text x="400" y="999" text-anchor="middle" font-size="9" fill="#888">▼ QR ระบุตัวนักเรียน — สแกนด้วยมือถือ หรือรวมไฟล์ PDF โยนให้ระบบตรวจ ▼</text>';
-  if(qr){svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="345" y="1004" width="110" height="110"/>';}
-  else{svg+='<rect x="345" y="1004" width="110" height="110" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="3"/><text x="400" y="1062" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';}
-  svg+='<text x="90" y="1026" font-size="15" font-weight="700">'+examEsc(student.fullname||'')+'</text>';
-  svg+='<text x="90" y="1051" font-size="12">รหัส '+examEsc(student.student_code||String(student.id)||'')+' · ห้อง '+examEsc(room||'-')+' · เลขที่ '+examEsc(String(student.order_no||'-'))+'</text>';
-  svg+='<text x="90" y="1073" font-size="9.5" fill="#666">'+examEsc(code)+'</text>';
-  svg+='<text x="462" y="1026" font-size="10" fill="#555">📱 สแกน QR ด้วยกล้องมือถือ</text>';
-  svg+='<text x="462" y="1046" font-size="10" fill="#555">📄 หรือรวม PDF โยนให้ระบบตรวจ</text>';
-  svg+='<text x="462" y="1066" font-size="10" fill="#555">✅ ระบบจับคู่ชื่อให้อัตโนมัติ</text>';
+  if(qr){svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="345" y="997" width="110" height="110"/>';}
+  else{svg+='<rect x="345" y="997" width="110" height="110" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="3"/><text x="400" y="1055" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';}
   return svg+'</svg>';
 }
 function examSheetPayload(subject,student){
