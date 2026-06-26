@@ -25,6 +25,12 @@ create table if not exists exam_subjects (
 alter table exam_subjects disable row level security;
 create index if not exists idx_exam_subjects_name on exam_subjects(subject_name);
 create index if not exists idx_exam_subjects_target on exam_subjects(assignment_id, structure_id);
+create unique index if not exists ux_exam_subjects_single_slot
+  on exam_subjects(structure_id, assignment_id)
+  where scope <> 'shared';
+create unique index if not exists ux_exam_subjects_shared_slot
+  on exam_subjects(structure_id)
+  where scope = 'shared';
 
 create or replace function set_exam_updated_at()
 returns trigger as $$
@@ -58,6 +64,9 @@ create table if not exists exam_results (
   total numeric,
   percent numeric,
   answers jsonb,
+  qr_data jsonb,
+  map_method text,
+  issue text,
   graded_at timestamptz default now()
 );
 
@@ -83,7 +92,11 @@ alter table exam_results
   add column if not exists subjective_score numeric,
   add column if not exists subjective_total numeric,
   add column if not exists raw_score numeric,
-  add column if not exists raw_total numeric;
+  add column if not exists raw_total numeric,
+  add column if not exists qr_data jsonb,
+  add column if not exists map_method text,
+  add column if not exists issue text;
 
 alter table exam_results alter column score type numeric using score::numeric;
 alter table exam_results alter column total type numeric using total::numeric;
+create index if not exists idx_exam_results_student_slot on exam_results(structure_id, student_id);
