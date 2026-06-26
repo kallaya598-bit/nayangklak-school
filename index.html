@@ -3094,7 +3094,6 @@ async function api(path,opts){
 }
 
 // ===== EXAM GRADER (OMR batch) =====
-var EX={subjects:[],rooms:[],students:[],subject:null,files:[],results:[],saved:0,inited:false};
 var EX_CHOICES=['ก','ข','ค','ง','จ'];
 var EX_DEFAULT_CHOICES=4;
 var EX_SHEET_W=800,EX_SHEET_H=1130;
@@ -3114,62 +3113,6 @@ function examSetProgress(done,total){
   wrap.style.display=total?'block':'none';
   bar.style.width=total?Math.round(done/total*100)+'%':'0';
 }
-async function initExamGrader(){
-  if(EX.inited){examRenderStats();return;}
-  EX.inited=true;
-  examBindDrop();
-  await examLoadAll();
-}
-async function examLoadAll(){
-  examMsg('กำลังโหลดข้อมูล...');
-  try{
-    var data=await Promise.all([examLoadSubjects(),examLoadRooms()]);
-    examMsg('');
-    return data;
-  }catch(e){
-    examMsg('โหลดข้อมูลตรวจข้อสอบไม่สำเร็จ: '+e.message+' — ถ้ายังไม่ได้รัน SQL ให้รัน exam_grader_module.sql ก่อน',true);
-  }
-}
-async function examLoadSubjects(){
-  var rows=await api('/rest/v1/exam_subjects?select=*&order=updated_at.desc');
-  EX.subjects=rows||[];
-  var sel=document.getElementById('exSubject');
-  if(!sel)return;
-  sel.innerHTML='<option value="">เลือกชุดข้อสอบ...</option>'+EX.subjects.map(function(s){
-    var title=[s.subject_name,s.exam_title,s.class_level+(s.room?'/'+s.room:'')].filter(Boolean).join(' · ');
-    return '<option value="'+s.id+'">'+examEsc(title||('ชุดข้อสอบ #'+s.id))+'</option>';
-  }).join('');
-  if(EX.subjects.length&&!sel.value){sel.value=EX.subjects[0].id;}
-  examSelectSubject();
-}
-async function examLoadRooms(){
-  var rows=await api('/rest/v1/classrooms?select=id,room_name&order=id.asc');
-  EX.rooms=rows||[];
-  var sel=document.getElementById('exRoom');
-  if(!sel)return;
-  sel.innerHTML='<option value="">เลือกห้อง...</option>'+EX.rooms.map(function(r){return '<option value="'+r.id+'">'+examEsc(r.room_name)+'</option>';}).join('');
-  if(G.room&&G.room.id)sel.value=G.room.id;
-  examLoadStudents();
-}
-function examSelectSubject(){
-  var id=document.getElementById('exSubject')?.value;
-  EX.subject=EX.subjects.find(function(s){return String(s.id)===String(id);})||null;
-  if(EX.subject&&EX.subject.room){
-    var wanted=String(EX.subject.room).replace(/^ม\./,'');
-    var room=EX.rooms.find(function(r){return String(r.room_name).replace(/^ม\./,'')===wanted;});
-    if(room){document.getElementById('exRoom').value=room.id;examLoadStudents();}
-  }
-  examClearBatch();
-}
-async function examLoadStudents(){
-  var roomId=document.getElementById('exRoom')?.value;
-  EX.students=[];
-  if(!roomId){examRenderResults();return;}
-  try{
-    EX.students=await api('/rest/v1/students?classroom_id=eq.'+roomId+'&status=eq.active&select=id,student_code,fullname,order_no,classroom_id&order=order_no.asc')||[];
-    examRenderResults();
-  }catch(e){examMsg('โหลดรายชื่อนักเรียนไม่สำเร็จ: '+e.message,true);}
-}
 function examBindDrop(){
   var dz=document.getElementById('exDrop');
   if(!dz||dz.dataset.bound)return;
@@ -3178,153 +3121,9 @@ function examBindDrop(){
   dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
   dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');examHandleFiles(e.dataTransfer.files);});
 }
-function examHandleFiles(files){
-  EX.files=Array.from(files||[]);
-  document.getElementById('exFileHint').textContent=EX.files.length?EX.files.length+' ไฟล์ที่เลือก':'ยังไม่ได้เลือกไฟล์';
-  document.getElementById('exRunBtn').disabled=!EX.files.length;
-  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
-}
-function examClearBatch(){
-  EX.files=[];EX.results=[];EX.saved=0;
-  var fi=document.getElementById('exFiles');if(fi)fi.value='';
-  var hint=document.getElementById('exFileHint');if(hint)hint.textContent='ยังไม่ได้เลือกไฟล์';
-  var run=document.getElementById('exRunBtn');if(run)run.disabled=true;
-  examSetProgress(0,0);examRenderResults();examMsg('');
-}
-async function examRunBatch(){
-  if(!EX.subject){examMsg('กรุณาเลือกชุดข้อสอบก่อน',true);return;}
-  if(!EX.files.length){examMsg('กรุณาเลือก PDF หรือรูปก่อน',true);return;}
-  var key=EX.subject.answer_key||{},numQ=EX.subject.num_questions||20,choices=examChoiceCount(EX.subject.choices);
-  if(!Object.keys(key).length){examMsg('ชุดข้อสอบนี้ยังไม่มีเฉลย',true);return;}
-  var btn=document.getElementById('exRunBtn');btn.disabled=true;btn.textContent='กำลังตรวจ...';
-  EX.results=[];EX.saved=0;examRenderResults();examMsg('');
-  try{
-    var pages=[];
-    for(var f=0;f<EX.files.length;f++){
-      var file=EX.files[f],isPdf=/pdf/i.test(file.type)||/\.pdf$/i.test(file.name);
-      if(isPdf){
-        var canvases=await examPdfToCanvases(file);
-        canvases.forEach(function(cv,i){pages.push({name:file.name,page:i+1,canvas:cv});});
-      }else{
-        pages.push({name:file.name,page:1,canvas:await examGetOrientedCanvas(file,1600)});
-      }
-    }
-    for(var i=0;i<pages.length;i++){
-      examSetProgress(i,pages.length);
-      var r=await examGradeCanvas(pages[i],i,numQ,choices,key);
-      EX.results.push(r);examRenderResults();
-      await new Promise(function(resolve){setTimeout(resolve,20);});
-    }
-    examSetProgress(pages.length,pages.length);
-    examMsg('ตรวจเสร็จ '+pages.length+' หน้า โปรดตรวจทานก่อนบันทึก');
-  }catch(e){examMsg('ตรวจไม่สำเร็จ: '+e.message,true);}
-  finally{btn.disabled=false;btn.innerHTML='<span class="ms" style="font-size:16px;vertical-align:middle;">document_scanner</span> ตรวจทั้งหมด';}
-}
-async function examGradeCanvas(page,index,numQ,choices,key){
-  var dataUrl=page.canvas.toDataURL('image/jpeg',0.9);
-  var img=await examImageFromDataUrl(dataUrl);
-  var omr=examChooseBestOMR(img,numQ,null,choices,key);
-  var student=document.getElementById('exMapMode').value==='order'?EX.students[index]:null;
-  if(!omr.ok){
-    return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,error:omr.reason,score:0,total:0,percent:0,answers:{}};
-  }
-  var g=examScore(omr.answers,key,numQ,EX.subject.question_scores||{});
-  return {page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,uncertain:omr.uncertain,blank:g.blank,score:g.score,total:g.total,percent:g.percent,answers:omr.answers};
-}
-function examScore(answers,key,numQ,scores){
-  var score=0,total=0,blank=0,wrong=0,correct=0;
-  for(var i=1;i<=numQ;i++){
-    var ca=key[i],a=answers[i]||'-',w=Math.max(0,Number(scores[i]??1)||0);
-    if(!ca)continue;
-    total+=w;
-    if(a==='-'||a==='?')blank++;
-    else if(a===ca){correct++;score+=w;}
-    else wrong++;
-  }
-  return {score:score,total:total,percent:total?Math.round(score/total*10000)/100:0,blank:blank,wrong:wrong,correct:correct};
-}
-function examRenderStats(){
-  var ready=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;}).length;
-  var review=EX.results.filter(function(r){return !r.ok||!r.student||r.uncertain||r.blank;}).length;
-  var saved=EX.results.filter(function(r){return r.saved;}).length;
-  ['Pages','Ready','Review','Saved'].forEach(function(k){var el=document.getElementById('exSt'+k);if(el)el.textContent={Pages:EX.results.length,Ready:ready,Review:review,Saved:saved}[k];});
-  var btn=document.getElementById('exSaveBtn');if(btn)btn.disabled=!ready;
-}
-function examRenderResults(){
-  var body=document.getElementById('exResultBody');if(!body)return;
-  if(!EX.results.length){body.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลตรวจ</td></tr>';examRenderStats();return;}
-  var stuOpts='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+'</option>';}).join('');
-  body.innerHTML=EX.results.map(function(r,i){
-    var status=r.saved?'<span class="exam-badge ok">บันทึกแล้ว</span>':!r.ok?'<span class="exam-badge err">อ่านไม่ได้</span>':(!r.student||r.uncertain||r.blank?'<span class="exam-badge warn">ตรวจทาน</span>':'<span class="exam-badge ok">พร้อม</span>');
-    var cls=r.ok&&r.student&&!r.uncertain&&!r.blank?'ready':'needs-review';
-    var select='<select class="exam-mini-select" onchange="examAssignStudent('+i+',this.value)">'+stuOpts+'</select>';
-    var ans=Object.keys(r.answers||{}).sort(function(a,b){return +a-+b;}).map(function(q){return q+':'+r.answers[q];}).join(' ');
-    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.file||'')+(r.pdfPage?' · หน้า '+r.pdfPage:'')+'</div></td><td>'+status+(r.error?'<div class="exam-muted" style="color:var(--red);">'+examEsc(r.error)+'</div>':r.uncertain?'<div class="exam-muted">ไม่ชัด '+r.uncertain+' ข้อ</div>':'')+'</td><td><b>'+examFmt(r.score)+'</b><span class="exam-muted"> / '+examFmt(r.total)+' ('+r.percent+'%)</span></td><td><div class="exam-ans">'+examEsc(ans)+'</div></td></tr>';
-  }).join('');
-  EX.results.forEach(function(r,i){var sel=body.querySelectorAll('select')[i];if(sel&&r.student)sel.value=r.student.id;});
-  examRenderStats();
-}
-function examAssignStudent(i,id){
-  var r=EX.results[i];if(!r)return;
-  r.student=EX.students.find(function(s){return String(s.id)===String(id);})||null;
-  examRenderResults();
-}
-async function examSaveAll(){
-  var rows=EX.results.filter(function(r){return r.ok&&r.student&&!r.saved;});
-  if(!rows.length){toast('ยังไม่มีรายการพร้อมบันทึก','err');return;}
-  var roomName=(EX.rooms.find(function(r){return String(r.id)===String(document.getElementById('exRoom').value);})||{}).room_name||EX.subject.room||'';
-  var payload=rows.map(function(r){
-    return {subject_id:EX.subject.id,student_name:r.student.fullname,student_no:String(r.student.order_no||r.student.student_code||''),room:roomName,score:r.score,total:r.total,percent:r.percent,answers:r.answers};
-  });
-  var btn=document.getElementById('exSaveBtn');btn.disabled=true;btn.textContent='กำลังบันทึก...';
-  try{
-    await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
-    rows.forEach(function(r){r.saved=true;});EX.saved+=rows.length;toast('บันทึกคะแนนแล้ว '+rows.length+' รายการ');examRenderResults();
-  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
-  finally{btn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
-}
-function examExportCsv(){
-  if(!EX.results.length){toast('ยังไม่มีผลตรวจ','err');return;}
-  var lines=['หน้า,นักเรียน,เลขที่,คะแนนเต็ม,คะแนนที่ได้,ร้อยละ,สถานะ,คำตอบ'];
-  EX.results.forEach(function(r){
-    var stu=r.student||{};
-    var ans=Object.keys(r.answers||{}).sort(function(a,b){return +a-+b;}).map(function(q){return q+':'+r.answers[q];}).join(' ');
-    lines.push([r.page,stu.fullname||'',stu.order_no||stu.student_code||'',r.total,r.score,r.percent,r.saved?'บันทึกแล้ว':r.ok?'ตรวจแล้ว':'อ่านไม่ได้',ans].map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(','));
-  });
-  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exam-results-'+today()+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
-}
-function examPrintSheets(){
-  if(!EX.subject){toast('เลือกชุดข้อสอบก่อน','err');return;}
-  if(!EX.students.length){toast('เลือกห้องและโหลดรายชื่อนักเรียนก่อน','err');return;}
-  var html=EX.students.map(function(s){return '<section class="sheet">'+examBuildSheetSVG(EX.subject,s)+'</section>';}).join('');
-  var w=window.open('','_blank');
-  w.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><title>กระดาษคำตอบ</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#eee;font-family:Sarabun,sans-serif}.sheet{width:210mm;height:297mm;margin:0 auto;background:#fff;page-break-after:always;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;display:block}@page{size:A4 portrait;margin:0}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none}}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
-  w.document.close();
-}
-function examBuildSheetSVG(subject,student){
-  var n=Math.min(parseInt(subject.num_questions)||20,60),choices=examChoiceCount(subject.choices),L=examOmrLayout(n,choices),hf=EX_MK.size/2,CX=EX_SHEET_W/2;
-  var school=subject.school_name||'โรงเรียนนายางกลักพิทยาคม',exam=subject.exam_title||'',subj=subject.subject_name||'',room=(EX.rooms.find(function(r){return String(r.id)===String(document.getElementById('exRoom').value);})||{}).room_name||subject.room||'';
-  var svg='<svg viewBox="0 0 '+EX_SHEET_W+' '+EX_SHEET_H+'" xmlns="http://www.w3.org/2000/svg" style="background:#fff;font-family:Sarabun,sans-serif">';
-  [EX_MK.tl,EX_MK.tr,EX_MK.br,EX_MK.bl].forEach(function(m){svg+='<rect x="'+(m.x-hf)+'" y="'+(m.y-hf)+'" width="'+EX_MK.size+'" height="'+EX_MK.size+'" fill="#000"/>';});
-  svg+='<rect x="82" y="78" width="636" height="150" rx="3" fill="none" stroke="#000" stroke-width="1.5"/>';
-  svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text>';
-  svg+='<text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text>';
-  svg+='<text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
-  svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text>';
-  svg+='<text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text>';
-  svg+='<text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
-  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบายวงให้เต็มและเข้ม เลือกข้อละ 1 ตัวเลือก · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
-  var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
-  L.cells.forEach(function(cell){
-    svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';
-    cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});
-  });
-  return svg+'</svg>';
-}
 function examOmrLayout(numQ,choicesCount){
   var n=Math.min(Math.max(numQ,1),60),choices=examChoices(choicesCount),cols=n<=16?1:n<=38?2:3,rowsPerCol=Math.ceil(n/cols);
-  var areaTop=282,areaBottom=1058,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
+  var areaTop=282,areaBottom=980,areaLeft=82,areaRight=718,colW=(areaRight-areaLeft)/cols,rowH=(areaBottom-areaTop)/rowsPerCol,R=Math.max(6,Math.min(12,rowH*0.285)),bubbles=[],cells=[];
   for(var i=0;i<n;i++){var c=Math.floor(i/rowsPerCol),r=i%rowsPerCol,x0=areaLeft+c*colW,y=areaTop+r*rowH+rowH/2,numX=x0+20,optStart=x0+52,step=(colW-72)/choices.length,opts=[];for(var k=0;k<choices.length;k++){var cx=optStart+step*(k+0.5);opts.push({label:choices[k],x:cx,y:y});bubbles.push({q:i+1,choice:k,x:cx,y:y});}cells.push({q:i+1,numX:numX,numY:y,opts:opts});}
   return {n:n,cols:cols,R:R,bubbles:bubbles,cells:cells,srcQuad:[[EX_MK.tl.x,EX_MK.tl.y],[EX_MK.tr.x,EX_MK.tr.y],[EX_MK.br.x,EX_MK.br.y],[EX_MK.bl.x,EX_MK.bl.y]]};
 }
@@ -3668,8 +3467,11 @@ function examRecalcFromInput(i,kind,val){
 }
 
 function examStudentFromQr(qr){
-  if(!qr||!qr.student_id)return null;
-  var stu=EX.students.find(function(s){return String(s.id)===String(qr.student_id);});
+  if(!qr||(!qr.student_id&&!qr.student_code))return null;
+  var stu=EX.students.find(function(s){
+    return String(s.id)===String(qr.student_id)||
+           (qr.student_code&&String(s.student_code)===String(qr.student_code));
+  })||null;
   if(stu&&qr.exam_subject_id&&EX.subject&&String(qr.exam_subject_id)!==String(EX.subject.id))stu._qrWarn=true;
   return stu||null;
 }
@@ -3790,13 +3592,23 @@ async function examBuildSheetSVG(subject,student){
   svg+=examSheetQrMarkup(qr,code);
   svg+='<text x="'+CX+'" y="110" text-anchor="middle" font-size="25" font-weight="700">'+examEsc(school)+'</text><text x="'+CX+'" y="140" text-anchor="middle" font-size="17">'+examEsc(exam)+'</text><text x="'+CX+'" y="168" text-anchor="middle" font-size="15">'+examEsc(subj)+(room?' · '+examEsc(room):'')+'</text>';
   svg+='<text x="98" y="210" font-size="16" font-weight="700">ชื่อ '+examEsc(student.fullname||'')+'</text><text x="520" y="210" font-size="16" font-weight="700">เลขที่ '+examEsc(student.order_no||'')+'</text><text x="98" y="244" font-size="13">รหัสนักเรียน '+examEsc(student.student_code||student.id||'')+'</text>';
-  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ระบบอ่าน QR มุมขวาบนเพื่อจับคู่นักเรียน ถ้าอ่านไม่ได้จะใช้ลำดับหน้า · ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม</text>';
+  svg+='<text x="'+CX+'" y="272" text-anchor="middle" font-size="11" fill="#555">ถ่าย/สแกนให้เห็นจุดดำครบ 4 มุม · QR ระบุตัวตนอยู่ด้านล่างกระดาษ</text>';
   var fSize=Math.max(9,Math.min(14,L.R*1.15)),lSize=Math.max(8,Math.min(11,L.R*0.88));
   L.cells.forEach(function(cell){svg+='<text x="'+cell.numX+'" y="'+(cell.numY+4)+'" text-anchor="end" font-size="'+fSize+'" font-weight="700">'+cell.q+'.</text>';cell.opts.forEach(function(o){svg+='<text x="'+(o.x-L.R-5)+'" y="'+(o.y+4)+'" text-anchor="end" font-size="'+lSize+'" fill="#444">'+o.label+'</text><circle cx="'+o.x+'" cy="'+o.y+'" r="'+L.R+'" fill="#fff" stroke="#000" stroke-width="1.2"/>';});});
+  svg+='<line x1="90" y1="986" x2="710" y2="986" stroke="#aaa" stroke-width="0.8" stroke-dasharray="5,3"/>';
+  svg+='<text x="400" y="999" text-anchor="middle" font-size="9" fill="#888">▼ QR ระบุตัวนักเรียน — สแกนด้วยมือถือ หรือรวมไฟล์ PDF โยนให้ระบบตรวจ ▼</text>';
+  if(qr){svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="345" y="1004" width="110" height="110"/>';}
+  else{svg+='<rect x="345" y="1004" width="110" height="110" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="3"/><text x="400" y="1062" text-anchor="middle" font-size="9" fill="#c62828">QR ไม่โหลด</text>';}
+  svg+='<text x="90" y="1026" font-size="15" font-weight="700">'+examEsc(student.fullname||'')+'</text>';
+  svg+='<text x="90" y="1051" font-size="12">รหัส '+examEsc(student.student_code||String(student.id)||'')+' · ห้อง '+examEsc(room||'-')+' · เลขที่ '+examEsc(String(student.order_no||'-'))+'</text>';
+  svg+='<text x="90" y="1073" font-size="9.5" fill="#666">'+examEsc(code)+'</text>';
+  svg+='<text x="462" y="1026" font-size="10" fill="#555">📱 สแกน QR ด้วยกล้องมือถือ</text>';
+  svg+='<text x="462" y="1046" font-size="10" fill="#555">📄 หรือรวม PDF โยนให้ระบบตรวจ</text>';
+  svg+='<text x="462" y="1066" font-size="10" fill="#555">✅ ระบบจับคู่ชื่อให้อัตโนมัติ</text>';
   return svg+'</svg>';
 }
 function examSheetPayload(subject,student){
-  return {assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,exam_subject_id:subject.id};
+  return {assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,student_code:student.student_code||'',exam_subject_id:subject.id};
 }
 function examSheetCode(payload){
   return 'E'+payload.exam_subject_id+'-A'+payload.assignment_id+'-S'+payload.student_id;
@@ -3810,12 +3622,21 @@ function examSheetQrMarkup(qr,code){
   return svg;
 }
 function examMakeQr(payload){
-  return examLoadQrGen().then(function(QRCode){return new Promise(function(resolve,reject){QRCode.toDataURL(JSON.stringify(payload),{margin:1,width:96,errorCorrectionLevel:'M'},function(err,url){err?reject(err):resolve(url);});});});
+  return examLoadQrGen().then(function(QRious){
+    var q=new QRious({value:JSON.stringify(payload),size:200,level:'M'});
+    return q.toDataURL('image/png');
+  });
 }
 function examLoadQrGen(){
-  if(window.QRCode&&window.QRCode.toDataURL)return Promise.resolve(window.QRCode);
+  if(window.QRious)return Promise.resolve(window.QRious);
   if(EX.qrPromise)return EX.qrPromise;
-  EX.qrPromise=new Promise(function(resolve,reject){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';s.onload=function(){resolve(window.QRCode);};s.onerror=function(){reject(new Error('โหลดตัวสร้าง QR ไม่สำเร็จ'));};document.head.appendChild(s);});
+  EX.qrPromise=new Promise(function(resolve,reject){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
+    s.onload=function(){resolve(window.QRious);};
+    s.onerror=function(){reject(new Error('โหลดตัวสร้าง QR ไม่สำเร็จ'));};
+    document.head.appendChild(s);
+  });
   return EX.qrPromise;
 }
 
@@ -4250,7 +4071,7 @@ function stuLogout(){
 }
 
 // ============ แดชบอร์ดผู้บริหาร (ผู้บริหาร — ดูอย่างเดียว) ============
-var EX={room:null};
+var EXEC={room:null};
 var EX_ABSENT_RISK=5; // เกณฑ์ขาดสะสม (default)
 var EX_NET_RISK=70;   // เกณฑ์คะแนนสุทธิต่ำ (default)
 function execStart(){
@@ -4263,7 +4084,7 @@ function execStart(){
 function execLogout(){
   admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบผู้บริหาร'});
   clearSession();
-  EX={room:null};G.viewOnly=false;G.user=null;
+  EXEC={room:null};G.viewOnly=false;G.user=null;
   document.getElementById('execPortal').style.display='none';
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
   document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='➜ เข้าสู่ระบบ';
@@ -4277,7 +4098,7 @@ function exStatDot(st){
 function exStatLabel(st){return({present:'มา',late:'สาย',leave:'ลา',absent:'ขาด',skip:'หนี',gone_home:'กลับบ้าน',special_leave:'พิเศษ'})[st]||(st?'-':'ยังไม่เช็ค');}
 
 async function execHome(){
-  EX.room=null;
+  EXEC.room=null;
   var b=document.getElementById('exBody');
   b.innerHTML='<div class="sp-empty">⏳ กำลังโหลดภาพรวม...</div>';
   var e0=function(){return[];};
@@ -4349,7 +4170,7 @@ async function execLoadRoomGrid(){
 }
 
 async function execRoom(rid,rname){
-  EX.room={id:rid,name:rname};
+  EXEC.room={id:rid,name:rname};
   var b=document.getElementById('exBody');
   b.innerHTML='<div class="sp-empty">⏳ กำลังโหลดห้อง '+rname+'...</div>';
   var e0=function(){return[];};
@@ -4388,7 +4209,7 @@ async function execStudent(id){
     var d=await api('/rest/v1/students?id=eq.'+id+'&select=id,student_code,fullname,order_no,classroom_id,classrooms(room_name)&limit=1');
     if(!d||!d.length){b.innerHTML='<span class="ex-back" onclick="execHome()">← กลับ</span><div class="sp-empty">ไม่พบนักเรียน</div>';return;}
     var stu=d[0];
-    var backHtml=EX.room?'<span class="ex-back" onclick="execRoom('+EX.room.id+',\''+EX.room.name+'\')">← ห้อง '+EX.room.name+'</span>':'<span class="ex-back" onclick="execHome()">← ภาพรวมโรงเรียน</span>';
+    var backHtml=EXEC.room?'<span class="ex-back" onclick="execRoom('+EXEC.room.id+',\''+EXEC.room.name+'\')">← ห้อง '+EXEC.room.name+'</span>':'<span class="ex-back" onclick="execHome()">← ภาพรวมโรงเรียน</span>';
     var detail=await buildStudentDetailHTML(stu,{mode:'exec'});
     b.innerHTML=backHtml+detail;window.scrollTo(0,0);
   }catch(e){b.innerHTML='<span class="ex-back" onclick="execHome()">← กลับ</span><div class="sp-empty">โหลดไม่สำเร็จ: '+(e.message||'')+'</div>';}
