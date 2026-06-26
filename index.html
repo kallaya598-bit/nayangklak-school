@@ -737,6 +737,26 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .ex-smeta-box textarea{resize:vertical;min-height:54px;}
 .ex-smeta-full{margin-bottom:12px;}
 .ex-smeta-hint{font-size:11px;color:#aaa;margin-top:2px;}
+.ex-sa-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3200;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto;}
+.ex-sa-box{background:#fff;border-radius:12px;width:480px;max-width:100%;padding:20px 22px 18px;}
+.ex-sa-box h3{margin:0 0 14px;font-size:15px;font-weight:700;color:#6a1b9a;}
+.ex-sa-box label{font-size:12px;color:#555;display:block;margin-bottom:3px;}
+.ex-sa-box input,.ex-sa-box select{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:6px;padding:7px 10px;font-size:14px;font-family:Sarabun,sans-serif;outline:none;}
+.ex-sa-box input:focus,.ex-sa-box select:focus{border-color:#7b1fa2;}
+.ex-sa-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:3px 8px;max-height:150px;overflow-y:auto;padding:8px;border:1px solid #e0d0ed;border-radius:6px;margin-bottom:10px;background:#fdf8ff;}
+.ex-sa-rooms label{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:2px 0;color:#333;}
+.ex-sa-rooms input[type=checkbox]{width:auto;margin:0;}
+.ex-sa-bar{background:#fdf8ff;border:1px solid #e0d0ed;border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+.ex-sa-bar-title{font-size:12px;font-weight:700;color:#6a1b9a;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;}
+.ex-sa-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5d5f5;}
+.ex-sa-item:hover{background:#f3e5f5;}
+.ex-sa-item.ex-sa-active{border-color:#7b1fa2;background:#ede0f7;}
+.ex-sa-item-name{flex:1;font-size:13px;color:#333;}
+.ex-sa-item-meta{font-size:11px;color:#888;margin-left:4px;}
+.ex-del-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3300;display:none;align-items:center;justify-content:center;padding:14px;}
+.ex-del-box{background:#fff;border-radius:12px;padding:24px 22px;width:360px;max-width:100%;}
+.ex-del-box h3{margin:0 0 10px;font-size:15px;color:#c62828;}
+.ex-del-box p{margin:0 0 16px;font-size:14px;color:#555;}
 @media(max-width:900px){
   .exam-grid{grid-template-columns:1fr;}
   #exKeyGrid{grid-template-columns:1fr;max-height:420px;}
@@ -1886,6 +1906,14 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="exam-grid">
             <div class="exam-panel">
               <h3><span class="ms ms-purple">fact_check</span> ตั้งค่าชุดข้อสอบ</h3>
+              <div class="ex-sa-bar">
+                <div class="ex-sa-bar-title">
+                  <span>📋 ข้อสอบอิสระ (สอบซ่อม / ไม่ผูกโครงสร้าง)</span>
+                  <button class="btn btn-sm" style="background:#f3e5f5;color:#6a1b9a;font-size:12px;padding:3px 10px;" onclick="examOpenSaModal()">+ สร้างใหม่</button>
+                </div>
+                <div id="exSaList"><div style="color:#aaa;font-size:12px;">ยังไม่มีข้อสอบอิสระ</div></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:#aaa;margin:-4px 0 8px;">— หรือใช้กับรายวิชาที่สอน —</div>
               <div class="form-group">
                 <label class="form-label">รายวิชาที่สอน</label>
                 <select class="form-control" id="exAssign" onchange="examSelectAssignment()"><option value="">กำลังโหลด...</option></select>
@@ -2457,6 +2485,36 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <button class="btn btn-sm" onclick="examSheetMetaCancel()">ยกเลิก</button>
       <button class="btn btn-sm" onclick="examSheetMetaPrint(false)">พิมพ์เลย</button>
       <button class="btn btn-primary btn-sm" onclick="examSheetMetaPrint(true)">💾 บันทึกและพิมพ์</button>
+    </div>
+  </div>
+</div>
+
+<!-- Standalone exam creation modal -->
+<div class="ex-sa-modal" id="exSaModal">
+  <div class="ex-sa-box">
+    <h3>📋 สร้างข้อสอบอิสระ</h3>
+    <div style="margin-bottom:10px;"><label>ชื่อการสอบ / ชื่อวิชา</label><input id="exSaTitle" placeholder="เช่น สอบซ่อม ฟิสิกส์ 3 / สอบเพิ่มเติม ม.5/1"></div>
+    <div style="margin-bottom:6px;"><label>เลือกห้องเรียน (เลือกได้หลายห้อง)</label></div>
+    <div class="ex-sa-rooms" id="exSaRooms"><div style="color:#aaa;font-size:12px;">กำลังโหลด...</div></div>
+    <div class="form-row" style="margin-bottom:10px;">
+      <div style="flex:1;"><label>จำนวนข้อปรนัย</label><input type="number" id="exSaNumQ" value="20" min="1" max="60"></div>
+      <div style="flex:1;"><label>ตัวเลือก</label><select id="exSaChoices"><option value="4">ก ข ค ง (4)</option><option value="5">ก ข ค ง จ (5)</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn-sm" onclick="examCloseSaModal()">ยกเลิก</button>
+      <button class="btn btn-primary btn-sm" onclick="examCreateSa()">✅ สร้างและใช้งาน</button>
+    </div>
+  </div>
+</div>
+<!-- Delete exam confirm modal -->
+<div class="ex-del-modal" id="exDelModal">
+  <div class="ex-del-box">
+    <h3>🗑️ ลบข้อสอบนี้?</h3>
+    <p id="exDelModalTitle" style="font-weight:700;color:#333;"></p>
+    <p>จะลบชุดข้อสอบและผลสอบทั้งหมดของชุดนี้ออก ไม่สามารถกู้คืนได้</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-sm" onclick="document.getElementById('exDelModal').style.display='none'">ยกเลิก</button>
+      <button class="btn btn-sm" style="background:#c62828;color:#fff;" onclick="examDeleteSubjectDo()">ลบถาวร</button>
     </div>
   </div>
 </div>
@@ -3212,7 +3270,7 @@ async function examPdfToCanvases(file){
 }
 
 // ===== EXAM GRADER v2: link OMR to grade structures =====
-var EX={subjects:[],assigns:[],structs:[],students:[],subject:null,assign:null,structure:null,examLinks:{},files:[],results:[],saved:0,inited:false,cam:null,camTimer:null,camLastPts:null,camStable:0,camDone:false,qrPromise:null,qrReadPromise:null,pdfPromise:null};
+var EX={subjects:[],assigns:[],structs:[],students:[],subject:null,assign:null,structure:null,examLinks:{},files:[],results:[],saved:0,inited:false,cam:null,camTimer:null,camLastPts:null,camStable:0,camDone:false,qrPromise:null,qrReadPromise:null,pdfPromise:null,standalone:false,_deleteId:null};
 
 async function initExamGrader(){
   if(!EX.inited){
@@ -3220,6 +3278,7 @@ async function initExamGrader(){
     examBindDrop();
     examSyncKeyGrid();
   }
+  examLoadSaList();
   try{
     var assigns=await loadMyAssigns(true);
     EX.assigns=assigns||[];
@@ -3376,6 +3435,19 @@ function examGetAnswerKey(){var key={};document.querySelectorAll('#exKeyGrid .ex
 function examClearKey(){document.querySelectorAll('#exKeyGrid .exam-key-choice').forEach(function(b){b.classList.remove('on');});}
 
 async function examSaveConfig(){
+  if(EX.standalone){
+    if(!EX.subject||!EX.subject.id){toast('สร้างข้อสอบอิสระก่อน','err');return;}
+    var saKey=examGetAnswerKey();
+    if(!Object.keys(saKey).length){toast('กรอกเฉลยก่อน','err');return;}
+    var saNumQ=Math.min(Math.max(parseInt(document.getElementById('exNumQ').value)||20,1),60);
+    var saPatch={answer_key:saKey,num_questions:saNumQ,choices:examChoiceCount(document.getElementById('exChoices').value),objective_full:Number(document.getElementById('exObjFull').value)||saNumQ,exam_title:document.getElementById('exTitle').value.trim()||EX.subject.exam_title};
+    try{
+      var saPatched=(await api('/rest/v1/exam_subjects?id=eq.'+EX.subject.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(saPatch)}))[0];
+      EX.subject=Object.assign({},EX.subject,saPatched);
+      toast('บันทึกเฉลยแล้ว');
+    }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+    return;
+  }
   if(!EX.assign){toast('เลือกรายวิชาที่สอนก่อน','err');return;}
   if(!EX.structure){toast('เลือกช่องคะแนนปลายทางก่อน','err');return;}
   var key=examGetAnswerKey(),numQ=Math.min(Math.max(parseInt(document.getElementById('exNumQ').value)||20,1),60);
@@ -3450,7 +3522,15 @@ async function examRunBatch(){
 
 async function examEnsureReady(){
   if(!EX.subject||!EX.subject.id){toast('บันทึก/เลือกชุดข้อสอบก่อน','err');return false;}
-  if(!EX.students.length){await examLoadStudents();if(!EX.students.length){toast('ยังไม่มีรายชื่อนักเรียนในกลุ่มนี้','err');return false;}}
+  if(!EX.students.length){
+    if(EX.standalone&&EX.subject.room_ids){
+      var rids=EX.subject.room_ids.split(',').filter(Boolean);
+      await examLoadStudentsFromRooms(rids);
+    }else{
+      await examLoadStudents();
+    }
+    if(!EX.students.length){toast('ยังไม่มีรายชื่อนักเรียนในกลุ่มนี้','err');return false;}
+  }
   return true;
 }
 
@@ -3571,6 +3651,20 @@ function examRenderResults(){
 function examAssignStudent(i,id){var r=EX.results[i];if(!r)return;r.student=EX.students.find(function(s){return String(s.id)===String(id);})||null;examRenderResults();}
 
 async function examSaveAll(){
+  if(EX.standalone){
+    var saDup=examDuplicateStudentMap();
+    if(Object.keys(saDup).length){toast('พบนักเรียนซ้ำ กรุณาแก้ก่อนบันทึก','err');examRenderResults();return;}
+    var saRows=EX.results.filter(function(r){return r.student&&r.ok&&!r.saved;});
+    if(!saRows.length){toast('ยังไม่มีรายการพร้อมบันทึก','err');return;}
+    var saPayload=saRows.map(function(r){return {subject_id:EX.subject.id,assignment_id:null,structure_id:null,student_id:r.student.id,student_name:r.student.fullname,student_no:String(r.student.order_no||r.student.student_code||''),room:r.student._room_name||'',objective_score:r.objective_score,objective_total:r.objective_total,subjective_score:r.subjective_score||0,subjective_total:r.subjective_total||0,raw_score:r.raw_score,raw_total:r.raw_total,score:r.final_score,total:r.target_total,percent:r.percent,answers:r.answers,qr_data:r.qr||null,map_method:r.mapMethod||'',issue:examReviewReasons(r,{}).join(' · ')};});
+    var saBtn=document.getElementById('exSaveBtn');saBtn.disabled=true;saBtn.textContent='กำลังบันทึก...';
+    try{
+      await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(saPayload)});
+      saRows.forEach(function(r){r.saved=true;});toast('บันทึกผลสอบแล้ว '+saRows.length+' คน');examRenderResults();
+    }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+    finally{saBtn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
+    return;
+  }
   var dup=examDuplicateStudentMap();
   if(Object.keys(dup).length){toast('พบนักเรียนซ้ำในผลตรวจ กรุณาแก้ก่อนบันทึก','err');examRenderResults();return;}
   var rows=EX.results.filter(function(r){return examCanSaveRow(r,dup);});
@@ -3600,6 +3694,93 @@ function examExportCsv(){
   EX.results.forEach(function(r){var st=r.student||{};lines.push([r.page,st.fullname||'',st.order_no||st.student_code||'',examFmt(r.objective_score)+'/'+examFmt(r.objective_total),examFmt(r.subjective_score)+'/'+examFmt(r.subjective_total),examFmt(r.raw_score)+'/'+examFmt(r.raw_total),r.final_score,r.target_total,r.percent,r.saved?'บันทึกแล้ว':r.ok?'ตรวจแล้ว':'อ่านไม่ได้'].map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(','));});
   var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exam-results-'+today()+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
 }
+
+// ---- Standalone exam functions ----
+async function examOpenSaModal(){
+  var el=document.getElementById('exSaRooms');
+  el.innerHTML='<div style="color:#aaa;font-size:12px;">กำลังโหลด...</div>';
+  document.getElementById('exSaTitle').value='';
+  document.getElementById('exSaNumQ').value=20;
+  document.getElementById('exSaChoices').value='4';
+  document.getElementById('exSaModal').style.display='flex';
+  var rooms=await api('/rest/v1/classrooms?select=id,room_name&order=room_name').catch(function(){return[];});
+  el.innerHTML=(rooms&&rooms.length)?rooms.map(function(r){return '<label><input type="checkbox" class="sa-room-chk" value="'+r.id+'"> '+examEsc(r.room_name)+'</label>';}).join(''):'<div style="color:#aaa;font-size:12px;">ไม่มีห้องเรียน</div>';
+}
+function examCloseSaModal(){document.getElementById('exSaModal').style.display='none';}
+async function examCreateSa(){
+  var title=document.getElementById('exSaTitle').value.trim();
+  if(!title){toast('กรอกชื่อการสอบก่อน','err');return;}
+  var checked=Array.from(document.querySelectorAll('.sa-room-chk:checked')).map(function(c){return c.value;});
+  if(!checked.length){toast('เลือกห้องเรียนอย่างน้อย 1 ห้อง','err');return;}
+  var numQ=Math.min(Math.max(parseInt(document.getElementById('exSaNumQ').value)||20,1),60);
+  var choices=parseInt(document.getElementById('exSaChoices').value)||4;
+  var payload={assignment_id:null,structure_id:null,scope:'standalone',subject_name:title,exam_title:title,school_name:'โรงเรียนนายางกลักพิทยาคม',room:'',class_level:'',num_questions:numQ,choices:choices,objective_full:numQ,subjective_full:0,target_full:0,answer_key:{},question_scores:{},is_standalone:true,room_ids:checked.join(','),created_by:G.user?G.user.id:null};
+  try{
+    var saved=(await api('/rest/v1/exam_subjects',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
+    examCloseSaModal();
+    await examActivateSa(saved);
+    toast('สร้างข้อสอบอิสระแล้ว');
+  }catch(e){toast('สร้างไม่สำเร็จ: '+e.message,'err');}
+}
+async function examActivateSa(subj){
+  EX.subject=subj;EX.standalone=true;EX.assign=null;EX.structure=null;EX.results=[];EX.saved=0;EX.examLinks={};
+  examLoadConfigToForm(subj);
+  var roomIds=subj.room_ids?subj.room_ids.split(',').filter(Boolean):[];
+  await examLoadStudentsFromRooms(roomIds);
+  await examLoadSaList();
+  examRenderResults();
+}
+async function examLoadStudentsFromRooms(roomIds){
+  EX.students=[];
+  for(var i=0;i<roomIds.length;i++){
+    var rid=roomIds[i];
+    var stus=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,student_code,fullname,order_no&order=order_no').catch(function(){return[];});
+    var rmRows=await api('/rest/v1/classrooms?id=eq.'+rid+'&select=room_name').catch(function(){return[];});
+    var rname=(rmRows&&rmRows[0])?rmRows[0].room_name:'';
+    (stus||[]).forEach(function(s){EX.students.push(Object.assign({},s,{_assignment_id:null,_room_name:rname}));});
+  }
+  examRenderResults();
+}
+async function examLoadSaList(){
+  if(!G.user)return;
+  var el=document.getElementById('exSaList');if(!el)return;
+  var rows=await api('/rest/v1/exam_subjects?is_standalone=eq.true&created_by=eq.'+G.user.id+'&select=id,exam_title,room_ids,num_questions,created_at&order=created_at.desc').catch(function(){return[];});
+  if(!rows||!rows.length){el.innerHTML='<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อสอบอิสระ</div>';return;}
+  el.innerHTML=rows.map(function(r){
+    var active=EX.subject&&String(EX.subject.id)===String(r.id)?' ex-sa-active':'';
+    var rooms=(r.room_ids||'').split(',').filter(Boolean).length;
+    return '<div class="ex-sa-item'+active+'" onclick="examSelectSa('+r.id+')">'+
+      '<div class="ex-sa-item-name">'+examEsc(r.exam_title)+'<span class="ex-sa-item-meta">'+r.num_questions+' ข้อ · '+rooms+' ห้อง</span></div>'+
+      '<button class="btn btn-sm" style="color:#c62828;padding:2px 8px;font-size:11px;flex-shrink:0;" onclick="event.stopPropagation();examDeleteConfirm('+r.id+',\''+examEsc(r.exam_title)+'\')">ลบ</button>'+
+    '</div>';
+  }).join('');
+}
+async function examSelectSa(id){
+  var rows=await api('/rest/v1/exam_subjects?id=eq.'+id+'&select=*').catch(function(){return[];});
+  if(!rows||!rows.length){toast('โหลดข้อสอบไม่สำเร็จ','err');return;}
+  await examActivateSa(rows[0]);
+  toast('โหลดข้อสอบอิสระแล้ว');
+}
+function examDeleteConfirm(id,title){
+  EX._deleteId=id;
+  document.getElementById('exDelModalTitle').textContent=title;
+  document.getElementById('exDelModal').style.display='flex';
+}
+async function examDeleteSubjectDo(){
+  var id=EX._deleteId;if(!id)return;
+  document.getElementById('exDelModal').style.display='none';
+  try{
+    await api('/rest/v1/exam_results?exam_subject_id=eq.'+id,{method:'DELETE'});
+    await api('/rest/v1/exam_subjects?id=eq.'+id,{method:'DELETE'});
+    if(EX.subject&&String(EX.subject.id)===String(id)){
+      EX.subject=null;EX.standalone=false;EX.students=[];EX.results=[];EX.saved=0;
+      examRenderResults();
+    }
+    await examLoadSaList();
+    toast('ลบข้อสอบแล้ว');
+  }catch(e){toast('ลบไม่สำเร็จ: '+e.message,'err');}
+}
+// ---- End standalone exam functions ----
 
 async function examPrintSheets(){
   if(!await examEnsureReady())return;
@@ -3689,7 +3870,7 @@ async function examBuildSheetSVG(subject,student,meta){
   return svg+'</svg>';
 }
 function examSheetPayload(subject,student){
-  return {assignment_id:student._assignment_id||EX.assign.id,student_id:student.id,student_code:student.student_code||'',exam_subject_id:subject.id};
+  return {assignment_id:student._assignment_id||(EX.assign?EX.assign.id:null),student_id:student.id,student_code:student.student_code||'',exam_subject_id:subject.id};
 }
 function examSheetCode(payload){
   return 'E'+payload.exam_subject_id+'-A'+payload.assignment_id+'-S'+payload.student_id;
