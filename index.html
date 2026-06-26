@@ -711,9 +711,10 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-badge.ok{background:#e8f5e9;color:#2e7d32;}
 .exam-badge.warn{background:#fff8e1;color:#e65100;}
 .exam-badge.err{background:#ffebee;color:#c62828;}
-.exam-key-row{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #e3edf8;border-radius:10px;padding:7px;}
-.exam-key-row b{width:28px;color:var(--blue);}
-.exam-key-choice{min-width:34px;height:34px;border:1px solid #c5d3ee;border-radius:9px;background:#fff;color:#1a3a6b;font-weight:800;font-family:Sarabun,sans-serif;cursor:pointer;}
+#exKeyGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;max-height:340px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--border);border-radius:12px;padding:10px;background:#fafcff;}
+.exam-key-row{display:flex;align-items:center;gap:7px;min-width:0;background:#fff;border:1px solid #e3edf8;border-radius:10px;padding:8px;}
+.exam-key-row b{width:34px;min-width:34px;text-align:center;color:var(--blue);}
+.exam-key-choice{flex:1 1 0;min-width:34px;height:36px;border:1px solid #c5d3ee;border-radius:9px;background:#fff;color:#1a3a6b;font-weight:800;font-family:Sarabun,sans-serif;cursor:pointer;}
 .exam-key-choice.on{background:var(--blue);border-color:var(--blue);color:#fff;}
 .exam-score-input{width:72px;height:38px;border:1px solid var(--border);border-radius:8px;text-align:center;font-family:Sarabun,sans-serif;}
 .exam-camera-modal{position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:3000;display:none;align-items:center;justify-content:center;padding:14px;}
@@ -725,6 +726,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-camera-foot{padding:12px 14px;color:#cfd8dc;font-size:13px;line-height:1.6;}
 @media(max-width:900px){
   .exam-grid{grid-template-columns:1fr;}
+  #exKeyGrid{grid-template-columns:1fr;max-height:420px;}
   .exam-summary{grid-template-columns:repeat(2,1fr);}
   .exam-table{font-size:13px;}
   .exam-table th:nth-child(5),.exam-table td:nth-child(5){display:none;}
@@ -1914,7 +1916,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               </div>
               <div class="form-group">
                 <label class="form-label">เฉลยปรนัย</label>
-                <div id="exKeyGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:7px;max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:8px;background:#fafcff;"></div>
+                <div id="exKeyGrid"></div>
               </div>
               <div class="exam-actions">
                 <button class="btn btn-green btn-sm" onclick="examSaveConfig()">💾 บันทึก/แก้ชุดข้อสอบ</button>
