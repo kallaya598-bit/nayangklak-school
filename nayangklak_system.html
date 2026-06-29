@@ -6068,6 +6068,7 @@ async function loadCategories(){
     var all=bc||[];
     G.behaveCats=all.filter(function(c){return !c.kind||c.kind==='behavior';});
     G.dressCats=all.filter(function(c){return c.kind==='dress';});
+    G.dressPassCat=all.find(function(c){return c.kind==='dress_pass';})||null;
   }catch(e){console.log('cats:',e.message);}
 }
 
@@ -7222,68 +7223,126 @@ async function dcLoadStudents(){
     var stus=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,fullname,order_no&order=order_no')||[];
     DC.students=stus;
     if(!stus.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่พบนักเรียนในห้องนี้</div>';return;}
-    // header รายการตรวจ
-    var catHeaders=DC.cats.map(function(c){return '<th style="font-size:12px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;max-width:36px;white-space:nowrap;color:var(--red);">'+c.name+'<br><span style="font-weight:400;color:var(--text3);">('+c.default_score+')</span></th>';}).join('');
-    var html='<div style="overflow-x:auto;">'
+    var catHeaders=DC.cats.map(function(c){
+      return '<th style="font-size:11px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;max-width:34px;white-space:nowrap;color:var(--red);">'+c.name+'<br><span style="font-weight:400;color:var(--text3);">('+c.default_score+')</span></th>';
+    }).join('');
+    var hasPassCat=!!G.dressPassCat;
+    var html='<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+      +(hasPassCat?'<button class="btn" style="background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;font-size:13px;padding:5px 14px;" onclick="dcSelectAllPass()">✅ ทุกคนผ่านทั้งหมด</button>':'')
+      +'<button class="btn" style="background:#fce4ec;color:#c62828;border:1px solid #ef9a9a;font-size:13px;padding:5px 14px;" onclick="dcClearAll()">🗑 ล้างทั้งหมด</button>'
+      +'<span id="dcLiveStat" style="font-size:13px;color:var(--text3);margin-left:4px;"></span>'
+      +'</div>';
+    html+='<div style="overflow-x:auto;">'
       +'<table style="min-width:100%;border-collapse:collapse;font-size:14px;">'
       +'<thead><tr style="background:var(--bluel);">'
       +'<th style="text-align:left;padding:8px 10px;white-space:nowrap;">#</th>'
       +'<th style="text-align:left;padding:8px 10px;white-space:nowrap;">ชื่อ-นามสกุล</th>'
+      +(hasPassCat?'<th style="font-size:12px;padding:4px 6px;color:#2e7d32;white-space:nowrap;">✅ ผ่าน</th>':'')
       +catHeaders
       +'<th style="font-size:12px;padding:4px 6px;color:var(--blue);">หมายเหตุ</th>'
-      +'</tr></thead><tbody>';
+      +'</tr></thead><tbody id="dcTbody">';
     stus.forEach(function(s,i){
       var chks=DC.cats.map(function(c){
         return '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid var(--border);">'
-          +'<input type="checkbox" class="dc-chk" data-sid="'+s.id+'" data-cid="'+c.id+'" data-score="'+c.default_score+'" data-name="'+c.name+'" style="width:18px;height:18px;accent-color:var(--red);">'
+          +'<input type="checkbox" class="dc-chk" data-sid="'+s.id+'" data-cid="'+c.id+'" data-score="'+c.default_score+'" data-name="'+c.name+'" style="width:17px;height:17px;accent-color:var(--red);" onchange="dcToggleVio('+s.id+')">'
           +'</td>';
       }).join('');
-      html+='<tr style="'+(i%2===0?'':'background:#fafafa;')+'">'
+      var passTd=hasPassCat?'<td style="text-align:center;padding:6px 4px;border-bottom:1px solid var(--border);">'
+        +'<input type="checkbox" class="dc-pass" data-sid="'+s.id+'" style="width:19px;height:19px;accent-color:#2e7d32;" onchange="dcTogglePass('+s.id+')">'
+        +'</td>':'';
+      html+='<tr id="dcrow-'+s.id+'" style="">'
         +'<td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text3);font-size:13px;">'+(i+1)+'</td>'
         +'<td style="padding:6px 10px;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap;">'+s.fullname+'</td>'
-        +chks
+        +passTd+chks
         +'<td style="border-bottom:1px solid var(--border);padding:4px;"><input class="form-control dc-note" data-sid="'+s.id+'" style="font-size:13px;height:30px;min-width:90px;" placeholder="หมายเหตุ"></td>'
         +'</tr>';
     });
     html+='</tbody></table></div>';
-    html+='<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
-      +'<button class="btn btn-primary" onclick="saveDressCode()"><span class="ms" style="font-size:16px;vertical-align:middle;">save</span> บันทึกรายการผิดระเบียบ</button>'
+    html+='<div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+      +'<button class="btn btn-primary" onclick="saveDressCode()"><span class="ms" style="font-size:16px;vertical-align:middle;">save</span> บันทึก</button>'
       +'<span id="dcSaveMsg" style="font-size:14px;color:var(--text3);"></span>'
       +'</div>';
     el.innerHTML=html;
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
+function dcTogglePass(sid){
+  var pc=document.querySelector('.dc-pass[data-sid="'+sid+'"]');
+  var row=document.getElementById('dcrow-'+sid);
+  if(pc&&pc.checked){
+    document.querySelectorAll('.dc-chk[data-sid="'+sid+'"]').forEach(function(c){c.checked=false;c.disabled=true;});
+    if(row)row.style.background='#e8f5e9';
+  } else {
+    document.querySelectorAll('.dc-chk[data-sid="'+sid+'"]').forEach(function(c){c.disabled=false;});
+    if(row)row.style.background='';
+  }
+  dcUpdateStat();
+}
+function dcToggleVio(sid){
+  var pc=document.querySelector('.dc-pass[data-sid="'+sid+'"]');
+  if(pc)pc.checked=false;
+  var row=document.getElementById('dcrow-'+sid);
+  var anyVio=document.querySelectorAll('.dc-chk[data-sid="'+sid+'"]:checked').length>0;
+  if(row)row.style.background=anyVio?'#fff3e0':'';
+  dcUpdateStat();
+}
+function dcSelectAllPass(){
+  (DC.students||[]).forEach(function(s){
+    var pc=document.querySelector('.dc-pass[data-sid="'+s.id+'"]');
+    if(pc&&!pc.checked){pc.checked=true;dcTogglePass(s.id);}
+  });
+}
+function dcClearAll(){
+  document.querySelectorAll('.dc-pass,.dc-chk').forEach(function(c){c.checked=false;c.disabled=false;});
+  (DC.students||[]).forEach(function(s){var row=document.getElementById('dcrow-'+s.id);if(row)row.style.background='';});
+  dcUpdateStat();
+}
+function dcUpdateStat(){
+  var nPass=document.querySelectorAll('.dc-pass:checked').length;
+  var vioSids=new Set();document.querySelectorAll('.dc-chk:checked').forEach(function(c){vioSids.add(c.dataset.sid);});
+  var nVio=vioSids.size;
+  var nTotal=(DC.students||[]).length;
+  var el=document.getElementById('dcLiveStat');
+  if(el)el.innerHTML='<span style="color:#2e7d32;">ผ่าน '+nPass+'</span> · <span style="color:var(--red);">ผิดระเบียบ '+nVio+'</span> · ยังไม่ตรวจ '+(nTotal-nPass-nVio);
+}
 async function saveDressCode(){
   var dt=document.getElementById('dcDate').value;
   if(!dt){toast('กรุณาเลือกวันที่ตรวจ','err');return;}
-  // รวบรวม checkbox ที่ติ๊ก แยกตามนักเรียน
-  var byStudent={};
-  document.querySelectorAll('.dc-chk:checked').forEach(function(ck){
-    var sid=ck.dataset.sid;
-    if(!byStudent[sid])byStudent[sid]=[];
-    byStudent[sid].push({cid:parseInt(ck.dataset.cid),score:parseInt(ck.dataset.score),name:ck.dataset.name});
-  });
-  var sids=Object.keys(byStudent);
-  if(!sids.length){toast('ไม่มีรายการผิดระเบียบ (ไม่ได้ติ๊กคนใด)','err');return;}
-  // หมายเหตุรายคน
   var notes={};
   document.querySelectorAll('.dc-note').forEach(function(inp){notes[inp.dataset.sid]=inp.value.trim();});
+  // รวบรวมผิดระเบียบ
+  var byVio={};
+  document.querySelectorAll('.dc-chk:checked').forEach(function(ck){
+    var sid=ck.dataset.sid;
+    if(!byVio[sid])byVio[sid]=[];
+    byVio[sid].push({cid:parseInt(ck.dataset.cid),score:parseInt(ck.dataset.score),name:ck.dataset.name});
+  });
+  // รวบรวมผ่าน
+  var passSids=[];
+  document.querySelectorAll('.dc-pass:checked').forEach(function(ck){passSids.push(ck.dataset.sid);});
+  var vioSids=Object.keys(byVio);
+  if(!vioSids.length&&!passSids.length){toast('ยังไม่ได้ติ๊กรายการใด','err');return;}
   document.getElementById('dcSaveMsg').textContent='กำลังบันทึก...';
   try{
     var records=[];
-    sids.forEach(function(sid){
-      byStudent[sid].forEach(function(v){
+    // บันทึกผิดระเบียบ
+    vioSids.forEach(function(sid){
+      byVio[sid].forEach(function(v){
         records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'บันทึก',action_taken:'บันทึก'});
       });
     });
-    await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(records)});
-    await Promise.all(sids.map(function(sid){return api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(sid)})}).catch(function(){});}));
-    var total=records.length;
-    toast('✅ บันทึก '+sids.length+' คน รวม '+total+' รายการ หักคะแนนเรียบร้อย');
-    document.getElementById('dcSaveMsg').textContent='✅ บันทึก '+sids.length+' คน '+total+' รายการ เมื่อ '+new Date().toLocaleTimeString('th-TH');
-    // ล้าง checkbox
-    document.querySelectorAll('.dc-chk:checked').forEach(function(ck){ck.checked=false;});
-    document.querySelectorAll('.dc-note').forEach(function(inp){inp.value='';});
+    // บันทึกผ่าน (score=0 ไม่หักคะแนน)
+    if(G.dressPassCat){
+      passSids.forEach(function(sid){
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:G.dressPassCat.id,score:0,record_date:dt,description:'ผ่านการตรวจการแต่งกาย'+(notes[sid]?' ('+notes[sid]+')':''),management_status:'ผ่าน',action_taken:'ผ่าน'});
+      });
+    }
+    if(records.length) await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(records)});
+    // คำนวณคะแนนเฉพาะคนที่ผิด
+    if(vioSids.length) await Promise.all(vioSids.map(function(sid){return api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(sid)})}).catch(function(){});}));
+    var msg='✅ ผ่าน '+passSids.length+' คน · ผิดระเบียบ '+vioSids.length+' คน บันทึกแล้ว';
+    toast(msg);
+    document.getElementById('dcSaveMsg').textContent=msg+' เมื่อ '+new Date().toLocaleTimeString('th-TH');
+    dcClearAll();
   }catch(e){toast('❌ '+e.message,'err');document.getElementById('dcSaveMsg').textContent='';}
 }
 
@@ -7334,35 +7393,38 @@ async function dcLoadRecords(){
     if(!ids.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่พบนักเรียนในห้องนี้</div>';return;}
     var dressIds=(G.dressCats||[]).map(function(c){return c.id;});
     if(!dressIds.length){el.innerHTML='<div class="sp-empty" style="color:var(--red);padding:24px;text-align:center;">⚠️ ยังไม่มีหมวดแต่งกาย กรุณารัน dress_code_module.sql</div>';return;}
-    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+dressIds.join(',')+')&record_date=eq.'+dt+'&select=id,student_id,category_id,score,description&order=student_id')||[];
+    var allDressCatIds=dressIds.slice();
+    if(G.dressPassCat)allDressCatIds.push(G.dressPassCat.id);
+    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+allDressCatIds.join(',')+')&record_date=eq.'+dt+'&select=id,student_id,category_id,score,description&order=student_id')||[];
     DC_RECORDS=recs;
-    if(!recs.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่มีรายการผิดระเบียบในวันที่เลือก</div>';return;}
-    var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]=c.name;});
-    // จัดกลุ่มตามนักเรียน
+    if(!recs.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่มีรายการในวันที่เลือก</div>';return;}
+    var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]={name:c.name,pass:false};});
+    if(G.dressPassCat)catMap[G.dressPassCat.id]={name:'ผ่านการตรวจ',pass:true};
     var byS={};
-    recs.forEach(function(r){
-      if(!byS[r.student_id])byS[r.student_id]=[];
-      byS[r.student_id].push(r);
-    });
+    recs.forEach(function(r){if(!byS[r.student_id])byS[r.student_id]=[];byS[r.student_id].push(r);});
+    var nPass=recs.filter(function(r){return G.dressPassCat&&r.category_id===G.dressPassCat.id;}).length;
+    var nVio=recs.filter(function(r){return !G.dressPassCat||r.category_id!==G.dressPassCat.id;}).length;
     var html='<div class="card" style="padding:0;overflow:hidden;">'
-      +'<div style="padding:10px 14px;background:var(--bluel);font-weight:700;color:var(--blue);font-size:14px;">รายการผิดระเบียบ — '+dt+' ('+recs.length+' รายการ, '+Object.keys(byS).length+' คน)</div>'
+      +'<div style="padding:10px 14px;background:var(--bluel);font-weight:700;color:var(--blue);font-size:14px;">บันทึกการตรวจ — '+dt+' &nbsp;|&nbsp; <span style="color:#2e7d32;">✅ ผ่าน '+nPass+' คน</span> &nbsp; <span style="color:var(--red);">❌ ผิดระเบียบ '+nVio+' รายการ</span></div>'
       +'<table style="width:100%;border-collapse:collapse;font-size:14px;">'
-      +'<thead><tr style="background:#fff3e0;">'
+      +'<thead><tr style="background:#f5f5f5;">'
       +'<th style="padding:8px 10px;text-align:left;">ชื่อ-นามสกุล</th>'
-      +'<th style="padding:8px 10px;text-align:left;">รายการผิด</th>'
+      +'<th style="padding:8px 10px;text-align:left;">รายการ</th>'
       +'<th style="padding:8px 10px;text-align:center;">คะแนน</th>'
-      +'<th style="padding:8px 10px;text-align:center;">คืนคะแนน</th>'
+      +'<th style="padding:8px 10px;text-align:center;">ลบ/คืน</th>'
       +'</tr></thead><tbody>';
     Object.keys(byS).forEach(function(sid){
       var s=stuMap[sid]||{fullname:'ไม่พบ'};
       byS[sid].forEach(function(r,ri){
-        var cname=catMap[r.category_id]||'ไม่ทราบ';
-        html+='<tr style="border-bottom:1px solid var(--border);">'
+        var cat=catMap[r.category_id]||{name:'ไม่ทราบ',pass:false};
+        var isPass=cat.pass;
+        var rowBg=isPass?'background:#f1f8e9;':'';
+        html+='<tr style="border-bottom:1px solid var(--border);'+rowBg+'">'
           +(ri===0?'<td style="padding:6px 10px;font-weight:600;vertical-align:top;" rowspan="'+byS[sid].length+'">'+s.fullname+'</td>':'')
-          +'<td style="padding:6px 10px;color:var(--text2);">'+cname+'</td>'
-          +'<td style="padding:6px 10px;text-align:center;color:var(--red);font-weight:700;">'+r.score+'</td>'
+          +'<td style="padding:6px 10px;">'+(isPass?'<span style="color:#2e7d32;font-weight:600;">✅ '+cat.name+'</span>':'<span style="color:var(--red);">'+cat.name+'</span>')+'</td>'
+          +'<td style="padding:6px 10px;text-align:center;font-weight:700;'+(isPass?'color:#2e7d32;':'color:var(--red);')+'">'+r.score+'</td>'
           +'<td style="padding:6px 10px;text-align:center;">'
-          +'<button class="btn" style="font-size:12px;padding:3px 10px;background:#fff3e0;color:#e65100;border:1px solid #e65100;" onclick="dcDeleteRecord('+r.id+','+sid+',\''+s.fullname+'\')">✅ แก้ไขแล้ว / คืนคะแนน</button>'
+          +'<button class="btn" style="font-size:12px;padding:3px 10px;background:#fce4ec;color:#c62828;border:1px solid #ef9a9a;" onclick="dcDeleteRecord('+r.id+','+sid+',\''+s.fullname+'\','+isPass+')">🗑 ลบ</button>'
           +'</td></tr>';
       });
     });
@@ -7370,12 +7432,13 @@ async function dcLoadRecords(){
     el.innerHTML=html;
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
-async function dcDeleteRecord(id,studentId,name){
-  if(!confirm('ยืนยันการคืนคะแนนให้ "'+name+'" ?\n(ลบรายการผิดระเบียบนี้ออก)'))return;
+async function dcDeleteRecord(id,studentId,name,isPass){
+  var msg=isPass?'ยืนยันลบรายการ "ผ่าน" ของ "'+name+'" ?':'ยืนยันการคืนคะแนนให้ "'+name+'" ?\n(ลบรายการผิดระเบียบนี้ออก)';
+  if(!confirm(msg))return;
   try{
     await api('/rest/v1/behavior_records?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
-    await api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(studentId)})}).catch(function(){});
-    toast('✅ คืนคะแนนให้ "'+name+'" แล้ว');
+    if(!isPass) await api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(studentId)})}).catch(function(){});
+    toast(isPass?'🗑 ลบรายการผ่านของ "'+name+'" แล้ว':'✅ คืนคะแนนให้ "'+name+'" แล้ว');
     dcLoadRecords();
   }catch(e){toast('❌ '+e.message,'err');}
 }
@@ -7394,75 +7457,81 @@ async function dcLoadReport(){
   try{
     var dressIds=(G.dressCats||[]).map(function(c){return c.id;});
     if(!dressIds.length){el.innerHTML='<div class="sp-empty" style="color:var(--red);padding:24px;">⚠️ ยังไม่มีหมวดแต่งกาย กรุณารัน dress_code_module.sql</div>';return;}
-    // โหลดนักเรียน (กรองตามห้องถ้าเลือก)
     var stuQ='/rest/v1/students?status=eq.active&select=id,fullname,order_no,classroom_id&order=classroom_id,order_no';
     if(rid)stuQ+='&classroom_id=eq.'+rid;
     var stus=await api(stuQ)||[];
     if(!stus.length){el.innerHTML='<div class="sp-empty" style="padding:24px;">ไม่พบนักเรียน</div>';return;}
     var stuMap={};stus.forEach(function(s){stuMap[s.id]=s;});
     var ids=stus.map(function(s){return s.id;});
-    // โหลด records ช่วงวันที่
-    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+dressIds.join(',')+')&record_date=gte.'+dtFrom+'&record_date=lte.'+dtTo+'&select=id,student_id,category_id,score,record_date,description&order=student_id,record_date')||[];
+    var allDressCatIds=dressIds.slice();
+    if(G.dressPassCat)allDressCatIds.push(G.dressPassCat.id);
+    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+allDressCatIds.join(',')+')&record_date=gte.'+dtFrom+'&record_date=lte.'+dtTo+'&select=id,student_id,category_id,score,record_date&order=student_id,record_date')||[];
     var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]=c;});
-    // โหลดชื่อห้อง
     var roomMap={};DC.rooms.forEach(function(r){roomMap[r.id]=r.room_name;});
-    // สรุปรายคน
-    var byS={};
+    // จำแนกรายคน: pass / vio / none
+    var byPass={},byVio={};
     recs.forEach(function(r){
-      if(!byS[r.student_id])byS[r.student_id]={total:0,count:0,cats:{}};
-      byS[r.student_id].total+=r.score;
-      byS[r.student_id].count++;
-      var cname=catMap[r.category_id]?catMap[r.category_id].name:'อื่นๆ';
-      if(!byS[r.student_id].cats[cname])byS[r.student_id].cats[cname]=0;
-      byS[r.student_id].cats[cname]++;
+      if(G.dressPassCat&&r.category_id===G.dressPassCat.id){
+        byPass[r.student_id]=true;
+      } else {
+        if(!byVio[r.student_id])byVio[r.student_id]={total:0,count:0,cats:{}};
+        byVio[r.student_id].total+=r.score;
+        byVio[r.student_id].count++;
+        var cname=catMap[r.category_id]?catMap[r.category_id].name:'อื่นๆ';
+        byVio[r.student_id].cats[cname]=(byVio[r.student_id].cats[cname]||0)+1;
+      }
     });
-    DC_REPORT_DATA={stus:stus,byS:byS,catMap:catMap,roomMap:roomMap,dtFrom:dtFrom,dtTo:dtTo,rid:rid};
+    var nPass=Object.keys(byPass).length;
+    var nVio=Object.keys(byVio).length;
+    var nNone=stus.length-nPass-nVio;
+    DC_REPORT_DATA={stus:stus,byPass:byPass,byVio:byVio,catMap:catMap,roomMap:roomMap,dtFrom:dtFrom,dtTo:dtTo,rid:rid};
     var roomLabel=rid?(roomMap[rid]||rid):'ทุกห้อง';
-    var totalVio=recs.length,stuWithVio=Object.keys(byS).length;
-    // สรุปรายข้อ
+    // top violations
     var catCount={};
-    recs.forEach(function(r){var cn=catMap[r.category_id]?catMap[r.category_id].name:'อื่นๆ';catCount[cn]=(catCount[cn]||0)+1;});
+    Object.values(byVio).forEach(function(d){Object.keys(d.cats).forEach(function(n){catCount[n]=(catCount[n]||0)+d.cats[n];});});
     var catSorted=Object.keys(catCount).sort(function(a,b){return catCount[b]-catCount[a];});
-    var catSummary=catSorted.map(function(n){return '<span style="display:inline-block;background:#fff3e0;color:#e65100;border-radius:12px;padding:2px 10px;font-size:13px;margin:2px;">'+n+' ('+catCount[n]+')</span>';}).join(' ');
-    var html='<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:1px solid #ffcc02;">'
-      +'<div style="font-weight:700;font-size:15px;color:#e65100;margin-bottom:8px;">📊 สรุปรายงาน: '+roomLabel+' ('+dtFrom+' ถึง '+dtTo+')</div>'
-      +'<div style="display:flex;gap:20px;flex-wrap:wrap;font-size:14px;margin-bottom:8px;">'
-      +'<div>รวมผิดระเบียบ <strong>'+totalVio+' ครั้ง</strong></div>'
-      +'<div>จำนวนนักเรียนที่ผิด <strong>'+stuWithVio+' คน</strong></div>'
+    var catSummary=catSorted.length?catSorted.map(function(n){return '<span style="display:inline-block;background:#fff3e0;color:#e65100;border-radius:12px;padding:2px 10px;font-size:13px;margin:2px;">'+n+' ('+catCount[n]+')</span>';}).join(' '):'<span style="color:var(--text3);">ไม่มีรายการผิด</span>';
+    var html='<div class="card" style="margin-bottom:12px;">'
+      +'<div style="font-weight:700;font-size:15px;margin-bottom:10px;">📊 สรุปรายงาน: '+roomLabel+' ('+dtFrom+' — '+dtTo+')</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
+      +'<span style="background:#e8f5e9;color:#2e7d32;font-size:13px;padding:4px 14px;border-radius:12px;font-weight:600;">✅ ผ่าน '+nPass+' คน</span>'
+      +'<span style="background:#fce4ec;color:#c62828;font-size:13px;padding:4px 14px;border-radius:12px;font-weight:600;">❌ ผิดระเบียบ '+nVio+' คน</span>'
+      +'<span style="background:#f5f5f5;color:var(--text3);font-size:13px;padding:4px 14px;border-radius:12px;">— ไม่ได้ตรวจ '+nNone+' คน</span>'
       +'</div>'
-      +'<div style="font-size:13px;font-weight:600;margin-bottom:4px;">ข้อที่ผิดมากสุด:</div>'
-      +'<div>'+catSummary+'</div>'
+      +'<div style="font-size:13px;color:var(--text2);">ข้อที่ผิดมากสุด: '+catSummary+'</div>'
       +'</div>';
-    // ตารางรายคน
     html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;">'
       +'<thead><tr style="background:var(--bluel);">'
       +'<th style="padding:8px;text-align:left;">#</th>'
       +'<th style="padding:8px;text-align:left;">ชื่อ-นามสกุล</th>';
-    if(!rid)html+='<th style="padding:8px;">ห้อง</th>';
-    html+='<th style="padding:8px;text-align:center;">ครั้งที่ผิด</th>'
+    if(!rid)html+='<th style="padding:8px;text-align:center;">ห้อง</th>';
+    html+='<th style="padding:8px;text-align:center;">สถานะ</th>'
       +'<th style="padding:8px;text-align:center;">คะแนนหัก</th>'
       +'<th style="padding:8px;text-align:left;">รายการที่ผิด</th>'
       +'</tr></thead><tbody>';
-    // แสดงเฉพาะคนที่มีรายการผิด เรียงตามจำนวนผิดมากสุด
-    var stuWithData=stus.filter(function(s){return !!byS[s.id];});
-    stuWithData.sort(function(a,b){return byS[b.id].count-byS[a.id].count;});
-    stuWithData.forEach(function(s,i){
-      var d=byS[s.id];
-      var catStr=Object.keys(d.cats).map(function(n){return n+(d.cats[n]>1?' ×'+d.cats[n]:'');}).join(', ');
-      var scoreColor=d.total<-5?'var(--red)':(d.total<0?'#e65100':'var(--text)');
-      html+='<tr style="border-bottom:1px solid var(--border);'+(i%2===0?'':'background:#fafafa;')+'">'
+    stus.forEach(function(s,i){
+      var isPass=!!byPass[s.id];
+      var vio=byVio[s.id];
+      var rowBg=isPass?'background:#f1f8e9;':(vio?'background:#fff8f8;':'');
+      var statusCell=isPass
+        ?'<span style="color:#2e7d32;font-weight:700;">✅ ผ่าน</span>'
+        :(vio?'<span style="color:var(--red);font-weight:700;">❌ ผิดระเบียบ</span>'
+        :'<span style="color:var(--text3);">— ไม่ได้ตรวจ</span>');
+      var scoreCell=vio?'<span style="color:var(--red);font-weight:700;">'+vio.total+'</span>':'—';
+      var catStr=vio?Object.keys(vio.cats).map(function(n){return n+(vio.cats[n]>1?' ×'+vio.cats[n]:'');}).join(', '):'—';
+      html+='<tr style="border-bottom:1px solid var(--border);'+rowBg+'">'
         +'<td style="padding:6px 8px;color:var(--text3);">'+(i+1)+'</td>'
         +'<td style="padding:6px 8px;font-weight:600;">'+s.fullname+'</td>';
-      if(!rid)html+='<td style="padding:6px 8px;text-align:center;">'+( roomMap[s.classroom_id]||'')+'</td>';
-      html+='<td style="padding:6px 8px;text-align:center;font-weight:700;">'+d.count+'</td>'
-        +'<td style="padding:6px 8px;text-align:center;color:'+scoreColor+';font-weight:700;">'+d.total+'</td>'
+      if(!rid)html+='<td style="padding:6px 8px;text-align:center;">'+(roomMap[s.classroom_id]||'')+'</td>';
+      html+='<td style="padding:6px 8px;text-align:center;">'+statusCell+'</td>'
+        +'<td style="padding:6px 8px;text-align:center;">'+scoreCell+'</td>'
         +'<td style="padding:6px 8px;font-size:13px;color:var(--text2);">'+catStr+'</td>'
         +'</tr>';
     });
-    if(!stuWithData.length)html+='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">ไม่พบรายการผิดระเบียบในช่วงนี้</td></tr>';
     html+='</tbody></table></div>';
     el.innerHTML=html;
-    if(stuWithData.length){document.getElementById('dcPrintBtn').style.display='';document.getElementById('dcExportBtn').style.display='';}
+    document.getElementById('dcPrintBtn').style.display='';
+    document.getElementById('dcExportBtn').style.display='';
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
 function dcPrintReport(){
@@ -7481,11 +7550,14 @@ function dcPrintReport(){
 function dcExportReport(){
   var data=DC_REPORT_DATA;if(!data||!data.stus)return;
   var roomLabel=data.rid?(data.roomMap[data.rid]||data.rid):'ทุกห้อง';
-  var rows=[['ลำดับ','ชื่อ-นามสกุล','ห้อง','ครั้งที่ผิด','คะแนนหัก','รายการที่ผิด']];
-  data.stus.filter(function(s){return !!data.byS[s.id];}).sort(function(a,b){return data.byS[b.id].count-data.byS[a.id].count;}).forEach(function(s,i){
-    var d=data.byS[s.id];
-    var catStr=Object.keys(d.cats).map(function(n){return n+(d.cats[n]>1?' x'+d.cats[n]:'');}).join(', ');
-    rows.push([i+1,s.fullname,data.roomMap[s.classroom_id]||'',d.count,d.total,catStr]);
+  var rows=[['ลำดับ','ชื่อ-นามสกุล','ห้อง','สถานะ','คะแนนหัก','รายการที่ผิด']];
+  data.stus.forEach(function(s,i){
+    var isPass=!!data.byPass[s.id];
+    var vio=data.byVio[s.id];
+    var status=isPass?'ผ่าน':(vio?'ผิดระเบียบ':'ไม่ได้ตรวจ');
+    var score=vio?vio.total:0;
+    var catStr=vio?Object.keys(vio.cats).map(function(n){return n+(vio.cats[n]>1?' x'+vio.cats[n]:'');}).join(', '):'';
+    rows.push([i+1,s.fullname,data.roomMap[s.classroom_id]||'',status,score,catStr]);
   });
   var csv='﻿'+rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
   var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
