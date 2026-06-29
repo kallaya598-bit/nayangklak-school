@@ -1448,6 +1448,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="nav-item" data-page="pgStudents"><span class="ni ms-blue">groups</span> <span>ข้อมูลนักเรียน</span></div>
           <div class="nav-item" data-page="pgGood"><span class="ni ms-red">favorite</span> <span>บันทึกความดี</span></div>
           <div class="nav-item" data-page="pgBehave"><span class="ni ms-orange">warning</span> <span>บันทึกพฤติกรรม</span></div>
+          <div class="nav-item hidden" id="navDressCodeItem" data-page="pgDressCode"><span class="ni ms-orange">checkroom</span> <span>บันทึกการแต่งกาย</span></div>
           <div class="nav-item" data-page="pgScore"><span class="ni ms-green">bar_chart</span> <span>คะแนนสุทธิ</span></div>
         </div>
       </div>
@@ -1577,6 +1578,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <div class="dico" onclick="openPage('pgAbsentRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/06-absent-student.png" alt="" decoding="async"></div><div class="dico-lbl">นักเรียนขาด</div></div>
             <div class="dico" onclick="openPage('pgGood')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/07-good-deed.png" alt="" decoding="async"></div><div class="dico-lbl">บันทึกความดี</div></div>
             <div class="dico" onclick="openPage('pgBehave')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/08-behavior-record.png" alt="" decoding="async"></div><div class="dico-lbl">บันทึกพฤติกรรม</div></div>
+            <div class="dico hidden" id="dicoDressCode" onclick="openPage('pgDressCode')"><div class="dico-ico iapp-indigo" style="background:linear-gradient(135deg,#e65100,#bf360c);"><span class="ms">checkroom</span></div><div class="dico-lbl">การแต่งกาย</div></div>
             <div class="dico" onclick="openPage('pgScore')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/09-net-score.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">คะแนนสุทธิ</div></div>
             <div class="dico" onclick="openPage('pgHomeVisit')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/10-home-visit.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เยี่ยมบ้านนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgHvMap')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/11-home-map.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">แผนที่บ้านนักเรียน</div></div>
@@ -2441,6 +2443,31 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         </div>
       </div>
 
+      <!-- ===== หน้าบันทึกการแต่งกาย/ทรงผม ===== -->
+      <div class="page" id="pgDressCode">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="goBack()">← กลับ</button>
+          <div class="pt1"><span class="pt-ic ms-orange">checkroom</span> บันทึกการแต่งกาย/ทรงผม</div>
+        </div>
+        <div style="padding:14px;">
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ห้องเรียน</label>
+                <select class="form-control" id="dcRoom" onchange="dcLoadStudents()">
+                  <option value="">— เลือกห้อง —</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">วันที่ตรวจ</label>
+                <input type="date" class="form-control" id="dcDate" style="width:148px;" onchange="dcLoadStudents()">
+              </div>
+            </div>
+          </div>
+          <div id="dcBody"></div>
+        </div>
+      </div>
+
     </div><!-- end main-content -->
   </div><!-- end app-body -->
 
@@ -2960,7 +2987,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     <div class="form-group"><label class="form-label">ชื่อ-นามสกุล</label><input class="form-control" id="tfName" placeholder="เช่น นายสมชาย ใจดี"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Username</label><input class="form-control" id="tfUser" autocapitalize="none" placeholder="username"></div>
-      <div class="form-group"><label class="form-label">บทบาท</label><select class="form-control" id="tfRole"><option value="teacher">ครู</option><option value="admin">ผู้ดูแลระบบ (admin)</option><option value="viewer">ผู้บริหาร (ดูอย่างเดียว)</option></select></div>
+      <div class="form-group"><label class="form-label">บทบาท</label><select class="form-control" id="tfRole"><option value="teacher">ครู</option><option value="discipline">ครูปกครอง</option><option value="admin">ผู้ดูแลระบบ (admin)</option><option value="viewer">ผู้บริหาร (ดูอย่างเดียว)</option></select></div>
     </div>
     <div class="form-group" id="tfPassNew"><label class="form-label">รหัสผ่าน</label><input class="form-control" id="tfPass" placeholder="ตั้งรหัสผ่าน"></div>
     <div class="form-group" id="tfPassReset" style="display:none;">
@@ -3944,6 +3971,7 @@ function openPage(id,fromPop){
   if(id==='pgAttReport')initAttReport();
   if(id==='pgGood')loadGood();
   if(id==='pgBehave')loadBehave();
+  if(id==='pgDressCode')loadDressCode();
   if(id==='pgScore')loadScoreSummary();
   if(id==='pgMH')mhHome();
   if(id==='pgHomeVisit')hvHome();
@@ -5981,8 +6009,10 @@ async function loadCategories(){
   try{
     var gc=await api('/rest/v1/good_deed_categories?select=id,name,default_score&active=eq.true&order=id');
     G.goodCats=gc||[];
-    var bc=await api('/rest/v1/behavior_categories?select=id,name,default_score&active=eq.true&order=id');
-    G.behaveCats=bc||[];
+    var bc=await api('/rest/v1/behavior_categories?select=id,name,default_score,kind&active=eq.true&order=id');
+    var all=bc||[];
+    G.behaveCats=all.filter(function(c){return !c.kind||c.kind==='behavior';});
+    G.dressCats=all.filter(function(c){return c.kind==='dress';});
   }catch(e){console.log('cats:',e.message);}
 }
 
@@ -6032,6 +6062,14 @@ function _showAppInit(){
   if(G.user.role==='admin'||G.user.is_academic){
     document.getElementById('navClubsAdminItem').classList.remove('hidden');
     var ica=document.getElementById('iappClubsAdmin');if(ica)ica.style.display='';
+  }
+  if(G.user.role==='admin'||G.user.role==='discipline'){
+    document.getElementById('navDressCodeItem').classList.remove('hidden');
+    var idc=document.getElementById('dicoDressCode');if(idc)idc.classList.remove('hidden');
+    if(G.user.role==='discipline'){
+      document.getElementById('topRole').textContent='ครูปกครอง';
+      document.getElementById('infoRoom').textContent='ครูปกครอง — เลือกห้องตรวจ';
+    }
   }
   if(G.user.role==='admin'){
     document.getElementById('navAdmin').style.display='';
@@ -6374,7 +6412,7 @@ function toggleNavGroup(id){
 }
 function openNavGroupFor(pageId){
   var map={
-    navGroupStudents:['pgStudents','pgGood','pgBehave','pgScore'],
+    navGroupStudents:['pgStudents','pgGood','pgBehave','pgDressCode','pgScore'],
     navGroupCare:['pgHomeVisit','pgHvMap','pgMH','pgActivities','pgClubsAdmin'],
     navGroupTeach:['pgTeachSubjects','pgGrades','pgExam','pgSubjAttReport','pgRoomAttReport','pgTimetable'],
     navGroupReport:['pgAttReport','pgAbsentRep','pgSubjAbsentRep','pgSkipRep','pgReport']
@@ -7089,6 +7127,109 @@ async function saveBehaveGroup(){
     toast('✅ บันทึกพฤติกรรม '+ids.length+' คนแล้ว');
     closeModal('modalBehaveGroup');loadBehave();
   }catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ===== DRESS CODE (บันทึกการแต่งกาย/ทรงผม) =====
+var DC={rooms:[],students:[],cats:[]};
+async function loadDressCode(){
+  var el=document.getElementById('dcBody');
+  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    // โหลดห้องเรียนทั้งหมด (ครูปกครองเห็นทุกห้อง)
+    if(!DC.rooms.length){
+      DC.rooms=await api('/rest/v1/classrooms?select=id,room_name&order=room_name')||[];
+    }
+    var roomSel=document.getElementById('dcRoom');
+    if(roomSel.options.length<=1){
+      roomSel.innerHTML='<option value="">— เลือกห้อง —</option>'+DC.rooms.map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
+      // ถ้าครูที่ปรึกษาปกติ ตั้งห้องตัวเองไว้ก่อน
+      if(G.room&&G.room.id)roomSel.value=G.room.id;
+    }
+    // ตั้งวันที่เป็นวันนี้ถ้ายังไม่มี
+    var dcDate=document.getElementById('dcDate');
+    if(!dcDate.value){var td=new Date();dcDate.value=td.toISOString().slice(0,10);}
+    // โหลดหมวดแต่งกาย
+    DC.cats=G.dressCats||[];
+    if(!roomSel.value){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;color:var(--text3);">📋 เลือกห้องเรียนเพื่อเริ่มตรวจ</div>';return;}
+    await dcLoadStudents();
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+async function dcLoadStudents(){
+  var el=document.getElementById('dcBody');
+  var rid=document.getElementById('dcRoom').value;
+  if(!rid){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;color:var(--text3);">📋 เลือกห้องเรียนเพื่อเริ่มตรวจ</div>';return;}
+  el.innerHTML='<div class="loading">กำลังโหลดรายชื่อ...</div>';
+  try{
+    DC.cats=G.dressCats||[];
+    if(!DC.cats.length){
+      el.innerHTML='<div class="loading" style="color:var(--red);">⚠️ ยังไม่มีรายการตรวจ กรุณารัน dress_code_module.sql ใน Supabase ก่อน</div>';return;
+    }
+    var stus=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,fullname,order_no&order=order_no')||[];
+    DC.students=stus;
+    if(!stus.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่พบนักเรียนในห้องนี้</div>';return;}
+    // header รายการตรวจ
+    var catHeaders=DC.cats.map(function(c){return '<th style="font-size:12px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;max-width:36px;white-space:nowrap;color:var(--red);">'+c.name+'<br><span style="font-weight:400;color:var(--text3);">('+c.default_score+')</span></th>';}).join('');
+    var html='<div style="overflow-x:auto;">'
+      +'<table style="min-width:100%;border-collapse:collapse;font-size:14px;">'
+      +'<thead><tr style="background:var(--bluel);">'
+      +'<th style="text-align:left;padding:8px 10px;white-space:nowrap;">#</th>'
+      +'<th style="text-align:left;padding:8px 10px;white-space:nowrap;">ชื่อ-นามสกุล</th>'
+      +catHeaders
+      +'<th style="font-size:12px;padding:4px 6px;color:var(--blue);">หมายเหตุ</th>'
+      +'</tr></thead><tbody>';
+    stus.forEach(function(s,i){
+      var chks=DC.cats.map(function(c){
+        return '<td style="text-align:center;padding:6px 4px;border-bottom:1px solid var(--border);">'
+          +'<input type="checkbox" class="dc-chk" data-sid="'+s.id+'" data-cid="'+c.id+'" data-score="'+c.default_score+'" data-name="'+c.name+'" style="width:18px;height:18px;accent-color:var(--red);">'
+          +'</td>';
+      }).join('');
+      html+='<tr style="'+(i%2===0?'':'background:#fafafa;')+'">'
+        +'<td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text3);font-size:13px;">'+(i+1)+'</td>'
+        +'<td style="padding:6px 10px;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap;">'+s.fullname+'</td>'
+        +chks
+        +'<td style="border-bottom:1px solid var(--border);padding:4px;"><input class="form-control dc-note" data-sid="'+s.id+'" style="font-size:13px;height:30px;min-width:90px;" placeholder="หมายเหตุ"></td>'
+        +'</tr>';
+    });
+    html+='</tbody></table></div>';
+    html+='<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+      +'<button class="btn btn-primary" onclick="saveDressCode()"><span class="ms" style="font-size:16px;vertical-align:middle;">save</span> บันทึกรายการผิดระเบียบ</button>'
+      +'<span id="dcSaveMsg" style="font-size:14px;color:var(--text3);"></span>'
+      +'</div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+async function saveDressCode(){
+  var dt=document.getElementById('dcDate').value;
+  if(!dt){toast('กรุณาเลือกวันที่ตรวจ','err');return;}
+  // รวบรวม checkbox ที่ติ๊ก แยกตามนักเรียน
+  var byStudent={};
+  document.querySelectorAll('.dc-chk:checked').forEach(function(ck){
+    var sid=ck.dataset.sid;
+    if(!byStudent[sid])byStudent[sid]=[];
+    byStudent[sid].push({cid:parseInt(ck.dataset.cid),score:parseInt(ck.dataset.score),name:ck.dataset.name});
+  });
+  var sids=Object.keys(byStudent);
+  if(!sids.length){toast('ไม่มีรายการผิดระเบียบ (ไม่ได้ติ๊กคนใด)','err');return;}
+  // หมายเหตุรายคน
+  var notes={};
+  document.querySelectorAll('.dc-note').forEach(function(inp){notes[inp.dataset.sid]=inp.value.trim();});
+  document.getElementById('dcSaveMsg').textContent='กำลังบันทึก...';
+  try{
+    var records=[];
+    sids.forEach(function(sid){
+      byStudent[sid].forEach(function(v){
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'บันทึก',action_taken:'บันทึก'});
+      });
+    });
+    await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(records)});
+    await Promise.all(sids.map(function(sid){return api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(sid)})}).catch(function(){});}));
+    var total=records.length;
+    toast('✅ บันทึก '+sids.length+' คน รวม '+total+' รายการ หักคะแนนเรียบร้อย');
+    document.getElementById('dcSaveMsg').textContent='✅ บันทึก '+sids.length+' คน '+total+' รายการ เมื่อ '+new Date().toLocaleTimeString('th-TH');
+    // ล้าง checkbox
+    document.querySelectorAll('.dc-chk:checked').forEach(function(ck){ck.checked=false;});
+    document.querySelectorAll('.dc-note').forEach(function(inp){inp.value='';});
+  }catch(e){toast('❌ '+e.message,'err');document.getElementById('dcSaveMsg').textContent='';}
 }
 
 // ===== SCORE SUMMARY =====
@@ -10348,7 +10489,7 @@ async function admTeachers(){
   el.innerHTML=h;
 }
 function admTRow(t,adv){
-  var roleBadge=t.role==='admin'?'<span class="badge badge-purple">แอดมิน</span>':(t.role==='viewer'?'<span class="badge badge-gray">ผู้บริหาร</span>':'<span class="badge badge-blue">ครู</span>');
+  var roleBadge=t.role==='admin'?'<span class="badge badge-purple">แอดมิน</span>':(t.role==='viewer'?'<span class="badge badge-gray">ผู้บริหาร</span>':(t.role==='discipline'?'<span class="badge" style="background:#e65100;color:#fff;">ครูปกครอง</span>':'<span class="badge badge-blue">ครู</span>'));
   return '<tr data-name="'+(t.fullname+' '+t.username).toLowerCase()+'"><td>'+t.fullname+'</td><td>'+t.username+'</td>'+
     '<td>'+roleBadge+'</td>'+
     '<td class="text-sm">'+((adv&&adv.length)?adv.join(', '):'<span class="text-gray">—</span>')+'</td>'+
