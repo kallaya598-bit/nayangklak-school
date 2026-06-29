@@ -2449,7 +2449,15 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <button class="back-btn" onclick="goBack()">← กลับ</button>
           <div class="pt1"><span class="pt-ic ms-orange">checkroom</span> บันทึกการแต่งกาย/ทรงผม</div>
         </div>
-        <div style="padding:14px;">
+        <!-- แท็บ -->
+        <div class="schedTabs" style="margin:0 14px;border-bottom:2px solid var(--border);padding:0;">
+          <button class="sched-tab active" id="dcTab1" onclick="dcTab(1)">✏️ บันทึก</button>
+          <button class="sched-tab" id="dcTab2" onclick="dcTab(2)">🔄 แก้ไข/คืนคะแนน</button>
+          <button class="sched-tab" id="dcTab3" onclick="dcTab(3)">📊 รายงานรายห้อง</button>
+        </div>
+
+        <!-- แท็บ 1: บันทึก -->
+        <div id="dcPanel1" style="padding:14px;">
           <div class="card" style="margin-bottom:14px;">
             <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
               <div class="form-group" style="margin:0;">
@@ -2465,6 +2473,53 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             </div>
           </div>
           <div id="dcBody"></div>
+        </div>
+
+        <!-- แท็บ 2: แก้ไข/คืนคะแนน -->
+        <div id="dcPanel2" style="display:none;padding:14px;">
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ห้องเรียน</label>
+                <select class="form-control" id="dcRoom2" onchange="dcLoadRecords()">
+                  <option value="">— เลือกห้อง —</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">วันที่ตรวจ</label>
+                <input type="date" class="form-control" id="dcDate2" style="width:148px;" onchange="dcLoadRecords()">
+              </div>
+            </div>
+          </div>
+          <div id="dcRecordsBody"><div class="sp-empty" style="padding:24px;text-align:center;color:var(--text3);">เลือกห้องและวันที่เพื่อดูรายการ</div></div>
+        </div>
+
+        <!-- แท็บ 3: รายงาน -->
+        <div id="dcPanel3" style="display:none;padding:14px;">
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end;flex-wrap:wrap;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ห้องเรียน</label>
+                <select class="form-control" id="dcRoomR">
+                  <option value="">— ทุกห้อง —</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ตั้งแต่วันที่</label>
+                <input type="date" class="form-control" id="dcFrom" style="width:140px;">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ถึงวันที่</label>
+                <input type="date" class="form-control" id="dcTo" style="width:140px;">
+              </div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="dcLoadReport()">🔍 ดูรายงาน</button>
+              <button class="btn" id="dcPrintBtn" style="display:none;" onclick="dcPrintReport()">🖨️ พิมพ์</button>
+              <button class="btn" id="dcExportBtn" style="display:none;" onclick="dcExportReport()">📥 Export Excel</button>
+            </div>
+          </div>
+          <div id="dcReportBody"><div class="sp-empty" style="padding:24px;text-align:center;color:var(--text3);">กรุณากรอกช่วงวันที่แล้วกด "ดูรายงาน"</div></div>
         </div>
       </div>
 
@@ -7230,6 +7285,212 @@ async function saveDressCode(){
     document.querySelectorAll('.dc-chk:checked').forEach(function(ck){ck.checked=false;});
     document.querySelectorAll('.dc-note').forEach(function(inp){inp.value='';});
   }catch(e){toast('❌ '+e.message,'err');document.getElementById('dcSaveMsg').textContent='';}
+}
+
+// ===== DRESS CODE: แท็บ + แก้ไข + รายงาน =====
+async function dcTab(t){
+  [1,2,3].forEach(function(i){
+    document.getElementById('dcTab'+i).classList.toggle('active',i===t);
+    document.getElementById('dcPanel'+i).style.display=i===t?'':'none';
+  });
+  if(t===2){
+    if(document.getElementById('dcRoom2').options.length<=1) await dcFillRooms2();
+    if(document.getElementById('dcRoom2').value) dcLoadRecords();
+  }
+  if(t===3&&document.getElementById('dcRoomR').options.length<=1) await dcFillRoomsR();
+}
+async function dcEnsureRooms(){
+  if(!DC.rooms.length) DC.rooms=await api('/rest/v1/classrooms?select=id,room_name&order=room_name')||[];
+}
+async function dcFillRooms2(){
+  await dcEnsureRooms();
+  var html='<option value="">— เลือกห้อง —</option>'+DC.rooms.map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
+  document.getElementById('dcRoom2').innerHTML=html;
+  if(G.room&&G.room.id)document.getElementById('dcRoom2').value=G.room.id;
+  if(!document.getElementById('dcDate2').value){var td=new Date();document.getElementById('dcDate2').value=td.toISOString().slice(0,10);}
+}
+async function dcFillRoomsR(){
+  await dcEnsureRooms();
+  var html='<option value="">— ทุกห้อง —</option>'+DC.rooms.map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
+  document.getElementById('dcRoomR').innerHTML=html;
+  if(G.room&&G.room.id)document.getElementById('dcRoomR').value=G.room.id;
+  var td=new Date(),y=td.getFullYear(),m=String(td.getMonth()+1).padStart(2,'0'),d=String(td.getDate()).padStart(2,'0');
+  document.getElementById('dcFrom').value=y+'-'+m+'-01';
+  document.getElementById('dcTo').value=y+'-'+m+'-'+d;
+}
+
+// ---- แท็บ 2: โหลดและลบรายการ ----
+var DC_RECORDS=[];
+async function dcLoadRecords(){
+  var el=document.getElementById('dcRecordsBody');
+  var rid=document.getElementById('dcRoom2').value;
+  var dt=document.getElementById('dcDate2').value;
+  if(!rid||!dt){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;color:var(--text3);">เลือกห้องและวันที่เพื่อดูรายการ</div>';return;}
+  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
+  try{
+    var stus=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,fullname,order_no&order=order_no')||[];
+    var stuMap={};stus.forEach(function(s){stuMap[s.id]=s;});
+    var ids=stus.map(function(s){return s.id;});
+    if(!ids.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่พบนักเรียนในห้องนี้</div>';return;}
+    var dressIds=(G.dressCats||[]).map(function(c){return c.id;});
+    if(!dressIds.length){el.innerHTML='<div class="sp-empty" style="color:var(--red);padding:24px;text-align:center;">⚠️ ยังไม่มีหมวดแต่งกาย กรุณารัน dress_code_module.sql</div>';return;}
+    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+dressIds.join(',')+')&record_date=eq.'+dt+'&select=id,student_id,category_id,score,description&order=student_id')||[];
+    DC_RECORDS=recs;
+    if(!recs.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่มีรายการผิดระเบียบในวันที่เลือก</div>';return;}
+    var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]=c.name;});
+    // จัดกลุ่มตามนักเรียน
+    var byS={};
+    recs.forEach(function(r){
+      if(!byS[r.student_id])byS[r.student_id]=[];
+      byS[r.student_id].push(r);
+    });
+    var html='<div class="card" style="padding:0;overflow:hidden;">'
+      +'<div style="padding:10px 14px;background:var(--bluel);font-weight:700;color:var(--blue);font-size:14px;">รายการผิดระเบียบ — '+dt+' ('+recs.length+' รายการ, '+Object.keys(byS).length+' คน)</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+      +'<thead><tr style="background:#fff3e0;">'
+      +'<th style="padding:8px 10px;text-align:left;">ชื่อ-นามสกุล</th>'
+      +'<th style="padding:8px 10px;text-align:left;">รายการผิด</th>'
+      +'<th style="padding:8px 10px;text-align:center;">คะแนน</th>'
+      +'<th style="padding:8px 10px;text-align:center;">คืนคะแนน</th>'
+      +'</tr></thead><tbody>';
+    Object.keys(byS).forEach(function(sid){
+      var s=stuMap[sid]||{fullname:'ไม่พบ'};
+      byS[sid].forEach(function(r,ri){
+        var cname=catMap[r.category_id]||'ไม่ทราบ';
+        html+='<tr style="border-bottom:1px solid var(--border);">'
+          +(ri===0?'<td style="padding:6px 10px;font-weight:600;vertical-align:top;" rowspan="'+byS[sid].length+'">'+s.fullname+'</td>':'')
+          +'<td style="padding:6px 10px;color:var(--text2);">'+cname+'</td>'
+          +'<td style="padding:6px 10px;text-align:center;color:var(--red);font-weight:700;">'+r.score+'</td>'
+          +'<td style="padding:6px 10px;text-align:center;">'
+          +'<button class="btn" style="font-size:12px;padding:3px 10px;background:#fff3e0;color:#e65100;border:1px solid #e65100;" onclick="dcDeleteRecord('+r.id+','+sid+',\''+s.fullname+'\')">✅ แก้ไขแล้ว / คืนคะแนน</button>'
+          +'</td></tr>';
+      });
+    });
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+async function dcDeleteRecord(id,studentId,name){
+  if(!confirm('ยืนยันการคืนคะแนนให้ "'+name+'" ?\n(ลบรายการผิดระเบียบนี้ออก)'))return;
+  try{
+    await api('/rest/v1/behavior_records?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    await api('/rest/v1/rpc/calc_score_summary',{method:'POST',body:JSON.stringify({p_student_id:parseInt(studentId)})}).catch(function(){});
+    toast('✅ คืนคะแนนให้ "'+name+'" แล้ว');
+    dcLoadRecords();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ---- แท็บ 3: รายงานรายห้อง ----
+var DC_REPORT_DATA=[];
+async function dcLoadReport(){
+  var el=document.getElementById('dcReportBody');
+  var rid=document.getElementById('dcRoomR').value;
+  var dtFrom=document.getElementById('dcFrom').value;
+  var dtTo=document.getElementById('dcTo').value;
+  if(!dtFrom||!dtTo){toast('กรุณาเลือกช่วงวันที่','err');return;}
+  el.innerHTML='<div class="loading">กำลังโหลดรายงาน...</div>';
+  document.getElementById('dcPrintBtn').style.display='none';
+  document.getElementById('dcExportBtn').style.display='none';
+  try{
+    var dressIds=(G.dressCats||[]).map(function(c){return c.id;});
+    if(!dressIds.length){el.innerHTML='<div class="sp-empty" style="color:var(--red);padding:24px;">⚠️ ยังไม่มีหมวดแต่งกาย กรุณารัน dress_code_module.sql</div>';return;}
+    // โหลดนักเรียน (กรองตามห้องถ้าเลือก)
+    var stuQ='/rest/v1/students?status=eq.active&select=id,fullname,order_no,classroom_id&order=classroom_id,order_no';
+    if(rid)stuQ+='&classroom_id=eq.'+rid;
+    var stus=await api(stuQ)||[];
+    if(!stus.length){el.innerHTML='<div class="sp-empty" style="padding:24px;">ไม่พบนักเรียน</div>';return;}
+    var stuMap={};stus.forEach(function(s){stuMap[s.id]=s;});
+    var ids=stus.map(function(s){return s.id;});
+    // โหลด records ช่วงวันที่
+    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+dressIds.join(',')+')&record_date=gte.'+dtFrom+'&record_date=lte.'+dtTo+'&select=id,student_id,category_id,score,record_date,description&order=student_id,record_date')||[];
+    var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]=c;});
+    // โหลดชื่อห้อง
+    var roomMap={};DC.rooms.forEach(function(r){roomMap[r.id]=r.room_name;});
+    // สรุปรายคน
+    var byS={};
+    recs.forEach(function(r){
+      if(!byS[r.student_id])byS[r.student_id]={total:0,count:0,cats:{}};
+      byS[r.student_id].total+=r.score;
+      byS[r.student_id].count++;
+      var cname=catMap[r.category_id]?catMap[r.category_id].name:'อื่นๆ';
+      if(!byS[r.student_id].cats[cname])byS[r.student_id].cats[cname]=0;
+      byS[r.student_id].cats[cname]++;
+    });
+    DC_REPORT_DATA={stus:stus,byS:byS,catMap:catMap,roomMap:roomMap,dtFrom:dtFrom,dtTo:dtTo,rid:rid};
+    var roomLabel=rid?(roomMap[rid]||rid):'ทุกห้อง';
+    var totalVio=recs.length,stuWithVio=Object.keys(byS).length;
+    // สรุปรายข้อ
+    var catCount={};
+    recs.forEach(function(r){var cn=catMap[r.category_id]?catMap[r.category_id].name:'อื่นๆ';catCount[cn]=(catCount[cn]||0)+1;});
+    var catSorted=Object.keys(catCount).sort(function(a,b){return catCount[b]-catCount[a];});
+    var catSummary=catSorted.map(function(n){return '<span style="display:inline-block;background:#fff3e0;color:#e65100;border-radius:12px;padding:2px 10px;font-size:13px;margin:2px;">'+n+' ('+catCount[n]+')</span>';}).join(' ');
+    var html='<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:1px solid #ffcc02;">'
+      +'<div style="font-weight:700;font-size:15px;color:#e65100;margin-bottom:8px;">📊 สรุปรายงาน: '+roomLabel+' ('+dtFrom+' ถึง '+dtTo+')</div>'
+      +'<div style="display:flex;gap:20px;flex-wrap:wrap;font-size:14px;margin-bottom:8px;">'
+      +'<div>รวมผิดระเบียบ <strong>'+totalVio+' ครั้ง</strong></div>'
+      +'<div>จำนวนนักเรียนที่ผิด <strong>'+stuWithVio+' คน</strong></div>'
+      +'</div>'
+      +'<div style="font-size:13px;font-weight:600;margin-bottom:4px;">ข้อที่ผิดมากสุด:</div>'
+      +'<div>'+catSummary+'</div>'
+      +'</div>';
+    // ตารางรายคน
+    html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;">'
+      +'<thead><tr style="background:var(--bluel);">'
+      +'<th style="padding:8px;text-align:left;">#</th>'
+      +'<th style="padding:8px;text-align:left;">ชื่อ-นามสกุล</th>';
+    if(!rid)html+='<th style="padding:8px;">ห้อง</th>';
+    html+='<th style="padding:8px;text-align:center;">ครั้งที่ผิด</th>'
+      +'<th style="padding:8px;text-align:center;">คะแนนหัก</th>'
+      +'<th style="padding:8px;text-align:left;">รายการที่ผิด</th>'
+      +'</tr></thead><tbody>';
+    // แสดงเฉพาะคนที่มีรายการผิด เรียงตามจำนวนผิดมากสุด
+    var stuWithData=stus.filter(function(s){return !!byS[s.id];});
+    stuWithData.sort(function(a,b){return byS[b.id].count-byS[a.id].count;});
+    stuWithData.forEach(function(s,i){
+      var d=byS[s.id];
+      var catStr=Object.keys(d.cats).map(function(n){return n+(d.cats[n]>1?' ×'+d.cats[n]:'');}).join(', ');
+      var scoreColor=d.total<-5?'var(--red)':(d.total<0?'#e65100':'var(--text)');
+      html+='<tr style="border-bottom:1px solid var(--border);'+(i%2===0?'':'background:#fafafa;')+'">'
+        +'<td style="padding:6px 8px;color:var(--text3);">'+(i+1)+'</td>'
+        +'<td style="padding:6px 8px;font-weight:600;">'+s.fullname+'</td>';
+      if(!rid)html+='<td style="padding:6px 8px;text-align:center;">'+( roomMap[s.classroom_id]||'')+'</td>';
+      html+='<td style="padding:6px 8px;text-align:center;font-weight:700;">'+d.count+'</td>'
+        +'<td style="padding:6px 8px;text-align:center;color:'+scoreColor+';font-weight:700;">'+d.total+'</td>'
+        +'<td style="padding:6px 8px;font-size:13px;color:var(--text2);">'+catStr+'</td>'
+        +'</tr>';
+    });
+    if(!stuWithData.length)html+='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">ไม่พบรายการผิดระเบียบในช่วงนี้</td></tr>';
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+    if(stuWithData.length){document.getElementById('dcPrintBtn').style.display='';document.getElementById('dcExportBtn').style.display='';}
+  }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
+}
+function dcPrintReport(){
+  var data=DC_REPORT_DATA;if(!data||!data.stus)return;
+  var roomLabel=data.rid?(data.roomMap[data.rid]||data.rid):'ทุกห้อง';
+  var dressIds=Object.keys(data.catMap).length?Object.values(data.catMap).map(function(c){return c.id;}).join(','):'0';
+  var win=window.open('','_blank');
+  var tbl=document.getElementById('dcReportBody').querySelector('table');
+  win.document.write('<html><head><meta charset="utf-8"><title>รายงานการแต่งกาย</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap"><style>body{font-family:Sarabun,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #ccc;padding:5px 8px}th{background:#fff3e0;color:#e65100}h2{color:#e65100}@media print{button{display:none}}</style></head><body>');
+  win.document.write('<h2>รายงานการแต่งกาย/ทรงผม — '+roomLabel+'</h2>');
+  win.document.write('<p>ช่วงวันที่: '+data.dtFrom+' ถึง '+data.dtTo+'</p>');
+  win.document.write(tbl?tbl.outerHTML:'<p>ไม่มีข้อมูล</p>');
+  win.document.write('<script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+function dcExportReport(){
+  var data=DC_REPORT_DATA;if(!data||!data.stus)return;
+  var roomLabel=data.rid?(data.roomMap[data.rid]||data.rid):'ทุกห้อง';
+  var rows=[['ลำดับ','ชื่อ-นามสกุล','ห้อง','ครั้งที่ผิด','คะแนนหัก','รายการที่ผิด']];
+  data.stus.filter(function(s){return !!data.byS[s.id];}).sort(function(a,b){return data.byS[b.id].count-data.byS[a.id].count;}).forEach(function(s,i){
+    var d=data.byS[s.id];
+    var catStr=Object.keys(d.cats).map(function(n){return n+(d.cats[n]>1?' x'+d.cats[n]:'');}).join(', ');
+    rows.push([i+1,s.fullname,data.roomMap[s.classroom_id]||'',d.count,d.total,catStr]);
+  });
+  var csv='﻿'+rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='dress_report_'+roomLabel+'_'+data.dtFrom+'_'+data.dtTo+'.csv';
+  a.click();
 }
 
 // ===== SCORE SUMMARY =====
