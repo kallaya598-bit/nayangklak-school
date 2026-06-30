@@ -3904,7 +3904,7 @@ async function examDeleteSubjectDo(){
   var id=EX._deleteId;if(!id)return;
   document.getElementById('exDelModal').style.display='none';
   try{
-    await api('/rest/v1/exam_results?exam_subject_id=eq.'+id,{method:'DELETE'});
+    await api('/rest/v1/exam_results?subject_id=eq.'+id,{method:'DELETE'});
     await api('/rest/v1/exam_subjects?id=eq.'+id,{method:'DELETE'});
     var deletedCurrent=EX.subject&&String(EX.subject.id)===String(id);
     Object.keys(EX.examLinks||{}).forEach(function(k){
