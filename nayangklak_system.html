@@ -180,6 +180,8 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .login-opts label{display:flex;align-items:center;gap:6px;color:var(--text2);cursor:pointer;}
 .login-opts a{color:var(--blue2);font-weight:600;text-decoration:none;cursor:pointer;}
 .login-opts a:hover{text-decoration:underline;}
+.login-remember{min-height:36px;display:flex;align-items:center;gap:7px;color:#52687c;font-size:14.4px;font-weight:700;cursor:pointer;}
+.login-remember input{width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;}
 .login-btn{width:100%;height:52px;background:linear-gradient(100deg,#0d2d5e,#1a3a6b);color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:800;transition:all .18s;box-shadow:0 12px 24px rgba(13,45,94,.26);}
 .login-btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 14px 28px rgba(13,45,94,.28);}
 .login-btn:active{transform:translateY(0);}
@@ -1224,12 +1226,12 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <label class="form-label">รหัสผ่าน</label>
       <div class="input-ico">
         <span class="ico"><span class="ms" style="font-size:16px;vertical-align:middle;">lock</span></span>
-        <input type="password" id="loginP" class="form-control" placeholder="รหัสผ่าน" autocomplete="new-password">
+        <input type="password" id="loginP" class="form-control" placeholder="รหัสผ่าน" autocomplete="current-password">
         <button type="button" class="eye" id="loginEye" onclick="toggleLoginPw()" title="แสดง/ซ่อนรหัสผ่าน"><span class="ms" style="font-size:18px;vertical-align:middle;">visibility</span></button>
       </div>
     </div>
     <div class="login-opts">
-      <span></span>
+      <label class="login-remember"><input type="checkbox" id="loginRemember" onchange="if(!this.checked)clearLoginRemember()"> จดจำรหัสผ่าน</label>
       <a onclick="forgotPw()">ลืมรหัสผ่าน?</a>
     </div>
     <button class="login-btn" id="loginBtn">➜ เข้าสู่ระบบ</button>
@@ -4185,7 +4187,7 @@ async function doLogin(){
   try{
     var data=await api('/rest/v1/rpc/login',{method:'POST',body:JSON.stringify({p_username:u,p_password:p})});
     if(!data||!data.length){admLoginEvent({action:'login',success:false,entity:'auth',summary:'ล็อกอินไม่สำเร็จ'}, {actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='Username หรือ Password ไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
-    // จดจำชื่อผู้ใช้
+    saveLoginRemember(u,p);
     G.user=data[0];G.semester=1;
     admLoginEvent({action:'login',success:true,entity:'auth',summary:'เข้าสู่ระบบสำเร็จ',actor_username:u});
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
@@ -4211,8 +4213,30 @@ async function doLogin(){
 function toggleLoginPw(){var i=document.getElementById('loginP'),e=document.getElementById('loginEye');if(i.type==='password'){i.type='text';e.textContent='🙈';}else{i.type='password';e.textContent='👁️';}}
 // ลืมรหัสผ่าน
 function forgotPw(){toast('กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อรีเซ็ตรหัสผ่าน','err');}
-// คืนค่าชื่อผู้ใช้ที่จดจำไว้
-try{localStorage.removeItem('remember_user');}catch(e){}
+
+var LOGIN_REMEMBER_KEY='nyk_login_remember_v1';
+function clearLoginRemember(){
+  try{localStorage.removeItem(LOGIN_REMEMBER_KEY);localStorage.removeItem('remember_user');}catch(e){}
+}
+function saveLoginRemember(u,p){
+  var c=document.getElementById('loginRemember');
+  if(!c||!c.checked){clearLoginRemember();return;}
+  try{
+    var payload={u:u,p:p,ts:Date.now()};
+    localStorage.setItem(LOGIN_REMEMBER_KEY,btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
+  }catch(e){}
+}
+function loadLoginRemember(){
+  try{
+    var raw=localStorage.getItem(LOGIN_REMEMBER_KEY);
+    if(!raw)return;
+    var d=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!d||!d.u||!d.p)return;
+    var u=document.getElementById('loginU'),p=document.getElementById('loginP'),c=document.getElementById('loginRemember');
+    if(u)u.value=d.u;if(p)p.value=d.p;if(c)c.checked=true;
+  }catch(e){clearLoginRemember();}
+}
+loadLoginRemember();
 
 function setLoginTab(role){
   var tabs=document.querySelectorAll('#loginPage .role-tab');
@@ -4472,6 +4496,7 @@ function execLogout(){
   EXEC={room:null};G.viewOnly=false;G.user=null;
   document.getElementById('execPortal').style.display='none';
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
+  loadLoginRemember();
   document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='➜ เข้าสู่ระบบ';
   document.getElementById('loginPage').style.display='flex';
   window.scrollTo(0,0);
@@ -12778,6 +12803,7 @@ document.getElementById('logoutBtn').addEventListener('click',function(){
   clearSession();
   G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[]};
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
+  loadLoginRemember();
   document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='➜ เข้าสู่ระบบ';
   document.getElementById('app').style.display='none';document.getElementById('loginPage').style.display='flex';
 });
