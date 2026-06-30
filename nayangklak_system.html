@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -145,111 +145,54 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 @media(max-width:480px){.form-row{grid-template-columns:1fr;}}
 
 /* ===== LOGIN ===== */
-/* ===== หน้าล็อกอิน (ดีไซน์: รูปโรงเรียนเป็นพื้นหลัง + ฟ้า-ม่วงทับโปร่ง + การ์ดกระจก) ===== */
-#loginPage{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;
+/* ===== หน้าล็อกอิน: แบบที่ 2 Mobile First สำหรับครูรีบใช้งาน ===== */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:auto;padding:24px 16px 58px;
   background:
-    radial-gradient(130% 100% at 24% 76%,rgba(13,45,94,.42) 0%,rgba(0,229,255,.12) 40%,transparent 64%),
-    linear-gradient(120deg,rgba(13,45,94,.28) 0%,rgba(0,229,255,.14) 50%,rgba(13,45,94,.18) 100%),
-    url('bg.jpg') center/cover no-repeat,
-    linear-gradient(120deg,#0a1f42,#0d2d5e 70%,#1a3a6b);}
-.login-left{flex:1;padding:48px 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;position:relative;z-index:1;
-  text-shadow:0 1px 3px rgba(0,0,0,.55),0 2px 10px rgba(0,0,0,.4);}
-.login-left .brand{margin-bottom:18px;}
-/* โลโก้ตราโรงเรียน */
-.login-left .crest{width:400px;height:400px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;position:relative;
-  filter:drop-shadow(0 18px 34px rgba(0,0,0,.7)) drop-shadow(0 8px 16px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(255,255,255,.3)) brightness(1.06) saturate(1.12);
-  animation:crestFloat 4s ease-in-out infinite;}
-.login-left .crest::after{content:'';position:absolute;inset:-12% -12% 0;z-index:-1;border-radius:50%;
-  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.45) 0%,transparent 62%);}
-.login-left .crest img{width:100%;height:100%;object-fit:contain;}
-@keyframes crestFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
-.crest-fallback{width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);
-  display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:800;color:#fff;}
-.login-left h1{font-size:40.8px;font-weight:800;line-height:1.2;margin-bottom:6px;text-shadow:0 2px 5px rgba(0,0,0,.6),0 4px 18px rgba(0,0,0,.45);}
-.login-left .syst{font-size:26.4px;font-weight:700;margin-bottom:30px;color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.6),0 3px 14px rgba(0,0,0,.4);}
-.login-left .syst span{text-shadow:0 2px 5px rgba(0,0,0,.55);}
-.login-left .syst span{color:#ffd54f;}
-.login-left .tagline{display:block;font-size:15px;color:rgba(255,255,255,.82);margin-top:-20px;margin-bottom:24px;font-weight:500;letter-spacing:.3px;text-shadow:0 1px 4px rgba(0,0,0,.4);}
-/* แถวฟีเจอร์ 4 วงกลม */
-.feat-list{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;}
-.feat-item{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;}
-.feat-ico{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:25px;
-  border:2px solid rgba(255,255,255,.55);box-shadow:0 8px 20px rgba(0,0,0,.3),inset 0 2px 6px rgba(255,255,255,.4);
-  transition:transform .18s,box-shadow .18s;}
-.feat-item:hover .feat-ico{transform:translateY(-4px) scale(1.06);box-shadow:0 12px 26px rgba(0,0,0,.38),inset 0 2px 6px rgba(255,255,255,.5);}
-.feat-ico.c1{background:linear-gradient(135deg,#00e5ff,#0d2d5e);}
-.feat-ico.c2{background:linear-gradient(135deg,#43a047,#2e7d32);}
-.feat-ico.c3{background:linear-gradient(135deg,#0097a7,#0d2d5e);}
-.feat-ico.c4{background:linear-gradient(135deg,#e53935,#c2185b);}
-.feat-txt h4{font-size:16.8px;font-weight:700;color:#fff;margin-bottom:2px;}
-.feat-txt p{font-size:13.2px;color:rgba(255,255,255,.75);line-height:1.3;}
-/* กล่องคำขวัญ */
-.login-stats{margin-top:6px;}
-.quote-box{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
-  border-radius:16px;padding:14px 28px;font-size:19.2px;font-weight:600;color:#fff;backdrop-filter:blur(6px);
-  text-shadow:0 1px 6px rgba(0,0,0,.2);}
-.quote-box .qm{color:#ffd54f;font-size:26.4px;font-weight:800;vertical-align:-4px;}
-/* ===== การ์ดล็อกอินขวา (กระจกฝ้า) ===== */
-.login-right{width:430px;flex-shrink:0;margin:24px 56px 24px 0;padding:40px 38px;position:relative;z-index:1;overflow:hidden;
-  background:linear-gradient(150deg,rgba(227,242,253,.60) 0%,rgba(224,205,247,.52) 50%,rgba(252,228,236,.55) 100%);
-  backdrop-filter:blur(20px) saturate(1.25);-webkit-backdrop-filter:blur(20px) saturate(1.25);
-  border-radius:26px;
-  box-shadow:0 28px 80px rgba(0,0,0,.42),0 0 44px rgba(124,77,255,.38),inset 0 1px 0 rgba(255,255,255,.7);
-  display:flex;flex-direction:column;}
-/* ให้เนื้อหาในการ์ดอยู่เหนือเอฟเฟกต์ */
-.login-right>*{position:relative;z-index:1;}
-/* แสงวาบมุมบน (flare) */
-.login-right::before{content:'';position:absolute;top:0;left:0;right:0;height:55%;z-index:0;pointer-events:none;border-radius:26px 26px 60% 60%;
-  background:radial-gradient(130% 90% at 22% -10%,rgba(255,255,255,.65) 0%,rgba(255,255,255,.18) 38%,transparent 62%);}
-/* ขอบไล่สีเรืองแสง (ฟ้า→ม่วง→ชมพู) */
-.login-right::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:26px;padding:1.6px;
-  background:linear-gradient(135deg,#29b6f6 0%,#7c4dff 50%,#ff4081 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
-  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;opacity:.85;}
-.login-lock{width:66px;height:66px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;
-  font-size:33.6px;color:#fff;background:linear-gradient(135deg,#00e5ff,#1a3a6b 45%,#0d2d5e);
-  box-shadow:0 10px 24px rgba(13,45,94,.5),inset 0 2px 6px rgba(255,255,255,.5);animation:lockPulse 3s ease-in-out infinite;}
-@keyframes lockPulse{0%,100%{box-shadow:0 10px 24px rgba(13,45,94,.5),inset 0 2px 6px rgba(255,255,255,.5);}50%{box-shadow:0 10px 30px rgba(0,229,255,.65),inset 0 2px 6px rgba(255,255,255,.6);}}
-.login-right h2{font-size:31.2px;font-weight:800;color:var(--blue);margin-bottom:4px;text-align:center;}
-.login-right .sub{font-size:15.6px;color:var(--text2);margin-bottom:24px;text-align:center;}
+    radial-gradient(95% 70% at 14% 8%,rgba(0,229,255,.14),transparent 42%),
+    radial-gradient(85% 70% at 88% 100%,rgba(249,168,37,.13),transparent 45%),
+    linear-gradient(rgba(13,45,94,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(13,45,94,.055) 1px,transparent 1px),
+    #f9fbff;
+  background-size:auto,auto,20px 20px,20px 20px,auto;}
+.login-right{width:min(420px,100%);position:relative;z-index:1;padding:18px;background:#fff;border:1px solid #d7e3f4;border-radius:24px;
+  box-shadow:0 24px 60px rgba(13,45,94,.16),0 3px 12px rgba(13,45,94,.08);display:flex;flex-direction:column;}
+.login-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;}
+.login-brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.login-logo{width:44px;height:44px;border-radius:12px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #d9e6f6;padding:2px;}
+.crest-fallback{width:44px;height:44px;border-radius:12px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;}
+.login-brand strong{display:block;font-size:16.2px;font-weight:800;color:var(--blue);line-height:1.2;white-space:nowrap;}
+.login-brand small{display:block;font-size:12.5px;color:#52687c;line-height:1.25;white-space:nowrap;}
+.login-status{min-height:36px;padding:7px 11px;border-radius:999px;background:#e8f5e9;color:#1b5e20;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.login-right h2{font-size:28px;font-weight:800;color:var(--blue);line-height:1.2;margin:8px 0 3px;text-align:left;}
+.login-right .sub{font-size:14.4px;color:#52687c;margin-bottom:16px;text-align:left;line-height:1.45;}
+.login-lock{display:none;}
+.role-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#eef4fb;padding:5px;border-radius:13px;margin-bottom:15px;}
+.role-tab{min-height:44px;border:none;border-radius:10px;background:transparent;color:#52687c;font-size:12.2px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:3px;cursor:pointer;}
+.role-tab.active,.role-tab:hover{background:#fff;color:var(--blue);box-shadow:0 4px 12px rgba(13,45,94,.10);}
+.role-tab .ms{font-size:17px;}
+#loginPage .form-control{height:48px;border-color:#9eb7d8;border-radius:12px;font-size:16px;}
+#loginPage .form-control:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(13,45,94,.09);}
 .input-ico{position:relative;}
-.input-ico .ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:19.2px;color:var(--text3);}
+.input-ico .ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:19.2px;color:#5f7fa2;}
 .input-ico input{padding-left:40px;}
-.input-ico .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20.4px;color:var(--text3);cursor:pointer;background:none;border:none;padding:0;}
-.login-opts{display:flex;align-items:center;justify-content:space-between;margin:10px 0 16px;font-size:15px;}
+.input-ico .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:20.4px;color:#5f7fa2;cursor:pointer;background:none;border:none;padding:0;min-width:28px;min-height:28px;}
+.login-opts{display:flex;align-items:center;justify-content:space-between;margin:8px 0 13px;font-size:14.4px;}
 .login-opts label{display:flex;align-items:center;gap:6px;color:var(--text2);cursor:pointer;}
 .login-opts a{color:var(--blue2);font-weight:600;text-decoration:none;cursor:pointer;}
 .login-opts a:hover{text-decoration:underline;}
-.login-btn{width:100%;height:52px;background:linear-gradient(135deg,#00e5ff,#1a3a6b 50%,#0d2d5e);color:#fff;border:none;border-radius:14px;font-size:19.2px;font-weight:700;transition:all .18s;box-shadow:0 10px 24px rgba(13,45,94,.4),inset 0 1px 0 rgba(255,255,255,.3);}
-.login-btn:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,229,255,.4),inset 0 1px 0 rgba(255,255,255,.4);}
+.login-btn{width:100%;height:52px;background:linear-gradient(100deg,#0d2d5e,#1a3a6b);color:#fff;border:none;border-radius:12px;font-size:18px;font-weight:800;transition:all .18s;box-shadow:0 12px 24px rgba(13,45,94,.26);}
+.login-btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 14px 28px rgba(13,45,94,.28);}
 .login-btn:active{transform:translateY(0);}
 .login-btn:disabled{opacity:.6;}
-.login-err{color:var(--red);font-size:15px;text-align:center;margin-top:8px;min-height:20px;}
-/* ตัวคั่น "หรือเข้าสู่ระบบด้วย" */
-.login-or{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:var(--text3);font-size:14.4px;}
-.login-or::before,.login-or::after{content:'';flex:1;height:1px;background:var(--border);}
-/* ปุ่มบทบาท ครู/แอดมิน */
+.login-err{color:var(--red);font-size:14.4px;text-align:center;margin-top:8px;min-height:20px;}
+.login-or{display:none;}
 .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.role-card{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,border-color .22s ease;text-align:left;}
-.role-card:hover{transform:translateY(-8px) scale(1.02);border-color:rgba(0,229,255,.6);box-shadow:0 16px 36px rgba(13,45,94,.18),0 0 0 2px rgba(0,229,255,.45);}
-.role-card .ri{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:21.6px;color:#fff;flex-shrink:0;}
-.role-card.teacher .ri{background:linear-gradient(135deg,#00e5ff,#0d2d5e);}
-.role-card.admin .ri{background:linear-gradient(135deg,#0d4b6b,#0d2d5e);}
-.role-card.exec .ri{background:linear-gradient(135deg,#00897b,#00695c);}
-.role-card.student .ri{background:linear-gradient(135deg,#2e7d32,#1b5e20);}
-.role-card.parent .ri{background:linear-gradient(135deg,#f57c00,#e65100);}
-.role-card .rt h4{font-size:16.2px;font-weight:700;color:var(--text);}
-.role-card .rt p{font-size:12.6px;color:var(--text3);}
-/* การ์ดใหญ่ 4 ประเภทผู้ใช้ (สมมาตร) */
-.role-big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
-.role-big .role-card{flex-direction:column;align-items:center;text-align:center;justify-content:flex-start;padding:18px 12px;gap:9px;border-width:2px;}
-.role-big .role-card .ri{width:54px;height:54px;font-size:32.4px;border-radius:15px;}
-.role-big .role-card .rt h4{font-size:18px;}
-.role-big .role-card .rt p{font-size:13.2px;}
-/* ผู้ดูแลระบบ — เล็ก ไม่เด่น */
-.admin-mini{text-align:center;margin-top:16px;}
-.admin-mini a{font-size:14.4px;color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.role-big{display:none;}
+.admin-mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px;}
+.admin-mini a{min-height:46px;border:1.5px solid #cbdcf1;border-radius:12px;background:#fff;color:var(--blue);font-size:14.4px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;}
 .admin-mini a:hover{color:var(--blue);text-decoration:underline;}
+.login-dev{margin-top:12px;text-align:center;font-size:12.5px;color:#60758c;line-height:1.55;}
+.login-dev b{color:var(--blue);}
 .stu-back{display:block;text-align:center;margin-top:14px;color:var(--blue2);cursor:pointer;font-size:15.6px;}
 .stu-back:hover{text-decoration:underline;}
 .sp-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
@@ -365,13 +308,17 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   font-size:14.4px;color:rgba(255,255,255,.9);background:rgba(13,45,94,.35);backdrop-filter:blur(4px);border-top:1px solid rgba(255,255,255,.15);}
 .login-foot b{font-weight:700;}
 @media(max-width:860px){
-  #loginPage{flex-direction:column;align-items:stretch;padding-bottom:60px;}
-  .login-left{padding:36px 20px 10px;}
-  .login-left .crest{width:200px;height:200px;}
-  .login-left h1{font-size:28.8px;}.login-left .syst{font-size:20.4px;margin-bottom:22px;}
-  .feat-list{gap:16px;}.feat-item{width:74px;}.feat-ico{width:46px;height:46px;font-size:20px;}
-  .quote-box{font-size:15.6px;padding:11px 18px;}
-  .login-right{width:auto;margin:10px 18px 18px;padding:28px 22px;}
+  #loginPage{align-items:flex-start;padding:14px 10px 64px;}
+  .login-right{width:100%;max-width:420px;margin:0 auto;padding:16px;border-radius:22px;}
+  .login-status{display:none;}
+  .role-tabs{grid-template-columns:repeat(2,1fr);}
+  .role-tab{font-size:13.2px;gap:5px;}
+  .admin-mini{grid-template-columns:1fr;}
+}
+@media(max-width:360px){
+  .login-brand strong{font-size:15px;}
+  .login-brand small{font-size:11.6px;}
+  .login-right h2{font-size:25px;}
 }
 
 /* ===== APP ===== */
@@ -1238,26 +1185,25 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 
 <!-- ===== LOGIN ===== -->
 <div id="loginPage" style="display:none;">
-  <div class="login-left">
-    <div class="brand">
-      <div class="crest">
-        <img src="logo.png" alt="ตราโรงเรียน" onerror="this.parentNode.innerHTML='<div class=\'crest-fallback\'>นพ</div>';">
-      </div>
-    </div>
-    <h1>โรงเรียนนายางกลักพิทยาคม</h1>
-    <div class="syst">StudentCare <span>360°</span></div>
-    <div class="tagline">ดูแลนักเรียนรอบด้าน 360 องศา</div>
-    <div class="feat-list">
-      <div class="feat-item"><div class="feat-ico c1"><span class="ms" style="font-size:24px;color:#fff;">security</span></div><div class="feat-txt"><h4>ปลอดภัย</h4><p>ข้อมูลเป็นความลับ</p></div></div>
-      <div class="feat-item"><div class="feat-ico c2"><span class="ms" style="font-size:24px;color:#fff;">bar_chart</span></div><div class="feat-txt"><h4>ใช้งานง่าย</h4><p>สะดวก รวดเร็ว</p></div></div>
-      <div class="feat-item"><div class="feat-ico c3"><span class="ms" style="font-size:24px;color:#fff;">hub</span></div><div class="feat-txt"><h4>เชื่อมต่อ</h4><p>ทุกภาคส่วน</p></div></div>
-      <div class="feat-item"><div class="feat-ico c4"><span class="ms" style="font-size:24px;color:#fff;">favorite</span></div><div class="feat-txt"><h4>ใส่ใจนักเรียน</h4><p>เพื่ออนาคตที่ดี</p></div></div>
-    </div>
-    <div class="login-stats">
-      <div class="quote-box"><span class="qm">&ldquo;</span> มุ่งพัฒนานักเรียนให้เป็นคนดี มีความรู้ คู่คุณธรรม <span class="qm">&rdquo;</span></div>
-    </div>
-  </div>
   <div class="login-right">
+    <div class="login-top">
+      <div class="login-brand">
+        <img class="login-logo" src="logo.png" alt="ตราโรงเรียน" onerror="this.outerHTML='<div class=\'crest-fallback\'>นพ</div>';">
+        <div>
+          <strong>StudentCare 360</strong>
+          <small>นายางกลักพิทยาคม</small>
+        </div>
+      </div>
+      <div class="login-status"><span class="ms" style="font-size:17px;">wifi</span> พร้อมใช้งาน</div>
+    </div>
+    <h2>เข้าสู่ระบบ</h2>
+    <p class="sub">เลือกประเภทผู้ใช้ แล้วกรอกบัญชีของคุณ</p>
+    <div class="role-tabs" aria-label="เลือกประเภทผู้ใช้">
+      <button class="role-tab active" type="button" data-role="teacher" onclick="setLoginTab('teacher');closeStuLogin();document.getElementById('loginU').focus();"><span class="ms">school</span>ครู</button>
+      <button class="role-tab" type="button" data-role="exec" onclick="closeStuLogin();setLoginTab('exec');pickExec();"><span class="ms">account_balance</span>ผู้บริหาร</button>
+      <button class="role-tab" type="button" data-role="student" onclick="setLoginTab('student');openStuLogin('student')"><span class="ms">menu_book</span>นักเรียน</button>
+      <button class="role-tab" type="button" data-role="parent" onclick="setLoginTab('parent');openStuLogin('parent')"><span class="ms">family_restroom</span>ผู้ปกครอง</button>
+    </div>
     <div class="login-lock">
       <svg width="36" height="36" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M44 14 L64 24 L64 46 Q64 62 44 72 Q24 62 24 46 L24 24 Z" fill="rgba(0,229,255,0.18)" stroke="#00e5ff" stroke-width="2.8" stroke-linejoin="round"/>
@@ -1266,8 +1212,6 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <circle cx="44" cy="52" r="3" fill="#00e5ff"/>
       </svg>
     </div>
-    <h2>เข้าสู่ระบบ</h2>
-    <p class="sub">กรุณากรอกชื่อผู้ใช้และรหัสผ่าน</p>
     <div id="staffLogin">
     <div class="form-group">
       <label class="form-label">ชื่อผู้ใช้</label>
@@ -1297,13 +1241,11 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <div class="role-card student" onclick="openStuLogin('student')"><div class="ri"><span class="ms" style="font-size:26px;">menu_book</span></div><div class="rt"><h4>นักเรียน</h4><p>ดูข้อมูลตนเอง</p></div></div>
       <div class="role-card parent" onclick="openStuLogin('parent')"><div class="ri"><span class="ms" style="font-size:26px;">family_restroom</span></div><div class="rt"><h4>ผู้ปกครอง</h4><p>ดูข้อมูลบุตรหลาน</p></div></div>
     </div>
-    <div class="admin-mini"><a onclick="document.getElementById('loginU').focus()"><span class="ms" style="font-size:15px;vertical-align:middle;color:#3949ab;">admin_panel_settings</span> เข้าสู่ระบบผู้ดูแลระบบ</a></div>
-    <div style="margin-top:18px;padding-top:14px;border-top:2px solid #1565c0;text-align:center;font-size:13.5px;color:#37474f;line-height:2;background:#f0f7ff;border-radius:10px;padding:14px;">
-      <div style="font-weight:700;color:#1565c0;font-size:15px;">💻 พัฒนาโดย ครูอดิศักดิ์ วนาใส</div>
-      <div style="color:#455a64;">โรงเรียนนายางกลักพิทยาคม · สพม.ชัยภูมิ</div>
-      <div><span class="ms" style="font-size:13px;vertical-align:middle;color:#1565c0;">call</span> <a href="tel:0822979163" style="color:#1565c0;font-weight:600;text-decoration:none;">082-297-9163</a></div>
-      <div style="font-size:11.5px;margin-top:4px;color:#78909c;">StudentCare 360° © 2569</div>
+    <div class="admin-mini">
+      <a onclick="document.getElementById('loginU').focus()"><span class="ms" style="font-size:17px;vertical-align:middle;">admin_panel_settings</span> ผู้ดูแลระบบ</a>
+      <a onclick="forgotPw()"><span class="ms" style="font-size:17px;vertical-align:middle;">support_agent</span> ขอรหัสผ่าน</a>
     </div>
+    <div class="login-dev"><b>พัฒนาโดย ครูอดิศักดิ์ วนาใส</b><br>โรงเรียนนายางกลักพิทยาคม · สพม.ชัยภูมิ · <a href="tel:0822979163" style="color:#1565c0;font-weight:700;text-decoration:none;">082-297-9163</a></div>
     </div>
 
     <!-- นักเรียน/ผู้ปกครอง: เข้าด้วยเลขประจำตัว + วันเกิด -->
@@ -1328,7 +1270,6 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     </div>
   </div>
   <div class="login-foot"><span class="ms" style="font-size:14px;vertical-align:middle;">calendar_today</span> ภาคเรียนที่ 1 / 2569 &nbsp;|&nbsp; © 2569 <b>โรงเรียนนายางกลักพิทยาคม</b> สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>
-  </div>
 </div>
 
 <!-- ===== STUDENT / PARENT PORTAL (ดูอย่างเดียว) ===== -->
@@ -4273,6 +4214,11 @@ function forgotPw(){toast('กรุณาติดต่อผู้ดูแ�
 // คืนค่าชื่อผู้ใช้ที่จดจำไว้
 try{localStorage.removeItem('remember_user');}catch(e){}
 
+function setLoginTab(role){
+  var tabs=document.querySelectorAll('#loginPage .role-tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',tabs[i].getAttribute('data-role')===role);
+}
+
 // ===== ผู้บริหาร (viewer) =====
 function pickExec(){fillLogin('','');var u=document.getElementById('loginU');if(u)u.focus();document.getElementById('loginErr').textContent='ℹ️ ผู้บริหารเข้าด้วยบัญชีที่ผู้ดูแลระบบสร้างให้ (บทบาท: ผู้บริหาร)';}
 
@@ -4280,6 +4226,7 @@ function pickExec(){fillLogin('','');var u=document.getElementById('loginU');if(
 var STU={mode:'student',student:null};
 function openStuLogin(mode){
   STU.mode=mode;
+  setLoginTab(mode==='parent'?'parent':'student');
   document.getElementById('staffLogin').style.display='none';
   document.getElementById('stuLoginPanel').style.display='block';
   var sub=document.querySelector('#loginPage .login-right .sub');
@@ -4289,8 +4236,9 @@ function openStuLogin(mode){
 function closeStuLogin(){
   document.getElementById('stuLoginPanel').style.display='none';
   document.getElementById('staffLogin').style.display='block';
+  setLoginTab('teacher');
   var sub=document.querySelector('#loginPage .login-right .sub');
-  if(sub)sub.textContent='กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+  if(sub)sub.textContent='เลือกประเภทผู้ใช้ แล้วกรอกบัญชีของคุณ';
 }
 document.getElementById('stuPass').addEventListener('keydown',function(e){if(e.key==='Enter')doStudentLogin();});
 document.getElementById('stuCode').addEventListener('keydown',function(e){if(e.key==='Enter')doStudentLogin();});
