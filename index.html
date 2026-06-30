@@ -301,19 +301,22 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
     #f9fbff;
   background-size:20px 20px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;pointer-events:none;}
-#splashScreen.hide{animation:splashOut .5s ease-in forwards;}
-@keyframes splashOut{to{opacity:0;transform:scale(1.04);}}
-.splash-logo{width:96px;height:96px;border-radius:50%;background:rgba(21,101,192,.1);border:2px solid rgba(21,101,192,.18);display:flex;align-items:center;justify-content:center;margin-bottom:20px;animation:splashPop .5s cubic-bezier(.34,1.56,.64,1) both;box-shadow:0 4px 18px rgba(21,101,192,.12);}
-.splash-logo img{width:80px;height:80px;border-radius:50%;object-fit:cover;}
+#splashScreen.hide{animation:splashOut .18s ease-out forwards;}
+@keyframes splashOut{to{opacity:0;transform:scale(1.01);}}
+.splash-logo{width:74px;height:74px;border-radius:20px;background:rgba(21,101,192,.08);border:1px solid rgba(21,101,192,.16);display:flex;align-items:center;justify-content:center;margin-bottom:16px;animation:splashPop .22s cubic-bezier(.2,.8,.2,1) both;box-shadow:0 6px 22px rgba(21,101,192,.10);}
+.splash-logo img{width:58px;height:58px;border-radius:16px;object-fit:cover;}
 .splash-logo .ms{font-size:48px;color:#1565c0;}
-@keyframes splashPop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
-.splash-school{font-size:20px;font-weight:700;color:#1a237e;text-align:center;animation:splashFade .5s .2s ease both;line-height:1.4;}
-.splash-sub{font-size:13.5px;color:#546e7a;margin-top:6px;text-align:center;animation:splashFade .5s .35s ease both;}
-.splash-user{margin-top:24px;font-size:15px;color:#1565c0;font-weight:600;animation:splashFade .5s .45s ease both;}
+@keyframes splashPop{from{transform:scale(.92);opacity:0;}to{transform:scale(1);opacity:1;}}
+.splash-school{font-size:19px;font-weight:800;color:#1a237e;text-align:center;animation:splashFade .24s .04s ease both;line-height:1.35;}
+.splash-sub{font-size:13.2px;color:#546e7a;margin-top:4px;text-align:center;animation:splashFade .24s .08s ease both;}
+.splash-user{margin-top:20px;font-size:14.4px;color:#1565c0;font-weight:700;animation:splashFade .24s .1s ease both;}
 @keyframes splashFade{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-.splash-bar-wrap{width:200px;height:4px;background:rgba(21,101,192,.15);border-radius:99px;margin-top:32px;overflow:hidden;animation:splashFade .4s .55s ease both;}
-.splash-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#1565c0,#1976d2);border-radius:99px;animation:barEaseIn 1.8s .6s cubic-bezier(0.42,0,1,1) forwards;}
-@keyframes barEaseIn{from{width:0%;}to{width:100%;}}
+.splash-bar-wrap{width:180px;height:4px;background:rgba(21,101,192,.14);border-radius:99px;margin-top:28px;overflow:hidden;animation:splashFade .2s .12s ease both;}
+.splash-bar-fill{height:100%;width:46%;background:linear-gradient(90deg,#1565c0,#42a5f5);border-radius:99px;animation:barSweep .72s ease-in-out infinite;}
+@keyframes barSweep{0%{transform:translateX(-120%);}100%{transform:translateX(250%);}}
+@media(prefers-reduced-motion:reduce){
+  #splashScreen.hide,.splash-logo,.splash-school,.splash-sub,.splash-user,.splash-bar-wrap,.splash-bar-fill{animation:none!important;}
+}
 .tb-line-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.22);border-radius:8px;padding:4px 9px;color:rgba(255,255,255,.8);font-size:12px;font-weight:700;cursor:pointer;line-height:1.4;white-space:nowrap;flex-shrink:0;}
 .tb-line-btn:hover{background:rgba(255,255,255,.2);}
 .tb-line-btn.connected{background:rgba(6,199,85,.2);border-color:rgba(6,199,85,.55);color:#a5d6a7;}
@@ -4116,8 +4119,31 @@ window.addEventListener('popstate',function(e){
 });
 
 // ===== SESSION: จำการล็อกอินไว้ รีเฟรชแล้วไม่หลุดออกหน้าล็อกอิน =====
-function saveSession(o){try{localStorage.setItem('nyk_session',JSON.stringify(o));}catch(e){}}
+function saveSession(o){try{o.ts=Date.now();localStorage.setItem('nyk_session',JSON.stringify(o));}catch(e){}}
 function clearSession(){try{localStorage.removeItem('nyk_session');}catch(e){}}
+function refreshStaffSessionContext(){
+  (async function(){
+    try{
+      var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id).catch(function(){return[];});
+      G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
+      if(rd&&rd.length){
+        var cd=await api('/rest/v1/classrooms?select=id,room_name&id=eq.'+rd[0].classroom_id+'&limit=1').catch(function(){return[];});
+        if(cd&&cd.length)G.room=cd[0];
+      }
+      await loadCategories();
+      populateCategorySelects();
+      var rn=G.room?G.room.room_name:'ไม่ระบุห้อง';
+      var isViewer=G.user&&G.user.role==='viewer';
+      var topRole=document.getElementById('topRole');
+      var infoRoom=document.getElementById('infoRoom');
+      if(topRole)topRole.textContent=G.user.role==='admin'?'ผู้ดูแลระบบ':(isViewer?'ผู้บริหาร · ดูอย่างเดียว':'ครูที่ปรึกษา '+rn);
+      if(infoRoom)infoRoom.textContent=isViewer?'ผู้บริหาร':'ครูที่ปรึกษา '+rn;
+      loadDashStats();
+      populateStudentSelects();
+      saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds});
+    }catch(e){console.log('session refresh:',e.message);}
+  })();
+}
 async function resumeSession(){
   var raw;try{raw=localStorage.getItem('nyk_session');}catch(e){}
   if(!raw)return false;
@@ -4126,10 +4152,11 @@ async function resumeSession(){
   try{
     if(s.t==='staff'){
       G.user=s.user;G.semester=s.semester||1;if(s.hvYear)HV_YEAR=s.hvYear;
-      var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id).catch(function(){return[];});
-      G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
-      if(rd&&rd.length){var cd=await api('/rest/v1/classrooms?select=id,room_name&id=eq.'+rd[0].classroom_id+'&limit=1').catch(function(){return[];});if(cd&&cd.length)G.room=cd[0];}
-      await loadCategories();showApp();return true;
+      if(s.room)G.room=s.room;
+      if(s.myRoomIds)G.myRoomIds=s.myRoomIds;
+      showApp();
+      refreshStaffSessionContext();
+      return true;
     }
     if(s.t==='viewer'){G.user=s.user;G.viewOnly=true;await loadCategories();execStart();return true;}
     if(s.t==='student'||s.t==='parent'){STU.mode=s.t;await loadCategories();await renderStuPortal(s.student);return true;}
@@ -4165,9 +4192,9 @@ async function doLogin(){
     var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id);
     G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
     if(rd&&rd.length){var cd=await api('/rest/v1/classrooms?select=id,room_name&id=eq.'+rd[0].classroom_id+'&limit=1');if(cd&&cd.length)G.room=cd[0];}
-    await loadCategories();
-    saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR});
+    saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds});
     showApp();
+    loadCategories().then(function(){populateCategorySelects();}).catch(function(e){console.log('cats:',e.message);});
   }catch(e){admLoginEvent({action:'login',success:false,entity:'auth',summary:'เกิดข้อผิดพลาด: '+((e.message||'').slice(0,80))},{actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
 }
 // แสดง/ซ่อนรหัสผ่าน
@@ -6099,29 +6126,25 @@ async function loadCategories(){
 }
 
 function showApp(){
-  // แสดง Splash Screen ก่อน 2 วินาที
   var splash=document.getElementById('splashScreen');
   var loginPage=document.getElementById('loginPage');
   var app=document.getElementById('app');
+  if(loginPage)loginPage.style.display='none';
+  if(app)app.style.display='block';
   if(splash){
     var uname=G.user?G.user.fullname:'';
     var splashUser=document.getElementById('splashUser');
     if(splashUser)splashUser.textContent=uname?'👤 '+uname:'';
-    loginPage.style.display='none';
+    splash.classList.remove('hide');
     splash.style.display='flex';
     setTimeout(function(){
       splash.classList.add('hide');
       setTimeout(function(){
         splash.style.display='none';
         splash.classList.remove('hide');
-        app.style.display='block';
-        _showAppInit();
-      },500);
-    },2000);
-    return;
+      },190);
+    },420);
   }
-  loginPage.style.display='none';
-  app.style.display='block';
   _showAppInit();
 }
 function _showAppInit(){
