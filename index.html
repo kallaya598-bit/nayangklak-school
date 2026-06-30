@@ -1950,6 +1950,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
                   <label class="form-label">ช่องคะแนนปลายทาง</label>
                   <select class="form-control" id="exStructure" onchange="examLoadLinkedExam()"><option value="">เลือกช่องคะแนน...</option></select>
                   <div id="exStructureHint" class="exam-struct-hint">เลือกช่องคะแนนเพื่อดูสถานะชุดข้อสอบ</div>
+                  <button class="btn btn-sm" id="exDeleteCurrentBtn" style="display:none;margin-top:8px;color:#c62828;border-color:#ffcdd2;background:#fff;" onclick="examDeleteCurrent()">🗑️ ลบ/ล้างชุดข้อสอบนี้</button>
                 </div>
               </div>
               <div class="form-group">
@@ -2621,9 +2622,9 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 <!-- Delete exam confirm modal -->
 <div class="ex-del-modal" id="exDelModal">
   <div class="ex-del-box">
-    <h3>🗑️ ลบข้อสอบนี้?</h3>
+    <h3>🗑️ ลบ/ล้างข้อสอบนี้?</h3>
     <p id="exDelModalTitle" style="font-weight:700;color:#333;"></p>
-    <p>จะลบชุดข้อสอบและผลสอบทั้งหมดของชุดนี้ออก ไม่สามารถกู้คืนได้</p>
+    <p>จะลบชุดข้อสอบและผลตรวจทั้งหมดของชุดนี้ออก ไม่สามารถกู้คืนได้ คะแนนที่บันทึกในรายวิชาจะไม่ถูกลบ</p>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="btn btn-sm" onclick="document.getElementById('exDelModal').style.display='none'">ยกเลิก</button>
       <button class="btn btn-sm" style="background:#c62828;color:#fff;" onclick="examDeleteSubjectDo()">ลบถาวร</button>
@@ -3468,18 +3469,22 @@ function examRenderStructureOptions(keepId){
 }
 function examUpdateStructureHint(){
   var el=document.getElementById('exStructureHint');if(!el)return;
+  var del=document.getElementById('exDeleteCurrentBtn');
   if(!EX.structure){
     el.className='exam-struct-hint';
     el.textContent='เลือกช่องคะแนนเพื่อดูสถานะชุดข้อสอบ';
+    if(del)del.style.display='none';
     return;
   }
   var link=EX.subject||EX.examLinks[String(EX.structure.id)];
   if(link){
     el.className='exam-struct-hint ok';
     el.textContent='✓ มีชุดข้อสอบแล้ว: '+(link.exam_title||EX.structure.name||'ชุดข้อสอบ')+' · บันทึกครั้งถัดไปคือแก้ชุดเดิม';
+    if(del)del.style.display='inline-flex';
   }else{
     el.className='exam-struct-hint new';
     el.textContent='ยังไม่มีชุดข้อสอบในช่องนี้ · กรอกเฉลยแล้วกดบันทึกเพื่อสร้างใหม่';
+    if(del)del.style.display='none';
   }
 }
 
@@ -3890,15 +3895,31 @@ function examDeleteConfirm(id,title){
   document.getElementById('exDelModalTitle').textContent=title;
   document.getElementById('exDelModal').style.display='flex';
 }
+function examDeleteCurrent(){
+  var cur=EX.subject||(EX.structure?EX.examLinks[String(EX.structure.id)]:null);
+  if(!cur||!cur.id){toast('ยังไม่มีชุดข้อสอบให้ลบ','err');return;}
+  examDeleteConfirm(cur.id,cur.exam_title||cur.subject_name||'ชุดข้อสอบนี้');
+}
 async function examDeleteSubjectDo(){
   var id=EX._deleteId;if(!id)return;
   document.getElementById('exDelModal').style.display='none';
   try{
     await api('/rest/v1/exam_results?exam_subject_id=eq.'+id,{method:'DELETE'});
     await api('/rest/v1/exam_subjects?id=eq.'+id,{method:'DELETE'});
-    if(EX.subject&&String(EX.subject.id)===String(id)){
-      EX.subject=null;EX.standalone=false;EX.students=[];EX.results=[];EX.saved=0;
+    var deletedCurrent=EX.subject&&String(EX.subject.id)===String(id);
+    Object.keys(EX.examLinks||{}).forEach(function(k){
+      if(EX.examLinks[k]&&String(EX.examLinks[k].id)===String(id))delete EX.examLinks[k];
+    });
+    if(deletedCurrent){
+      EX.subject=null;EX.results=[];EX.saved=0;
+      if(EX.standalone){EX.standalone=false;EX.students=[];}
+      examResetConfigForm();examUpdateStructureHint();
       examRenderResults();
+    }
+    if(EX.assign&&!EX.standalone){
+      await examLoadStructureLinks();
+      examRenderStructureOptions(EX.structure&&EX.structure.id);
+      await examLoadLinkedExam();
     }
     await examLoadSaList();
     toast('ลบข้อสอบแล้ว');
@@ -4026,6 +4047,25 @@ function examLoadQrGen(){
   return EX.qrPromise;
 }
 
+async function examGetCameraStream(){
+  var base={width:{ideal:1920},height:{ideal:1080}};
+  try{
+    return await navigator.mediaDevices.getUserMedia({video:Object.assign({facingMode:{ideal:'environment'}},base)});
+  }catch(e){
+    if(/notfound|overconstrained|constraint/i.test(e.name||e.message||'')){
+      return await navigator.mediaDevices.getUserMedia({video:base});
+    }
+    throw e;
+  }
+}
+function examCameraErrorText(e){
+  var n=(e&&e.name)||'',m=(e&&e.message)||'';
+  if(/notfound/i.test(n)||/Requested device not found/i.test(m))return 'ไม่พบกล้องในเครื่องนี้ ลองใช้มือถือที่มีกล้อง หรือกดแท็บ "ตรวจไฟล์" แล้วอัปโหลดรูป/PDF แทน';
+  if(/notallowed|permission/i.test(n+m))return 'ยังไม่ได้อนุญาตใช้กล้อง กรุณากดอนุญาตกล้องในเบราว์เซอร์ แล้วลองใหม่';
+  if(/notreadable|trackstart/i.test(n+m))return 'กล้องถูกใช้งานโดยแอปอื่นอยู่ กรุณาปิดแอปกล้อง/ประชุมออนไลน์ แล้วลองใหม่';
+  if(/security/i.test(n+m))return 'เบราว์เซอร์อนุญาตกล้องเฉพาะเว็บ HTTPS เท่านั้น กรุณาเปิดผ่าน GitHub Pages';
+  return m||'ไม่ทราบสาเหตุ';
+}
 async function examOpenCamera(){
   if(!await examEnsureReady())return;
   if(!navigator.mediaDevices?.getUserMedia){toast('เบราว์เซอร์นี้ไม่รองรับกล้องสด','err');return;}
@@ -4033,10 +4073,10 @@ async function examOpenCamera(){
   document.getElementById('exCameraModal').style.display='flex';
   document.getElementById('exCamStatus').textContent='กำลังเปิดกล้อง...';
   try{
-    EX.cam=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
+    EX.cam=await examGetCameraStream();
     var video=document.getElementById('exCamVideo');video.srcObject=EX.cam;await video.play();
     EX.camTimer=setInterval(function(){examDetectLive(video);},450);
-  }catch(e){examCloseCamera();toast('เปิดกล้องไม่ได้: '+e.message,'err');}
+  }catch(e){examCloseCamera();toast('เปิดกล้องไม่ได้: '+examCameraErrorText(e),'err');examSetTab('scan');}
 }
 function examDetectLive(video){
   if(!video.videoWidth||EX.camDone)return;
