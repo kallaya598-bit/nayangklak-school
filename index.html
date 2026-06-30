@@ -3843,7 +3843,7 @@ async function examCreateSa(){
   if(!checked.length){toast('เลือกห้องเรียนอย่างน้อย 1 ห้อง','err');return;}
   var numQ=Math.min(Math.max(parseInt(document.getElementById('exSaNumQ').value)||20,1),60);
   var choices=parseInt(document.getElementById('exSaChoices').value)||4;
-  var payload={assignment_id:null,structure_id:null,scope:'standalone',subject_name:title,exam_title:title,school_name:'โรงเรียนนายางกลักพิทยาคม',room:'',class_level:'',num_questions:numQ,choices:choices,objective_full:numQ,subjective_full:0,target_full:0,answer_key:{},question_scores:{},is_standalone:true,room_ids:checked.join(',')};
+  var payload={assignment_id:null,structure_id:null,scope:'standalone',subject_name:title,exam_title:title,school_name:'โรงเรียนนายางกลักพิทยาคม',room:'',class_level:'',num_questions:numQ,choices:choices,objective_full:numQ,subjective_full:0,target_full:0,answer_key:{},question_scores:{},room_ids:checked.join(',')};
   try{
     var saved=(await api('/rest/v1/exam_subjects',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
     examCloseSaModal();
@@ -3873,7 +3873,7 @@ async function examLoadStudentsFromRooms(roomIds){
 async function examLoadSaList(){
   if(!G.user)return;
   var el=document.getElementById('exSaList');if(!el)return;
-  var rows=await api('/rest/v1/exam_subjects?is_standalone=eq.true&select=id,exam_title,room_ids,num_questions,created_at&order=created_at.desc').catch(function(){return[];});
+  var rows=await api('/rest/v1/exam_subjects?scope=eq.standalone&select=id,exam_title,room_ids,num_questions,created_at&order=created_at.desc').catch(function(){return[];});
   if(!rows||!rows.length){el.innerHTML='<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อสอบอิสระ</div>';return;}
   el.innerHTML=rows.map(function(r){
     var active=EX.subject&&String(EX.subject.id)===String(r.id)?' ex-sa-active':'';
