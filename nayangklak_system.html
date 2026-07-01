@@ -4312,12 +4312,12 @@ async function buildStudentDetailHTML(stu,opts){
     api('/rest/v1/room_teachers?classroom_id=eq.'+(stu.classroom_id||0)+'&select=teachers(fullname)').catch(e0)
   ]);
   var morn=r[0]||[],aft=r[1]||[],subj=r[2]||[],good=r[3]||[],bad=r[4]||[],sum=(r[5]&&r[5][0])||null,enr=r[6]||[],adv=r[7]||[];
-  // ผลการเรียน — เฉพาะกลุ่มเรียนที่ครู "เผยแพร่"
+  // ผลการเรียน — เฉพาะกลุ่มเรียนที่ครู "เผยแพร่" (ดูตาม classroom_id ไม่ต้องรอ enroll)
   var subjGrades=[];
   try{
-    var aids=enr.map(function(x){return x.assignment_id;}).filter(Boolean);
-    if(aids.length){
-      var pubA=await api('/rest/v1/teaching_assignments?id=in.('+aids.join(',')+')&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
+    var classId=stu.classroom_id;
+    if(classId){
+      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
       if(pubA&&pubA.length){
         // วิชาเดียว+ครูเดียว ใช้โครงสร้างชุดเดียว → หา assignment_id "เจ้าของโครงสร้าง" (น้อยสุด)
         var tids=[],sjs=[];(pubA||[]).forEach(function(a){if(a.teacher_id!=null)tids.push(a.teacher_id);if(a.subject_id!=null)sjs.push(a.subject_id);});
