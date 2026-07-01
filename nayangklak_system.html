@@ -7877,13 +7877,13 @@ async function saveDressCode(){
     // บันทึกผิดระเบียบ
     vioSids.forEach(function(sid){
       byVio[sid].forEach(function(v){
-        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,round_no:roundNo,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'บันทึก',action_taken:'บันทึก'});
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,round_no:roundNo,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'closed',action_taken:'บันทึก'});
       });
     });
     // บันทึกผ่าน (score=0 ไม่หักคะแนน)
     if(G.dressPassCat){
       passSids.forEach(function(sid){
-        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:G.dressPassCat.id,score:0,record_date:dt,round_no:roundNo,description:'ผ่านการตรวจการแต่งกาย'+(notes[sid]?' ('+notes[sid]+')':''),management_status:'ผ่าน',action_taken:'ผ่าน'});
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:G.dressPassCat.id,score:0,record_date:dt,round_no:roundNo,description:'ผ่านการตรวจการแต่งกาย'+(notes[sid]?' ('+notes[sid]+')':''),management_status:'closed',action_taken:'ผ่าน'});
       });
     }
     if(records.length) await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(records)});
