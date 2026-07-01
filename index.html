@@ -4061,10 +4061,18 @@ function examClearCamCanvas(canvas){if(canvas&&canvas.width)canvas.getContext('2
 async function examCaptureFrame(){var video=document.getElementById('exCamVideo');if(!video.videoWidth)return;var cv=document.createElement('canvas');cv.width=video.videoWidth;cv.height=video.videoHeight;cv.getContext('2d').drawImage(video,0,0);examCloseCamera();await examProcessPages([{name:'camera.jpg',page:1,canvas:cv}]);toast('จับภาพและตรวจแล้ว โปรดตรวจทานก่อนบันทึก');}
 function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}document.getElementById('exCameraModal').style.display='none';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
+// สแตกหน้าที่เปิดเอง (ไม่พึ่ง history.state) — กันปัญหา iOS PWA แบบ standalone
+// ที่ history API ไม่เสถียร (state หายเป็นระยะ) ทำให้ปุ่มกลับเด้งไปหน้าหลักเสมอ
+var NAV_STACK=['pgDash'];
 function openPage(id,fromPop){
-  // ผลักประวัติการนำทาง (สำหรับปุ่มกลับในแอป + ปุ่ม back ของมือถือ/เบราว์เซอร์)
   var _cur=document.querySelector('.page.active');
-  if(!fromPop && (!_cur || _cur.id!==id)){ try{history.pushState({page:id},'','#'+id);}catch(e){} }
+  var changed=(!_cur || _cur.id!==id);
+  if(changed){
+    // fromPop = กำลังย้อนกลับ → แค่อัปเดต URL/hash เฉยๆ ไม่ผลักประวัติเพิ่ม
+    try{ if(fromPop) history.replaceState({page:id},'','#'+id); else history.pushState({page:id},'','#'+id); }catch(e){}
+  }
+  if(!fromPop && changed && NAV_STACK[NAV_STACK.length-1]!==id){ NAV_STACK.push(id); }
+  try{localStorage.setItem('nyk_last_page',id);}catch(e){}
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
   document.getElementById('app').classList.toggle('on-dash',id==='pgDash');
@@ -4155,29 +4163,38 @@ function toggleSidebar(){
 })();
 
 // ===== ปุ่มกลับ: ย้อนหน้าก่อนหน้า (ไม่เด้งหน้าแรกเสมอ) =====
+// ใช้ NAV_STACK ของเราเองเป็นความจริงหลัก แทนการพึ่ง history.state
+// (บน iOS PWA แบบ standalone history.state มักหายไประหว่างทาง ทำให้เข้าเงื่อนไข else แล้วเด้งไปหน้าหลักทุกครั้ง)
 function goBack(){
-  // ใช้ประวัติเบราว์เซอร์ (history.back จะยิง popstate ให้เปิดหน้าก่อนหน้า)
-  if(history.state&&history.state.page&&history.state.page!=='pgDash'){history.back();}
-  else{openPage('pgDash');}
+  if(NAV_STACK.length>1){
+    NAV_STACK.pop();
+    var prev=NAV_STACK[NAV_STACK.length-1];
+    openPage(prev,true);
+  }else{
+    // อยู่หน้าหลักแล้ว — ผลักประวัติกันหลุดออกแอปตอนกดกลับซ้ำ (ปัดนิ้ว/ปุ่ม back เครื่อง)
+    try{history.pushState({page:'pgDash'},'','#pgDash');}catch(e){}
+    openPage('pgDash',true);
+  }
 }
-function goHome(){openPage('pgDash');}
+function goHome(){ NAV_STACK=['pgDash']; openPage('pgDash',true); }
 window.addEventListener('popstate',function(e){
-  // ทำงานเฉพาะตอนอยู่ในแอปครู (#app) เท่านั้น
+  // ทำงานเฉพาะตอนอยู่ในแอปครู (#app) เท่านั้น — ปุ่ม back เครื่อง/ปัดนิ้วย้อนกลับ ให้ทำแบบเดียวกับปุ่ม "← กลับ" ในแอป
   var app=document.getElementById('app');
   if(!app||app.style.display==='none')return;
-  if(!e.state||!e.state.page){
-    // ถึงรากแล้ว — ดักไว้ที่หน้าหลัก ไม่ให้หลุดออกแอป
-    try{history.pushState({page:'pgDash'},'','#pgDash');}catch(_){}
-    openPage('pgDash',true);return;
-  }
-  openPage(e.state.page,true);
+  goBack();
 });
 
 // ===== SESSION: จำการล็อกอินไว้ รีเฟรชแล้วไม่หลุดออกหน้าล็อกอิน =====
 function saveSession(o){try{o.ts=Date.now();localStorage.setItem('nyk_session',JSON.stringify(o));}catch(e){}}
 function clearSession(){try{localStorage.removeItem('nyk_session');}catch(e){}}
+function restoreLastPage(){
+  try{
+    var id=localStorage.getItem('nyk_last_page');
+    if(id && id!=='pgDash' && document.getElementById(id)){ openPage(id); }
+  }catch(e){}
+}
 function refreshStaffSessionContext(){
-  (async function(){
+  return (async function(){
     try{
       var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id).catch(function(){return[];});
       G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
@@ -4210,7 +4227,8 @@ async function resumeSession(){
       if(s.room)G.room=s.room;
       if(s.myRoomIds)G.myRoomIds=s.myRoomIds;
       showApp();
-      refreshStaffSessionContext();
+      await refreshStaffSessionContext();
+      restoreLastPage();
       return true;
     }
     if(s.t==='viewer'){G.user=s.user;G.viewOnly=true;await loadCategories();execStart();return true;}
@@ -6578,6 +6596,7 @@ function _showAppInit(){
   // เริ่ม cloud animation หลัง app visible
   setTimeout(function(){if(window.heroCloudStart)window.heroCloudStart();},50);
   try{history.replaceState({page:'pgDash'},'','#pgDash');}catch(e){}
+  NAV_STACK=['pgDash'];
   var rn=G.room?G.room.room_name:'ไม่ระบุห้อง';
   document.getElementById('topName').textContent=G.user.fullname;
   var isViewer=G.user.role==='viewer';
@@ -13313,6 +13332,8 @@ document.querySelectorAll('.nav-item[data-page]').forEach(function(n){
 document.getElementById('logoutBtn').addEventListener('click',function(){
   admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบ'});
   clearSession();
+  NAV_STACK=['pgDash'];
+  try{localStorage.removeItem('nyk_last_page');}catch(e){}
   G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[]};
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
   loadLoginRemember();
