@@ -1,8 +1,11 @@
--- เพิ่มคอลัมน์ student_visible ใน grade_structures
--- รัน SQL นี้ใน Supabase SQL Editor ก่อนใช้ฟีเจอร์เปิด/ปิดช่องคะแนน
+-- รัน SQL นี้ใน Supabase SQL Editor (รันซ้ำได้เลย ไม่มีผลเสีย)
 
 ALTER TABLE grade_structures
   ADD COLUMN IF NOT EXISTS student_visible BOOLEAN DEFAULT TRUE;
 
--- อัปเดตแถวเก่าที่มีอยู่แล้วให้เปิดทั้งหมดก่อน
-UPDATE grade_structures SET student_visible = TRUE WHERE student_visible IS NULL;
+-- แก้ DEFAULT ให้ถูกต้องในกรณีที่ column เคยถูกสร้างมาก่อน
+ALTER TABLE grade_structures
+  ALTER COLUMN student_visible SET DEFAULT TRUE;
+
+-- รีเซ็ตทุกแถวให้เปิด (รวมที่เป็น false หรือ null)
+UPDATE grade_structures SET student_visible = TRUE;

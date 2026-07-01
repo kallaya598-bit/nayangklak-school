@@ -8137,7 +8137,7 @@ async function loadGradeStructure(){
     var h2='<tr>';
     groups.forEach(function(g,gi){
       var bg=phaseColors[gi%phaseColors.length];
-      g.items.forEach(function(it){var vis=it.student_visible!==false;var thBg=vis?'#f0f4ff':'#fff0f0';h2+='<th style="background:'+thBg+';color:#1a3a6b;border-left:1px solid #c5d3ee;border-top:3px solid '+bg+';font-size:11.5px;font-weight:700;">'+it.name+'<br><span style="font-weight:500;color:#455a64;">('+it.max_score+')</span><br><button onclick="toggleStructVisible('+it.id+','+(vis?'false':'true')+',this)" class="vcb '+(vis?'vcb-on':'vcb-off')+'">'+(vis?'👁 เปิด':'🙈 ปิด')+'</button></th>';});
+      g.items.forEach(function(it){var vis=it.student_visible!==false;var thBg=vis?'#f0f4ff':'#fff0f0';h2+='<th style="background:'+thBg+';color:#1a3a6b;border-left:1px solid #c5d3ee;border-top:3px solid '+bg+';font-size:11.5px;font-weight:700;">'+it.name+'<br><span style="font-weight:500;color:#455a64;">('+it.max_score+')</span><br><button onclick="toggleStructVisible('+it.id+',this)" class="vcb '+(vis?'vcb-on':'vcb-off')+'">'+(vis?'👁 เปิด':'🙈 ปิด')+'</button></th>';});
       h2+='<th style="background:#dbeafe;color:'+bg+';border-left:2px solid '+bg+';border-top:3px solid '+bg+';font-weight:800;font-size:12px;">รวม</th>';
     });
     h2+='</tr>';
@@ -8196,11 +8196,13 @@ function gradeChanged(inp){
   renderGradeSummary();
 }
 
-// เปิด/ปิดช่องคะแนน (student_visible) — ครูกดปุ่มใต้หัวคอลัมน์
-async function toggleStructVisible(structId,newVal,btn){
+// เปิด/ปิดช่องคะแนน (student_visible) — อ่านสถานะปัจจุบันจาก GR.structs แล้ว toggle
+async function toggleStructVisible(structId,btn){
+  var s=(GR.structs||[]).filter(function(x){return x.id==structId;})[0];
+  var curVis=s?s.student_visible!==false:true;
+  var newVal=!curVis;
   try{
     await api('/rest/v1/grade_structures?id=eq.'+structId,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({student_visible:newVal})});
-    var s=(GR.structs||[]).filter(function(x){return x.id==structId;})[0];
     if(s)s.student_visible=newVal;
     btn.textContent=newVal?'👁 เปิด':'🙈 ปิด';
     btn.className='vcb '+(newVal?'vcb-on':'vcb-off');
