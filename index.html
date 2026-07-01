@@ -166,6 +166,18 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .sp-obj-score.no-score{color:#aaa;font-weight:400;}
 .sp-obj-bar{background:#dde8f8;border-radius:4px;height:6px;overflow:hidden;}
 .sp-obj-bar-fill{background:#1565c0;height:6px;border-radius:4px;}
+.sp-subjatt-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.sp-subjatt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;}
+.sp-subjatt-name{font-weight:700;font-size:14.5px;color:#1a3a6b;line-height:1.3;}
+.sp-att-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.sp-att-safe{background:#e8f5e9;color:#2e7d32;}
+.sp-att-warn{background:#fff8e1;color:#e65100;}
+.sp-att-danger{background:#ffebee;color:#c62828;}
+.sp-att-pct-row{font-size:12.5px;color:var(--text2);margin-bottom:5px;}
+.sp-att-bar{background:#eceff1;border-radius:5px;height:7px;overflow:hidden;margin-bottom:7px;}
+.sp-att-bar-fill{height:7px;border-radius:5px;}
+.sp-att-counts{display:flex;gap:12px;flex-wrap:wrap;}
+.sp-att-ct{font-size:12.5px;display:flex;align-items:center;gap:3px;}
 /* แดชบอร์ดผู้บริหาร */
 .ex-hero{background:linear-gradient(135deg,#0d2d5e,#1a3a6b);color:#fff;border-radius:16px;padding:16px 18px;margin-bottom:14px;}
 .ex-hero h2{font-size:20.4px;font-weight:800;margin-bottom:2px;}
@@ -4304,7 +4316,7 @@ async function buildStudentDetailHTML(stu,opts){
   var r=await Promise.all([
     api('/rest/v1/morning_attendance?student_id=eq.'+id+'&select=status,att_date').catch(e0),
     api('/rest/v1/afternoon_attendance?student_id=eq.'+id+'&select=status,att_date').catch(e0),
-    api('/rest/v1/subject_attendance?student_id=eq.'+id+'&select=status,att_date,period').catch(e0),
+    api('/rest/v1/subject_attendance?student_id=eq.'+id+'&select=status,att_date,period,assignment_id').catch(e0),
     api('/rest/v1/good_deeds?student_id=eq.'+id+'&select=deed_date,description,score,category_id&order=deed_date.desc&limit=50').catch(e0),
     api('/rest/v1/behavior_records?student_id=eq.'+id+'&select=record_date,description,score,category_id&order=record_date.desc&limit=50').catch(e0),
     api('/rest/v1/score_summary?student_id=eq.'+id+'&select=good_score,bad_score,net_score&limit=1').catch(e0),
@@ -4395,6 +4407,49 @@ async function buildStudentDetailHTML(stu,opts){
     +'</div>'
     +'<div style="text-align:center;margin-top:10px;font-size:14.4px;color:var(--text2);">มาเรียน '+pPct+'% จากการเช็คทั้งหมด '+totalChk+' ครั้ง</div>'
     +'</div>';
+  // เวลาเรียนรายวิชา (subject_attendance จัดกลุ่มตาม assignment)
+  try{
+    var classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+(stu.classroom_id||0)+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(function(){return[];});
+    var attByAss={};
+    (subj||[]).forEach(function(a){
+      var aid=a.assignment_id;if(!aid)return;
+      if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,total:0};
+      attByAss[aid].total++;
+      if(a.status==='present')attByAss[aid].present++;
+      else if(a.status==='late')attByAss[aid].late++;
+      else if(a.status==='leave')attByAss[aid].leave++;
+      else if(a.status==='absent')attByAss[aid].absent++;
+    });
+    html+='<div class="sp-card"><h3>📖 เวลาเรียนรายวิชา</h3>';
+    var hasSubjAtt=false;
+    (classAssAll||[]).forEach(function(ass){
+      var cnts=attByAss[ass.id];if(!cnts||cnts.total===0)return;
+      hasSubjAtt=true;
+      var sname=(ass.subjects?ass.subjects.subject_name:'วิชา');
+      var scode=(ass.subjects?ass.subjects.subject_code:'');
+      var attended=cnts.present+cnts.late;
+      var pct=Math.round(attended/cnts.total*100);
+      var barCol=pct>=85?'#2e7d32':(pct>=80?'#f57f17':'#c62828');
+      var bClass=pct>=85?'sp-att-safe':(pct>=80?'sp-att-warn':'sp-att-danger');
+      var bLabel=pct>=85?'✅ ปกติ':(pct>=80?'⚠️ เสี่ยง':'🚨 สุ่มเสี่ยง มส');
+      html+='<div class="sp-subjatt-card">'
+        +'<div class="sp-subjatt-head">'
+        +'<span class="sp-subjatt-name">'+sname+(scode?' <span style="font-size:12px;font-weight:400;color:#607d8b;">('+scode+')</span>':'')+'</span>'
+        +'<span class="sp-att-badge '+bClass+'">'+bLabel+'</span>'
+        +'</div>'
+        +'<div class="sp-att-pct-row">เข้าเรียน <b>'+pct+'%</b> ('+attended+' / '+cnts.total+' คาบ)</div>'
+        +'<div class="sp-att-bar"><div class="sp-att-bar-fill" style="width:'+pct+'%;background:'+barCol+';"></div></div>'
+        +'<div class="sp-att-counts">'
+        +'<span class="sp-att-ct"><span style="color:#2e7d32;font-size:14px;">●</span> มา '+cnts.present+'</span>'
+        +'<span class="sp-att-ct"><span style="color:#e65100;font-size:14px;">●</span> สาย '+cnts.late+'</span>'
+        +'<span class="sp-att-ct"><span style="color:#00695c;font-size:14px;">●</span> ลา '+cnts.leave+'</span>'
+        +'<span class="sp-att-ct"><span style="color:#c62828;font-size:14px;">●</span> ขาด '+cnts.absent+'</span>'
+        +'</div>'
+        +'</div>';
+    });
+    if(!hasSubjAtt)html+='<div class="sp-empty">ยังไม่มีข้อมูลการเข้าเรียนรายวิชา</div>';
+    html+='</div>';
+  }catch(e){}
   // ผลการเรียน (เฉพาะที่เผยแพร่)
   html+='<div class="sp-card"><h3>📚 ผลการเรียน <span style="font-size:13.2px;color:var(--text3);font-weight:400;">(เฉพาะที่เผยแพร่)</span></h3>';
   if(subjGrades.length){
