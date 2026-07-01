@@ -178,6 +178,25 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .sp-att-bar-fill{height:7px;border-radius:5px;}
 .sp-att-counts{display:flex;gap:12px;flex-wrap:wrap;}
 .sp-att-ct{font-size:12.5px;display:flex;align-items:center;gap:3px;}
+/* ===== Student Portal Tabs ===== */
+.spt-nav{display:flex;overflow-x:auto;gap:8px;padding:6px 0 10px;position:sticky;top:68px;z-index:40;background:#f9fbff;scrollbar-width:none;}
+.spt-nav::-webkit-scrollbar{display:none;}
+.spt-tab{white-space:nowrap;background:#fff;border:1.5px solid #c5d5ee;border-radius:20px;padding:8px 18px;font-size:14px;font-family:Sarabun,sans-serif;cursor:pointer;color:#1565c0;font-weight:600;transition:all .18s;flex-shrink:0;}
+.spt-tab.spt-active{background:#1565c0;color:#fff;border-color:#1565c0;}
+.spt-pane{animation:sptFade .18s ease;}
+@keyframes sptFade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.spt-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.spt-kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.spt-kpi .kv{font-size:26px;font-weight:800;line-height:1.1;}
+.spt-kpi .kl{font-size:12.5px;color:var(--text2);margin-top:4px;}
+.spt-risk-row{background:#fff8e1;border:1px solid #ffe082;border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+.spt-profile-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.spt-profile-photo{width:60px;height:60px;border-radius:50%;flex-shrink:0;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid #bbdefb;overflow:hidden;}
+.spt-profile-info{flex:1;min-width:0;}
+.spt-profile-name{font-size:16px;font-weight:800;color:#1a3a6b;line-height:1.3;}
+.spt-profile-meta{font-size:13px;color:var(--text2);margin-top:3px;}
+.spt-profile-advisor{font-size:13px;color:#546e7a;margin-top:5px;}
+@media(max-width:600px){.spt-nav{top:60px;}.spt-kpi .kv{font-size:20px;}.spt-kpi{padding:12px 4px;}}
 /* แดชบอร์ดผู้บริหาร */
 .ex-hero{background:linear-gradient(135deg,#0d2d5e,#1a3a6b);color:#fff;border-radius:16px;padding:16px 18px;margin-bottom:14px;}
 .ex-hero h2{font-size:20.4px;font-weight:800;margin-bottom:2px;}
@@ -4518,6 +4537,241 @@ async function buildStudentDetailHTML(stu,opts){
   return html;
 }
 
+function sptSwitch(paneId,btn){
+  document.querySelectorAll('.spt-pane').forEach(function(p){p.style.display='none';});
+  document.querySelectorAll('.spt-tab').forEach(function(b){b.classList.remove('spt-active');});
+  var pane=document.getElementById(paneId);
+  if(pane)pane.style.display='block';
+  if(btn)btn.classList.add('spt-active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function buildStuPortalTabbed(stu,mode){
+  mode=mode||'student';
+  var id=stu.id,e0=function(){return[];};
+  var rn=(stu.classrooms&&stu.classrooms.room_name)||'-';
+  var r=await Promise.all([
+    api('/rest/v1/morning_attendance?student_id=eq.'+id+'&select=status,att_date').catch(e0),
+    api('/rest/v1/afternoon_attendance?student_id=eq.'+id+'&select=status,att_date').catch(e0),
+    api('/rest/v1/subject_attendance?student_id=eq.'+id+'&select=status,att_date,period,assignment_id').catch(e0),
+    api('/rest/v1/good_deeds?student_id=eq.'+id+'&select=deed_date,description,score,category_id&order=deed_date.desc&limit=50').catch(e0),
+    api('/rest/v1/behavior_records?student_id=eq.'+id+'&select=record_date,description,score,category_id&order=record_date.desc&limit=50').catch(e0),
+    api('/rest/v1/score_summary?student_id=eq.'+id+'&select=good_score,bad_score,net_score&limit=1').catch(e0),
+    api('/rest/v1/room_teachers?classroom_id=eq.'+(stu.classroom_id||0)+'&select=teachers(fullname)').catch(e0)
+  ]);
+  var morn=r[0]||[],aft=r[1]||[],subj=r[2]||[],good=r[3]||[],bad=r[4]||[],sum=(r[5]&&r[5][0])||null,adv=r[6]||[];
+  var advNames=(adv||[]).map(function(x){return x.teachers&&x.teachers.fullname;}).filter(Boolean).join(', ')||'-';
+
+  // ผลการเรียน + เวลาเรียนรายวิชา
+  var subjGrades=[],classAssAll=[];
+  try{
+    var classId=stu.classroom_id;
+    if(classId){
+      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
+      classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(e0)||[];
+      if(pubA&&pubA.length){
+        var tids=[],sjs=[];(pubA||[]).forEach(function(a){if(a.teacher_id!=null)tids.push(a.teacher_id);if(a.subject_id!=null)sjs.push(a.subject_id);});
+        var canon={};
+        if(tids.length&&sjs.length){
+          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&select=id,teacher_id,subject_id').catch(e0);
+          (sib||[]).forEach(function(x){var k=x.teacher_id+'_'+x.subject_id;if(canon[k]==null||x.id<canon[k])canon[k]=x.id;});
+        }
+        var ownerOf=function(a){var k=a.teacher_id+'_'+a.subject_id;return canon[k]!=null?canon[k]:a.id;};
+        var canonIds=[];(pubA||[]).forEach(function(a){var o=ownerOf(a);if(canonIds.indexOf(o)<0)canonIds.push(o);});
+        var structs=await api('/rest/v1/grade_structures?assignment_id=in.('+canonIds.join(',')+')&student_visible=eq.true&select=id,assignment_id,name,max_score,grade_type,order_no&order=order_no').catch(e0)||[];
+        var sids=structs.map(function(s){return s.id;});
+        var grd=[];if(sids.length)grd=await api('/rest/v1/grades?student_id=eq.'+id+'&structure_id=in.('+sids.join(',')+')&select=structure_id,score').catch(e0)||[];
+        var gByStruct={};grd.forEach(function(g){gByStruct[g.structure_id]=g.score;});
+        var seen={};
+        (pubA||[]).forEach(function(a){
+          var o=ownerOf(a);if(seen[o])return;seen[o]=1;
+          var st=structs.filter(function(s){return s.assignment_id==o;});
+          var tot=0,mx=0,has=false;
+          st.forEach(function(s){if(gByStruct[s.id]!=null){tot+=Number(gByStruct[s.id])||0;has=true;}mx+=Number(s.max_score)||0;});
+          subjGrades.push({name:(a.subjects?a.subjects.subject_name:'วิชา'),code:(a.subjects?a.subjects.subject_code:''),tot:tot,mx:mx,grade:has?calcGrade(tot,mx):null,has:has,structs:st.map(function(s){return{id:s.id,name:s.name,max_score:Number(s.max_score)||0,grade_type:s.grade_type||'other',score:gByStruct[s.id]!=null?Number(gByStruct[s.id]):null};})});
+        });
+      }
+    }
+  }catch(e){}
+
+  // คำนวณค่าสรุป
+  var mornCnt={present:0,late:0,leave:0,absent:0};
+  morn.forEach(function(a){if(mornCnt[a.status]!==undefined)mornCnt[a.status]++;});
+  var aftCnt={present:0,late:0,leave:0,absent:0};
+  aft.forEach(function(a){if(aftCnt[a.status]!==undefined)aftCnt[a.status]++;});
+  var all=morn.concat(aft),cnt={present:0,late:0,leave:0,absent:0,other:0};
+  all.forEach(function(a){var s=a.status;if(cnt[s]!==undefined)cnt[s]++;else cnt.other++;});
+  var totalChk=all.length,pPct=totalChk?Math.round((cnt.present/totalChk)*100):0;
+  var goodTotal=good.reduce(function(a,b){return a+(Number(b.score)||0);},0);
+  var badTotal=bad.reduce(function(a,b){return a+(Number(b.score)||0);},0);
+  var net=sum?sum.net_score:(100+goodTotal-Math.abs(badTotal));
+  var td=today();
+  var todayRec=morn.concat(aft).filter(function(a){return a.att_date===td;});
+  var todayBad=todayRec.filter(function(a){return a.status==='absent'||a.status==='late'||a.status==='skip';});
+  var d7=dateBack(7),recentBad=bad.filter(function(b){return b.record_date&&b.record_date>=d7;});
+
+  // เวลาเรียนรายวิชา
+  var attByAss={};
+  subj.forEach(function(a){
+    var aid=a.assignment_id;if(!aid)return;
+    if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,total:0};
+    attByAss[aid].total++;
+    if(a.status==='present')attByAss[aid].present++;
+    else if(a.status==='late')attByAss[aid].late++;
+    else if(a.status==='leave')attByAss[aid].leave++;
+    else if(a.status==='absent')attByAss[aid].absent++;
+  });
+
+  // วิชาเสี่ยง มส
+  var msRisk=[];
+  (classAssAll||[]).forEach(function(ass){
+    var c=attByAss[ass.id];if(!c||c.total===0)return;
+    var pct=Math.round((c.present+c.late)/c.total*100);
+    if(pct<85)msRisk.push({name:(ass.subjects?ass.subjects.subject_name:'วิชา'),pct:pct,danger:pct<80});
+  });
+
+  // สถานะวันนี้
+  var todayStatusHtml=todayRec.length===0?'<span style="color:#607d8b;">ยังไม่เช็ค</span>'
+    :(todayBad.length?'<span style="color:#c62828;">⚠️ ขาด/สาย</span>':'<span style="color:#2e7d32;">✅ ปกติ</span>');
+
+  // ========== TAB: ภาพรวม ==========
+  var ov='';
+  if(mode==='parent'){
+    if(todayBad.length){var lab=todayBad.map(function(a){return({absent:'ขาดเรียน',late:'มาสาย',skip:'หนีเรียน'})[a.status]||a.status;}).join(' / ');ov+='<div class="sp-alert sp-alert-red">⚠️ วันนี้บุตรหลานของท่าน: <b>'+lab+'</b> — กรุณาติดต่อครูที่ปรึกษา</div>';}
+    else if(todayRec.length)ov+='<div class="sp-alert sp-alert-green">✅ วันนี้บุตรหลานของท่านมาเรียนตามปกติ</div>';
+    if(recentBad.length)ov+='<div class="sp-alert sp-alert-orange">📌 มีบันทึกพฤติกรรม '+recentBad.length+' รายการใน 7 วันล่าสุด</div>';
+  }
+  // การ์ดโปรไฟล์
+  var photoHtml=stu.photo_url
+    ?'<img src="'+stu.photo_url+'" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">'
+    :'<span style="font-size:28px;">👤</span>';
+  ov+='<div class="spt-profile-card">'
+    +'<div class="spt-profile-photo">'+photoHtml+'</div>'
+    +'<div class="spt-profile-info">'
+    +'<div class="spt-profile-name">'+stu.fullname+'</div>'
+    +'<div class="spt-profile-meta">เลขประจำตัว: <b>'+stu.student_code+'</b> · ห้อง '+rn+(stu.order_no?' · เลขที่ '+stu.order_no:'')+'</div>'
+    +'<div class="spt-profile-advisor">👨‍🏫 ครูที่ปรึกษา: '+advNames+'</div>'
+    +'</div></div>';
+  // KPI 3 ช่อง
+  var netCol=net>=80?'var(--green)':(net>=60?'#e65100':'var(--red)');
+  var attCol=pPct>=85?'var(--green)':(pPct>=80?'#e65100':'var(--red)');
+  ov+='<div class="spt-kpi-row">'
+    +'<div class="spt-kpi"><div class="kv" style="color:'+netCol+';">'+net+'</div><div class="kl">คะแนนประพฤติ</div></div>'
+    +'<div class="spt-kpi"><div class="kv" style="color:'+attCol+';">'+pPct+'%</div><div class="kl">เวลาเรียนรวม</div></div>'
+    +'<div class="spt-kpi"><div class="kv" style="font-size:18px;line-height:2;">'+todayStatusHtml+'</div><div class="kl">สถานะวันนี้</div></div>'
+    +'</div>';
+  // เตือนวิชาเสี่ยง มส
+  if(msRisk.length){
+    ov+='<div class="spt-risk-row"><b style="color:#e65100;">⚠️ เสี่ยงเวลาเรียนไม่ครบ</b><ul style="margin:6px 0 0;padding-left:18px;">';
+    msRisk.forEach(function(s){ov+='<li style="font-size:14px;margin-bottom:4px;">'+s.name+' — <b>'+s.pct+'%</b> '+(s.danger?'🚨 สุ่มเสี่ยง มส':'⚠️ เสี่ยง')+'</li>';});
+    ov+='</ul></div>';
+  }
+  // ปุ่มแบบประเมิน
+  ov+=mhPortalCard(mode);
+  // home visit + activity card (ถ้ามี)
+  try{ov+=await hvStuCard(stu);}catch(e){}
+  try{ov+=await actPortalHTML(stu,mode);}catch(e){}
+
+  // ========== TAB: เวลาเรียน ==========
+  var att='';
+  att+='<div class="sp-card"><h3>🕐 สถิติการเข้าเรียน</h3>'
+    +'<div class="sp-stats">'
+    +'<div class="sp-stat"><div class="v" style="color:var(--green);">'+cnt.present+'</div><div class="l">มา</div></div>'
+    +'<div class="sp-stat"><div class="v" style="color:#e65100;">'+cnt.late+'</div><div class="l">สาย</div></div>'
+    +'<div class="sp-stat"><div class="v" style="color:#00695c;">'+cnt.leave+'</div><div class="l">ลา</div></div>'
+    +'<div class="sp-stat"><div class="v" style="color:var(--red);">'+cnt.absent+'</div><div class="l">ขาด</div></div>'
+    +'</div>'
+    +'<div style="text-align:center;margin-top:10px;font-size:14.4px;color:var(--text2);">มาเรียน '+pPct+'% จากการเช็คทั้งหมด '+totalChk+' ครั้ง (รวมเสาธง+เย็น)</div>'
+    +'</div>';
+  att+='<div class="sp-card"><h3>📖 เวลาเรียนรายวิชา</h3>';
+  var hasSubjAtt=false;
+  (classAssAll||[]).forEach(function(ass){
+    var c=attByAss[ass.id];if(!c||c.total===0)return;
+    hasSubjAtt=true;
+    var sname=(ass.subjects?ass.subjects.subject_name:'วิชา'),scode=(ass.subjects?ass.subjects.subject_code:'');
+    var attended=c.present+c.late,pct=Math.round(attended/c.total*100);
+    var barCol=pct>=85?'#2e7d32':(pct>=80?'#f57f17':'#c62828');
+    var bClass=pct>=85?'sp-att-safe':(pct>=80?'sp-att-warn':'sp-att-danger');
+    var bLabel=pct>=85?'✅ ปกติ':(pct>=80?'⚠️ เสี่ยง':'🚨 สุ่มเสี่ยง มส');
+    att+='<div class="sp-subjatt-card">'
+      +'<div class="sp-subjatt-head"><span class="sp-subjatt-name">'+sname+(scode?' <span style="font-size:12px;font-weight:400;color:#607d8b;">('+scode+')</span>':'')+'</span>'
+      +'<span class="sp-att-badge '+bClass+'">'+bLabel+'</span></div>'
+      +'<div class="sp-att-pct-row">เข้าเรียน <b>'+pct+'%</b> ('+attended+' / '+c.total+' คาบ)</div>'
+      +'<div class="sp-att-bar"><div class="sp-att-bar-fill" style="width:'+pct+'%;background:'+barCol+';"></div></div>'
+      +'<div class="sp-att-counts">'
+      +'<span class="sp-att-ct"><span style="color:#2e7d32;font-size:14px;">●</span> มา '+c.present+'</span>'
+      +'<span class="sp-att-ct"><span style="color:#e65100;font-size:14px;">●</span> สาย '+c.late+'</span>'
+      +'<span class="sp-att-ct"><span style="color:#00695c;font-size:14px;">●</span> ลา '+c.leave+'</span>'
+      +'<span class="sp-att-ct"><span style="color:#c62828;font-size:14px;">●</span> ขาด '+c.absent+'</span>'
+      +'</div></div>';
+  });
+  if(!hasSubjAtt)att+='<div class="sp-empty">ยังไม่มีข้อมูลการเข้าเรียนรายวิชา</div>';
+  att+='</div>';
+
+  // ========== TAB: ผลการเรียน ==========
+  var gr='<div class="sp-card"><h3>📚 ผลการเรียน <span style="font-size:13.2px;color:var(--text3);font-weight:400;">(เฉพาะที่เผยแพร่)</span></h3>';
+  if(subjGrades.length){
+    var spPhaseOrder=['before_mid','midterm','after_mid','final','other'];
+    var spPhaseLabels={before_mid:'ก่อนกลางภาค',midterm:'สอบกลางภาค',after_mid:'หลังกลางภาค',final:'ปลายภาค',other:'อื่นๆ'};
+    var spPhaseColors={before_mid:'#1565c0',midterm:'#00695c',after_mid:'#283593',final:'#6a1b9a',other:'#37474f'};
+    var spPhaseBgs={before_mid:'#e3f2fd',midterm:'#e0f2f1',after_mid:'#e8eaf6',final:'#f3e5f5',other:'#eceff1'};
+    subjGrades.forEach(function(s){
+      gr+='<div class="sp-subj-card">';
+      gr+='<div class="sp-subj-head"><span class="sp-subj-name">'+s.name+(s.code?' <span style="font-size:12px;color:#607d8b;">('+s.code+')</span>':'')+'</span>';
+      if(s.has)gr+='<span class="sp-subj-grade '+(s.grade>=1?'sg-pass':'sg-fail')+'">เกรด '+s.grade.toFixed(1)+'</span>';
+      gr+='</div>';
+      if(s.has){
+        var gPct=s.mx?Math.round(s.tot/s.mx*100):0;
+        gr+='<div class="sp-subj-total">รวม '+s.tot.toFixed(1)+' / '+s.mx+' คะแนน ('+gPct+'%)</div>';
+        var phases={};spPhaseOrder.forEach(function(k){phases[k]=[];});
+        (s.structs||[]).forEach(function(st){var k=spPhaseOrder.indexOf(st.grade_type)>=0?st.grade_type:'other';phases[k].push(st);});
+        spPhaseOrder.forEach(function(ph){
+          if(!phases[ph].length)return;
+          gr+='<div class="sp-phase-label" style="color:'+spPhaseColors[ph]+';background:'+spPhaseBgs[ph]+';">'+spPhaseLabels[ph]+'</div>';
+          phases[ph].forEach(function(st){
+            var sc=st.score,pct2=st.max_score?Math.round((sc!=null?sc:0)/st.max_score*100):0;
+            gr+='<div class="sp-obj-row"><div class="sp-obj-meta"><span class="sp-obj-name">'+st.name+'</span>'
+              +'<span class="sp-obj-score'+(sc==null?' no-score':'')+'">'+(sc!=null?sc.toFixed(1):'ยังไม่มี')+' / '+st.max_score+'</span></div>';
+            if(sc!=null)gr+='<div class="sp-obj-bar"><div class="sp-obj-bar-fill" style="width:'+pct2+'%;background:'+spPhaseColors[ph]+';"></div></div>';
+            gr+='</div>';
+          });
+        });
+      }else{gr+='<div class="sp-subj-total" style="color:#aaa;">ยังไม่มีคะแนน</div>';}
+      gr+='</div>';
+    });
+  }else gr+='<div class="sp-empty">ยังไม่มีรายวิชาที่ครูเผยแพร่ผลการเรียน</div>';
+  gr+='</div>';
+
+  // ========== TAB: ความดี ==========
+  var deed='';
+  deed+='<div class="sp-card"><h3>📊 คะแนนความประพฤติ</h3>'
+    +'<div class="sp-stats" style="grid-template-columns:repeat(3,1fr);">'
+    +'<div class="sp-stat"><div class="v" style="color:var(--green);">+'+goodTotal+'</div><div class="l">คะแนนความดี</div></div>'
+    +'<div class="sp-stat"><div class="v" style="color:var(--red);">'+badTotal+'</div><div class="l">หักพฤติกรรม</div></div>'
+    +'<div class="sp-stat"><div class="v" style="color:var(--blue);">'+net+'</div><div class="l">คะแนนสุทธิ</div></div>'
+    +'</div></div>';
+  deed+='<div class="sp-card"><h3>❤️ บันทึกความดี ('+good.length+')</h3>';
+  if(good.length){good.slice(0,15).forEach(function(g){deed+='<div class="sp-row"><span>'+(g.description||stuCatName(G.goodCats,g.category_id)||'ความดี')+'<div class="d">'+stuThai(g.deed_date)+'</div></span><b style="color:var(--green);">+'+(g.score||0)+'</b></div>';});}
+  else deed+='<div class="sp-empty">ยังไม่มีบันทึกความดี</div>';
+  deed+='</div>';
+  deed+='<div class="sp-card"><h3>⚠️ บันทึกพฤติกรรม ('+bad.length+')</h3>';
+  if(bad.length){bad.slice(0,15).forEach(function(b){deed+='<div class="sp-row"><span>'+(b.description||stuCatName(G.behaveCats,b.category_id)||'พฤติกรรม')+'<div class="d">'+stuThai(b.record_date)+'</div></span><b style="color:var(--red);">'+(b.score||0)+'</b></div>';});}
+  else deed+='<div class="sp-empty">ไม่มีบันทึกพฤติกรรม 👍</div>';
+  deed+='</div>';
+
+  return '<div class="spt-nav">'
+    +'<button class="spt-tab spt-active" onclick="sptSwitch(\'spt-overview\',this)">📋 ภาพรวม</button>'
+    +'<button class="spt-tab" onclick="sptSwitch(\'spt-att\',this)">🕐 เวลาเรียน</button>'
+    +'<button class="spt-tab" onclick="sptSwitch(\'spt-grade\',this)">📚 ผลการเรียน</button>'
+    +'<button class="spt-tab" onclick="sptSwitch(\'spt-deed\',this)">❤️ ความดี</button>'
+    +'</div>'
+    +'<div id="spt-overview" class="spt-pane">'+ov+'</div>'
+    +'<div id="spt-att" class="spt-pane" style="display:none;">'+att+'</div>'
+    +'<div id="spt-grade" class="spt-pane" style="display:none;">'+gr+'</div>'
+    +'<div id="spt-deed" class="spt-pane" style="display:none;">'+deed+'</div>'
+    +'<div class="sp-empty" style="margin-top:6px;font-size:13.2px;">👁️ ข้อมูลนี้แสดงผลอย่างเดียว · ติดต่อครูที่ปรึกษาหากข้อมูลคลาดเคลื่อน</div>';
+}
+
 async function renderStuPortal(stu){
   STU.student=stu;
   document.getElementById('loginPage').style.display='none';
@@ -4536,11 +4790,7 @@ async function renderStuPortal(stu){
   var body=document.getElementById('spBody');
   body.innerHTML='<div class="sp-empty">⏳ กำลังโหลดข้อมูล...</div>';
   try{
-    body.innerHTML=mhPortalCard(STU.mode)
-      +await hvStuCard(stu)
-      +await actPortalHTML(stu,STU.mode)
-      +await buildStudentDetailHTML(stu,{mode:STU.mode})
-      +'<div class="sp-empty" style="margin-top:6px;">👁️ ข้อมูลนี้แสดงผลอย่างเดียว · ติดต่อครูที่ปรึกษาหากข้อมูลคลาดเคลื่อน</div>';
+    body.innerHTML=await buildStuPortalTabbed(stu,STU.mode);
   }catch(e){body.innerHTML='<div class="sp-empty">เกิดข้อผิดพลาดในการโหลดข้อมูล: '+(e.message||'')+'</div>';}
 }
 // การ์ดแบบประเมินในพอร์ทัลนักเรียน/ผู้ปกครอง
