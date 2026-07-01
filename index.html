@@ -4312,7 +4312,7 @@ async function doStudentLogin(){
   if(!code||!pw){err.textContent='กรุณากรอกเลขประจำตัวและรหัสผ่าน';return;}
   btn.disabled=true;btn.textContent='กำลังเข้า...';err.textContent='';
   try{
-    var q='/rest/v1/students?student_code=eq.'+encodeURIComponent(code)+'&select=id,student_code,fullname,order_no,birthdate,gender,classroom_id,classrooms(room_name)&limit=1';
+    var q='/rest/v1/students?student_code=eq.'+encodeURIComponent(code)+'&select=id,student_code,fullname,order_no,birthdate,gender,classroom_id,photo_url,classrooms(room_name)&limit=1';
     var d=await api(q);
     if(!d||!d.length){err.textContent='ไม่พบเลขประจำตัวนักเรียนนี้';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
     if(pw!==STU_DEFAULT_PASS){err.textContent='รหัสผ่านไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
