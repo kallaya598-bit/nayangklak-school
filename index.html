@@ -4870,7 +4870,8 @@ function mhPortalCard(mode){
     btns='<button class="btn btn-sm" style="background:#7b1fa2;color:#fff;border:none;width:100%;" onclick="stuOpenAssessment(\'sdq\',\'parent\')">🧩 ทำแบบประเมิน SDQ (ฉบับผู้ปกครอง)</button>';
   }else{
     btns='<button class="btn btn-sm" style="background:#7b1fa2;color:#fff;border:none;width:100%;margin-bottom:8px;" onclick="stuOpenAssessment(\'sdq\',\'student\')">🧩 ทำแบบประเมิน SDQ (ฉบับนักเรียน)</button>'
-      +'<button class="btn btn-sm" style="background:#c2185b;color:#fff;border:none;width:100%;" onclick="stuOpenAssessment(\'phq\',\'self\')">💗 ทำแบบประเมินความรู้สึก (ภาวะซึมเศร้า)</button>';
+      +'<button class="btn btn-sm" style="background:#c2185b;color:#fff;border:none;width:100%;margin-bottom:8px;" onclick="stuOpenAssessment(\'phq\',\'self\')">💗 ทำแบบประเมินความรู้สึก (ภาวะซึมเศร้า)</button>'
+      +'<button class="btn btn-sm" style="background:#2e7d32;color:#fff;border:none;width:100%;" onclick="stuOpenAssessment(\'eq\',\'self\')">💚 ทำแบบประเมิน EQ (ความฉลาดทางอารมณ์)</button>';
   }
   return '<div class="sp-card"><h3>📝 แบบประเมินที่ต้องทำ</h3>'+btns
     +'<div class="sp-empty" style="padding:8px 0 0;font-size:13.8px;">ทำตามความเป็นจริง คำตอบจะถูกส่งให้ครูที่ปรึกษาดูแลช่วยเหลือ</div></div>';
@@ -5122,18 +5123,18 @@ var MH_CFG={
     ]
   },
   eq:{
-    title:'แบบประเมินความฉลาดทางอารมณ์ (EQ) — ฉบับครูประเมินนักเรียน',
-    icon:'💚', color:'#2e7d32', teacherOnly:true,
-    forms:{teacher:'ครูประเมินนักเรียน'},
+    title:'แบบประเมินความฉลาดทางอารมณ์ (EQ) — ฉบับนักเรียนประเมินตนเอง',
+    icon:'💚', color:'#2e7d32',
+    forms:{self:'ฉบับนักเรียนประเมินตนเอง'},
     opts:[{v:1,l:'ไม่จริง'},{v:2,l:'จริงบางครั้ง'},{v:3,l:'ค่อนข้างจริง'},{v:4,l:'จริงมาก'}],
-    // 3 ด้าน: ดี / เก่ง / สุข (ฉบับตั้งต้น — ปรับ/เพิ่มข้อได้)
+    // 3 ด้าน: ดี / เก่ง / สุข (ฉบับตั้งต้น — นักเรียนประเมินตนเอง)
     sections:[
       {title:'ด้านที่ 1 — ดี (ควบคุมอารมณ์ · เห็นใจผู้อื่น · รับผิดชอบ)',key:'good',
-       items:['ควบคุมอารมณ์ตนเองได้เมื่อไม่พอใจ','รู้จักเห็นอกเห็นใจผู้อื่น','มีความรับผิดชอบต่อหน้าที่','ยอมรับและให้อภัยผู้อื่นได้','ทำตามกติกา/ข้อตกลงของกลุ่ม','ไม่เอาเปรียบหรือรังแกผู้อื่น']},
+       items:['ฉันควบคุมอารมณ์ตนเองได้เมื่อไม่พอใจ','ฉันเห็นอกเห็นใจผู้อื่น','ฉันมีความรับผิดชอบต่อหน้าที่','ฉันยอมรับและให้อภัยผู้อื่นได้','ฉันทำตามกติกา/ข้อตกลงของกลุ่ม','ฉันไม่เอาเปรียบหรือรังแกผู้อื่น']},
       {title:'ด้านที่ 2 — เก่ง (มีแรงจูงใจ · ตัดสินใจ · สัมพันธภาพ)',key:'smart',
-       items:['มีความมุ่งมั่นพยายามทำสิ่งต่างๆให้สำเร็จ','กล้าแสดงออกอย่างเหมาะสม','ปรับตัวเข้ากับผู้อื่นได้ดี','แก้ปัญหาเฉพาะหน้าได้','ทำงานร่วมกับผู้อื่นได้','กระตือรือร้นในการเรียนรู้สิ่งใหม่']},
+       items:['ฉันมีความมุ่งมั่นพยายามทำสิ่งต่างๆให้สำเร็จ','ฉันกล้าแสดงออกอย่างเหมาะสม','ฉันปรับตัวเข้ากับผู้อื่นได้ดี','ฉันแก้ปัญหาเฉพาะหน้าได้','ฉันทำงานร่วมกับผู้อื่นได้','ฉันกระตือรือร้นในการเรียนรู้สิ่งใหม่']},
       {title:'ด้านที่ 3 — สุข (ภูมิใจตนเอง · พอใจชีวิต · สงบสุข)',key:'happy',
-       items:['พอใจในสิ่งที่ตนเองเป็น','มองโลกในแง่ดี','รู้สึกมีคุณค่าในตนเอง','จัดการความเครียดได้','มีอารมณ์ขัน ยิ้มแย้ม','รู้สึกอบอุ่นใจกับคนรอบข้าง']}
+       items:['ฉันพอใจในสิ่งที่ตนเองเป็น','ฉันมองโลกในแง่ดี','ฉันรู้สึกมีคุณค่าในตนเอง','ฉันจัดการความเครียดได้','ฉันมีอารมณ์ขัน ยิ้มแย้ม','ฉันรู้สึกอบอุ่นใจกับคนรอบข้าง']}
     ],
     score:function(ans){
       var sum={good:0,smart:0,happy:0},n={good:0,smart:0,happy:0},idx=0,self=this;
@@ -5156,7 +5157,7 @@ function mhHome(){
   var b=document.getElementById('mhBody');
   b.innerHTML='<div class="mh-warn">⚠️ ข้อคำถามและเกณฑ์แปลผลเป็น "ฉบับตั้งต้น" อ้างอิงแนวทางกรมสุขภาพจิต — โปรดตรวจสอบ/อัปโหลดต้นฉบับจริงก่อนใช้ตัดสินผลทางคลินิก</div>'
     +'<div class="mh-cards">'
-    +'<div class="mh-card" onclick="mhList(\'eq\')"><div class="ic">💚</div><h3 style="color:#2e7d32;">EQ</h3><p>ความฉลาดทางอารมณ์ · ครูประเมิน</p></div>'
+    +'<div class="mh-card" onclick="mhList(\'eq\')"><div class="ic">💚</div><h3 style="color:#2e7d32;">EQ</h3><p>ความฉลาดทางอารมณ์ · นักเรียนประเมินตนเอง</p></div>'
     +'<div class="mh-card" onclick="mhList(\'sdq\')"><div class="ic">🧩</div><h3 style="color:#7b1fa2;">SDQ</h3><p>จุดแข็ง-จุดอ่อน · นักเรียน/ผู้ปกครอง/ครู</p></div>'
     +'<div class="mh-card" onclick="mhList(\'phq\')"><div class="ic">💗</div><h3 style="color:#c2185b;">ภาวะซึมเศร้า</h3><p>9Q + 8Q · นักเรียนประเมินตนเอง</p></div>'
     +'</div>';
@@ -10312,7 +10313,7 @@ function spGoAtt(id){openPage('pgAttReport');}
 function spStuById(id){return (SP.list||[]).filter(function(x){return x.id===id;})[0];}
 function spCanCare(id){var s=spStuById(id);return s?canEditRoom(s.classroom_id):false;}
 function spCareNoPerm(){toast('🔒 เข้าถึงได้เฉพาะครูที่ปรึกษาของห้องนี้ หรือผู้ดูแลระบบ','err');}
-function spGoEQ(id){if(!spCanCare(id))return spCareNoPerm();mhOpenForm('eq','teacher',id);}
+function spGoEQ(id){if(!spCanCare(id))return spCareNoPerm();mhOpenForm('eq','self',id);}
 function spGoSDQ(id){if(!spCanCare(id))return spCareNoPerm();mhOpenForm('sdq','teacher',id);}
 function spGoPHQ(id){if(!spCanCare(id))return spCareNoPerm();mhOpenForm('phq','self',id);}
 function spGoHomeVisit(id){
