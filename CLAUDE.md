@@ -148,7 +148,13 @@ enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_stru
 - **สอนร่วม (co-teacher):** loadMyAssigns รวมกลุ่มจาก assignment_teachers → ครูที่ถูกเชิญเห็นกลุ่ม (badge "ร่วมสอน")
 - **ต้องรัน `admin_rpc.sql` ก่อน** (RPC admin_create_teacher / admin_set_password — รหัสผ่าน bcrypt)
 
+## การตรวจเครื่องแต่งกาย + การ์ดแจ้งนักเรียน (เพิ่มใหม่)
+- **ครั้งที่ตรวจ (round_no):** หน้าบันทึกการแต่งกาย (แท็บ "บันทึก") มีช่อง "ครั้งที่ตรวจ" กำหนดได้ว่าเป็นการตรวจครั้งที่เท่าไหร่ของเทอม → เก็บลง `behavior_records.round_no` (แท็บ "แก้ไข" แสดงครั้งที่ในหัวตาราง)
+- **การ์ดผลตรวจในพอร์ทัลนักเรียน/ผู้ปกครอง (stuDressCard):** แสดงในแท็บ "ภาพรวม" — แบนเนอร์ผลตรวจครั้งล่าสุด (✅ ผ่าน / ❌ ไม่ผ่าน + รายการที่ผิด) พร้อมประวัติการตรวจครั้งก่อน จัดกลุ่มตาม ครั้งที่+วันที่
+- **⚠️ ต้องรัน `dress_code_round.sql` ก่อน** (ALTER behavior_records ADD round_no) — ถ้ายังไม่รัน การบันทึก round_no จะ error
+
 ## สิ่งที่ยังค้างอยู่ ⏳
+- [ ] รัน dress_code_round.sql บน Supabase (เพิ่มคอลัมน์ round_no)
 - [ ] รัน teaching_module.sql + admin_rpc.sql บน Supabase + ทดสอบ end-to-end
 - [ ] Deploy index.html เวอร์ชันใหม่ขึ้น GitHub Pages
 - [ ] Admin Panel เต็มรูปแบบ

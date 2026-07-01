@@ -1451,6 +1451,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 
       <div class="nav-section">บัญชีของฉัน</div>
       <div class="nav-item" data-page="pgChangePassword"><span class="ni ms-gray">lock_reset</span> <span>เปลี่ยนรหัสผ่าน</span></div>
+      <div class="nav-item" onclick="togglePushSub()"><span class="ni ms-blue">notifications</span> <span id="navPushLabel">เปิดการแจ้งเตือน</span></div>
       <div class="nav-section" id="navAdmin" style="display:none;">Admin</div>
       <div class="nav-item hidden" id="navAdminItem" data-page="pgAdmin"><span class="ni ms-gray">settings</span> <span>จัดการระบบ</span></div>
     </nav>
@@ -2425,7 +2426,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <!-- แท็บ 1: บันทึก -->
         <div id="dcPanel1" style="padding:14px;">
           <div class="card" style="margin-bottom:14px;">
-            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+            <div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;">
               <div class="form-group" style="margin:0;">
                 <label class="form-label">ห้องเรียน</label>
                 <select class="form-control" id="dcRoom" onchange="dcLoadStudents()">
@@ -2435,6 +2436,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               <div class="form-group" style="margin:0;">
                 <label class="form-label">วันที่ตรวจ</label>
                 <input type="date" class="form-control" id="dcDate" style="width:148px;" onchange="dcLoadStudents()">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">ครั้งที่ตรวจ</label>
+                <input type="number" class="form-control" id="dcRound" min="1" max="99" step="1" value="1" style="width:96px;" title="การตรวจครั้งที่เท่าไหร่ของเทอมนี้">
               </div>
             </div>
           </div>
@@ -3037,6 +3042,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
 var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqYWp1a3dteHVsYXl4eHh4bXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDc4MDAsImV4cCI6MjA5NTcyMzgwMH0.DbiP5Qelewl0ozjTNn8GpAkjq256bCGusO4irblMVOo';
+var VAPID_PUBLIC_KEY='BH_AfFb6-2qX0pizdJOs6LMGtmQyvPOhDO5i0fkG_z-hMZbF-J4jaLzSUlTccJPTwzj4tltnHOYuUWFvUSEXv1A';
 var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
 
 // ===== STATE =====
@@ -4327,6 +4333,68 @@ function stuCatName(list,id){var f=(list||[]).filter(function(x){return x.id===i
 function stuThai(ds){try{return ds?thaiDate(ds):'-';}catch(e){return ds||'-';}}
 function dateBack(n){var d=new Date();d.setDate(d.getDate()-n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
+// ===== การ์ดผลตรวจเครื่องแต่งกาย (พอร์ทัลนักเรียน/ผู้ปกครอง) =====
+async function stuDressCard(stu,mode){
+  var e0=function(){return[];};
+  // หาหมวดการแต่งกาย (ใช้ของที่โหลดไว้ หรือดึงสดถ้ายังไม่มี)
+  var cats=(G.dressCats||[]).slice();
+  if(G.dressPassCat)cats.push(G.dressPassCat);
+  if(!cats.length){
+    cats=await api('/rest/v1/behavior_categories?kind=in.(dress,dress_pass)&select=id,name,kind').catch(e0)||[];
+  }
+  if(!cats.length)return '';
+  var passCat=cats.filter(function(c){return c.kind==='dress_pass';})[0]||G.dressPassCat;
+  var passId=passCat?passCat.id:null;
+  var catMap={};cats.forEach(function(c){catMap[c.id]=c;});
+  var ids=cats.map(function(c){return c.id;}).join(',');
+  var recs=await api('/rest/v1/behavior_records?student_id=eq.'+stu.id+'&category_id=in.('+ids+')&select=record_date,category_id,score,description,round_no&order=record_date.desc').catch(e0)||[];
+  if(!recs.length)return '';
+  // จัดกลุ่มเป็น "การตรวจแต่ละครั้ง" (ตาม ครั้งที่ + วันที่)
+  var groups={},order=[];
+  recs.forEach(function(r){
+    var key=(r.round_no!=null?'r'+r.round_no:'d')+'|'+r.record_date;
+    if(!groups[key]){groups[key]={round:r.round_no,date:r.record_date,pass:false,vios:[]};order.push(key);}
+    if(passId!=null&&r.category_id===passId)groups[key].pass=true;
+    else groups[key].vios.push(catMap[r.category_id]?catMap[r.category_id].name:'ผิดระเบียบ');
+  });
+  order.sort(function(a,b){var A=groups[a],B=groups[b];if(A.date!==B.date)return A.date<B.date?1:-1;return (B.round||0)-(A.round||0);});
+  var who=(mode==='parent')?'บุตรหลานของท่าน':'น้อง';
+  // การตรวจครั้งล่าสุด → แบนเนอร์เด่น
+  var latest=groups[order[0]];
+  var roundTxt=latest.round!=null?'ครั้งที่ '+latest.round+' · ':'';
+  var banner;
+  if(latest.pass){
+    banner='<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:12px;padding:14px 16px;margin-bottom:10px;">'
+      +'<div style="font-size:19px;font-weight:700;color:#2e7d32;">✅ ผ่านการตรวจ</div>'
+      +'<div style="font-size:13.5px;color:#33691e;margin-top:3px;">'+roundTxt+stuThai(latest.date)+' — '+who+'แต่งกายถูกระเบียบ 👍</div>'
+      +'</div>';
+  }else{
+    var vioList=latest.vios.length?'<ul style="margin:8px 0 0;padding-left:20px;color:#b71c1c;font-size:14px;">'+latest.vios.map(function(v){return '<li>'+v+'</li>';}).join('')+'</ul>':'';
+    banner='<div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:12px;padding:14px 16px;margin-bottom:10px;">'
+      +'<div style="font-size:19px;font-weight:700;color:#c62828;">❌ ไม่ผ่านการตรวจ</div>'
+      +'<div style="font-size:13.5px;color:#b71c1c;margin-top:3px;">'+roundTxt+stuThai(latest.date)+' — '+who+'แต่งกายผิดระเบียบ กรุณาปรับปรุง</div>'
+      +vioList
+      +'</div>';
+  }
+  // ประวัติการตรวจครั้งก่อน ๆ
+  var hist='';
+  if(order.length>1){
+    hist='<div style="margin-top:2px;">';
+    order.slice(1,6).forEach(function(k){
+      var g=groups[k];
+      var rt=g.round!=null?'ครั้งที่ '+g.round:'';
+      var badge=g.pass
+        ?'<span style="color:#2e7d32;font-weight:700;">✅ ผ่าน</span>'
+        :'<span style="color:#c62828;font-weight:700;">❌ ไม่ผ่าน</span>';
+      hist+='<div class="sp-row"><span>'+(rt?rt+' · ':'')+stuThai(g.date)
+        +(!g.pass&&g.vios.length?'<div class="d">'+g.vios.join(', ')+'</div>':'')
+        +'</span>'+badge+'</div>';
+    });
+    hist+='</div>';
+  }
+  return '<div class="sp-card"><h3>👔 ผลการตรวจเครื่องแต่งกาย</h3>'+banner+hist+'</div>';
+}
+
 // สร้าง HTML รายละเอียดนักเรียน (ใช้ร่วม: พอร์ทัลนักเรียน/ผู้ปกครอง + เจาะดูรายคนของผู้บริหาร)
 async function buildStudentDetailHTML(stu,opts){
   opts=opts||{};var mode=opts.mode||'student';
@@ -4660,6 +4728,8 @@ async function buildStuPortalTabbed(stu,mode){
     +'<div class="spt-kpi"><div class="kv" style="color:'+attCol+';">'+pPct+'%</div><div class="kl">เวลาเรียนรวม</div></div>'
     +'<div class="spt-kpi"><div class="kv" style="font-size:18px;line-height:2;">'+todayStatusHtml+'</div><div class="kl">สถานะวันนี้</div></div>'
     +'</div>';
+  // การ์ดแจ้งผลตรวจเครื่องแต่งกาย
+  try{ov+=await stuDressCard(stu,mode);}catch(e){}
   // เตือนวิชาเสี่ยง มส
   if(msRisk.length){
     ov+='<div class="spt-risk-row"><b style="color:#e65100;">⚠️ เสี่ยงเวลาเรียนไม่ครบ</b><ul style="margin:6px 0 0;padding-left:18px;">';
@@ -6514,6 +6584,7 @@ function _showAppInit(){
   var lBtn=document.getElementById('lineStatusBtn');
   if(lBtn)lBtn.style.display=G.user.role==='admin'?'':' none';
   if(G.user.role==='admin')updateLineStatus();
+  refreshPushLabel();
   document.getElementById('topRole').textContent=G.user.role==='admin'?'ผู้ดูแลระบบ':(isViewer?'ผู้บริหาร · ดูอย่างเดียว':'ครูที่ปรึกษา '+rn);
   document.getElementById('infoTeacher').textContent=G.user.fullname;
   document.getElementById('infoRoom').textContent=isViewer?'ผู้บริหาร':'ครูที่ปรึกษา '+rn;
@@ -7303,11 +7374,78 @@ async function loadSubjectStudents(){
     document.getElementById('saBtnSave').onclick=async function(){
       var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
       if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
-      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');applyAttDeduct(records,'subject',dt,{period:period,assignId:assignId});saLockedView(true);}
+      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');applyAttDeduct(records,'subject',dt,{period:period,assignId:assignId});sendSkipAlert(records,stus,assignId,dt,period);saLockedView(true);}
       catch(e){toast('❌ '+e.message,'err');}
     };
   }catch(e){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
+// แจ้งเตือนครูที่ปรึกษาผ่าน Web Push ทันทีที่มีนักเรียนถูกบันทึก "หนีเรียน"
+function sendSkipAlert(records,stus,assignId,dt,period){
+  try{
+    var skipIds={};records.forEach(function(r){if(r.status==='skip')skipIds[r.student_id]=1;});
+    var names=stus.filter(function(s){return skipIds[s.id];}).map(function(s){return s.fullname;});
+    if(!names.length)return;
+    var a=(G.myAssigns||[]).filter(function(x){return x.id==assignId;})[0]||{};
+    fetch(SB+'/functions/v1/skip-push-alert',{
+      method:'POST',
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        classroom_id:a.classroom_id,
+        room_name:a.classrooms?a.classrooms.room_name:'',
+        subject_name:a.subjects?a.subjects.subject_name:'',
+        period:period,att_date:dt,names:names,
+        reporter_name:G.user?G.user.fullname:''
+      })
+    }).catch(function(){});
+  }catch(e){}
+}
+
+// ===== Web Push: สมัคร/เลิกรับการแจ้งเตือนบนอุปกรณ์นี้ =====
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var raw=atob(base64),arr=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function registerSW(){
+  if(!('serviceWorker' in navigator))return null;
+  try{return await navigator.serviceWorker.register('sw.js');}catch(e){return null;}
+}
+async function getPushSub(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))return null;
+  var reg=await navigator.serviceWorker.ready.catch(function(){return null;});
+  if(!reg)return null;
+  return await reg.pushManager.getSubscription().catch(function(){return null;});
+}
+async function refreshPushLabel(){
+  var lab=document.getElementById('navPushLabel');
+  if(!lab)return;
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){lab.textContent='แจ้งเตือน (ไม่รองรับ)';return;}
+  var sub=await getPushSub();
+  lab.textContent=sub?'ปิดการแจ้งเตือน':'เปิดการแจ้งเตือน';
+}
+async function togglePushSub(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){toast('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน','err');return;}
+  try{
+    var existing=await getPushSub();
+    if(existing){
+      await api('/rest/v1/push_subscriptions?endpoint=eq.'+encodeURIComponent(existing.endpoint),{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
+      await existing.unsubscribe();
+      toast('ปิดการแจ้งเตือนแล้ว');refreshPushLabel();return;
+    }
+    var perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('ต้องอนุญาตการแจ้งเตือนก่อนครับ','err');return;}
+    var reg=await registerSW();
+    if(!reg){toast('เปิดใช้งาน Service Worker ไม่สำเร็จ','err');return;}
+    var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+    var k=sub.toJSON().keys;
+    await api('/rest/v1/push_subscriptions?on_conflict=endpoint',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{teacher_id:G.user.id,endpoint:sub.endpoint,p256dh:k.p256dh,auth:k.auth}])});
+    toast('✅ เปิดการแจ้งเตือนบนอุปกรณ์นี้แล้ว');
+    refreshPushLabel();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
 // หัวรายงานหน้าเช็คเวลาเรียน
 function saRenderHeader(assignId,dt,period){
   var a=G.myAssigns.filter(function(x){return x.id==assignId;})[0]||{};
@@ -7716,6 +7854,9 @@ function dcUpdateStat(){
 async function saveDressCode(){
   var dt=document.getElementById('dcDate').value;
   if(!dt){toast('กรุณาเลือกวันที่ตรวจ','err');return;}
+  var roundEl=document.getElementById('dcRound');
+  var roundNo=roundEl&&roundEl.value!==''?parseInt(roundEl.value):null;
+  if(roundNo!=null&&(isNaN(roundNo)||roundNo<1)){toast('ครั้งที่ตรวจไม่ถูกต้อง','err');return;}
   var notes={};
   document.querySelectorAll('.dc-note').forEach(function(inp){notes[inp.dataset.sid]=inp.value.trim();});
   // รวบรวมผิดระเบียบ
@@ -7736,13 +7877,13 @@ async function saveDressCode(){
     // บันทึกผิดระเบียบ
     vioSids.forEach(function(sid){
       byVio[sid].forEach(function(v){
-        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'บันทึก',action_taken:'บันทึก'});
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:v.cid,score:v.score,record_date:dt,round_no:roundNo,description:'แต่งกายผิดระเบียบ: '+v.name+(notes[sid]?' ('+notes[sid]+')':''),management_status:'บันทึก',action_taken:'บันทึก'});
       });
     });
     // บันทึกผ่าน (score=0 ไม่หักคะแนน)
     if(G.dressPassCat){
       passSids.forEach(function(sid){
-        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:G.dressPassCat.id,score:0,record_date:dt,description:'ผ่านการตรวจการแต่งกาย'+(notes[sid]?' ('+notes[sid]+')':''),management_status:'ผ่าน',action_taken:'ผ่าน'});
+        records.push({student_id:parseInt(sid),teacher_id:G.user.id,category_id:G.dressPassCat.id,score:0,record_date:dt,round_no:roundNo,description:'ผ่านการตรวจการแต่งกาย'+(notes[sid]?' ('+notes[sid]+')':''),management_status:'ผ่าน',action_taken:'ผ่าน'});
       });
     }
     if(records.length) await api('/rest/v1/behavior_records',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(records)});
@@ -7804,7 +7945,7 @@ async function dcLoadRecords(){
     if(!dressIds.length){el.innerHTML='<div class="sp-empty" style="color:var(--red);padding:24px;text-align:center;">⚠️ ยังไม่มีหมวดแต่งกาย กรุณารัน dress_code_module.sql</div>';return;}
     var allDressCatIds=dressIds.slice();
     if(G.dressPassCat)allDressCatIds.push(G.dressPassCat.id);
-    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+allDressCatIds.join(',')+')&record_date=eq.'+dt+'&select=id,student_id,category_id,score,description&order=student_id')||[];
+    var recs=await api('/rest/v1/behavior_records?student_id=in.('+ids.join(',')+')&category_id=in.('+allDressCatIds.join(',')+')&record_date=eq.'+dt+'&select=id,student_id,category_id,score,description,round_no&order=student_id')||[];
     DC_RECORDS=recs;
     if(!recs.length){el.innerHTML='<div class="sp-empty" style="padding:24px;text-align:center;">ไม่มีรายการในวันที่เลือก</div>';return;}
     var catMap={};(G.dressCats||[]).forEach(function(c){catMap[c.id]={name:c.name,pass:false};});
@@ -7813,8 +7954,10 @@ async function dcLoadRecords(){
     recs.forEach(function(r){if(!byS[r.student_id])byS[r.student_id]=[];byS[r.student_id].push(r);});
     var nPass=recs.filter(function(r){return G.dressPassCat&&r.category_id===G.dressPassCat.id;}).length;
     var nVio=recs.filter(function(r){return !G.dressPassCat||r.category_id!==G.dressPassCat.id;}).length;
+    var rounds=[];recs.forEach(function(r){if(r.round_no!=null&&rounds.indexOf(r.round_no)<0)rounds.push(r.round_no);});
+    var roundLbl=rounds.length?' &nbsp;|&nbsp; <span style="color:#e65100;">ครั้งที่ '+rounds.sort(function(a,b){return a-b;}).join(', ')+'</span>':'';
     var html='<div class="card" style="padding:0;overflow:hidden;">'
-      +'<div style="padding:10px 14px;background:var(--bluel);font-weight:700;color:var(--blue);font-size:14px;">บันทึกการตรวจ — '+dt+' &nbsp;|&nbsp; <span style="color:#2e7d32;">✅ ผ่าน '+nPass+' คน</span> &nbsp; <span style="color:var(--red);">❌ ผิดระเบียบ '+nVio+' รายการ</span></div>'
+      +'<div style="padding:10px 14px;background:var(--bluel);font-weight:700;color:var(--blue);font-size:14px;">บันทึกการตรวจ — '+dt+roundLbl+' &nbsp;|&nbsp; <span style="color:#2e7d32;">✅ ผ่าน '+nPass+' คน</span> &nbsp; <span style="color:var(--red);">❌ ผิดระเบียบ '+nVio+' รายการ</span></div>'
       +'<table style="width:100%;border-collapse:collapse;font-size:14px;">'
       +'<thead><tr style="background:#f5f5f5;">'
       +'<th style="padding:8px 10px;text-align:left;">ชื่อ-นามสกุล</th>'
@@ -13200,6 +13343,8 @@ async function doChangePassword(){
     err.textContent=m||'เกิดข้อผิดพลาด กรุณาลองใหม่';
   }
 }
+
+registerSW();
 
 // ===== คืนค่า session ตอนโหลดหน้า (รีเฟรชแล้วไม่หลุดออกหน้าล็อกอิน) =====
 (async function(){
