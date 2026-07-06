@@ -11398,7 +11398,7 @@ async function admStuDel(id,name){
     toast('✅ ลบนักเรียนแล้ว');
   }catch(e){
     // ลบไม่ได้เพราะมีข้อมูลอ้างอิง → soft delete
-    try{await api('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'inactive'})});toast('⚠️ มีประวัติอยู่ — เปลี่ยนเป็นพ้นสภาพแทน');}
+    try{await api('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'transfer'})});toast('⚠️ มีประวัติอยู่ — เปลี่ยนเป็นพ้นสภาพแทน');}
     catch(e2){toast('❌ '+e2.message,'err');return;}
   }
   admStuLoad();
@@ -12080,7 +12080,7 @@ async function admSchoolYear(){
   h+='<div style="border:1.5px solid #ffccbc;border-radius:10px;padding:14px;background:#fff8f6;">'
     +'<div style="font-weight:800;font-size:16.8px;color:#bf360c;margin-bottom:6px;">🎓 สิ้นปีการศึกษา '+HV_YEAR+' → '+(HV_YEAR+1)+'</div>'
     +'<div style="font-size:15px;color:var(--text2);margin-bottom:10px;line-height:1.7;">'
-    +'🎓 นักเรียน ม.6 (<b>'+(counts[6]||0)+' คน</b>) พ้นสภาพ (status = inactive)<br>'
+    +'🎓 นักเรียน ม.6 (<b>'+(counts[6]||0)+' คน</b>) พ้นสภาพ (status = transfer)<br>'
     +[5,4,3,2,1].map(function(lv){return '↗️ ม.'+lv+' → ม.'+(lv+1)+' (<b>'+(counts[lv]||0)+' คน</b>)';}).join('<br>')+'<br>'
     +'🗑️ ล้างรายวิชา/ตารางสอน/เช็คชื่อ/คะแนนทุกภาคเรียน<br>'
     +'🗑️ ล้างเช็คชื่อเสาธง-เย็น + บันทึกความดี/พฤติกรรม<br>'
@@ -12144,7 +12144,7 @@ async function admConfirmYearRollover(){
     // 1) นักเรียน ม.6 → inactive
     var m6=(byLevel[6]||[]).map(function(r){return r.id;});
     if(m6.length){
-      var d=await api('/rest/v1/students?classroom_id=in.('+m6.join(',')+')',{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'inactive'})}).catch(function(e){return{err:e.message};});
+      var d=await api('/rest/v1/students?classroom_id=in.('+m6.join(',')+')',{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'transfer'})}).catch(function(e){return{err:e.message};});
       msgs.push('ม.6 พ้นสภาพ'+(d&&d.err?' ❌'+d.err:' ✅'));
     }
     // 2) เลื่อนชั้น ม.5→6, 4→5, 3→4, 2→3, 1→2 (reverse order ป้องกัน double-move)
