@@ -11412,6 +11412,8 @@ async function admStuAdd(){
 }
 async function admStuDel(id,name){
   if(!confirm('ลบนักเรียน "'+name+'" ?\n(ถ้ามีประวัติเช็คชื่อ/คะแนน ระบบจะเปลี่ยนเป็น "พ้นสภาพ" แทนการลบถาวร)'))return;
+  var target=(ADM.stu||[]).filter(function(s){return s.id===id;})[0];
+  var rid=document.getElementById('admStuRoom').value;
   try{
     await api('/rest/v1/students?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
     toast('✅ ลบนักเรียนแล้ว');
@@ -11420,7 +11422,17 @@ async function admStuDel(id,name){
     try{await api('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'transfer'})});toast('⚠️ มีประวัติอยู่ — เปลี่ยนเป็นพ้นสภาพแทน');}
     catch(e2){toast('❌ '+e2.message,'err');return;}
   }
+  // เลื่อนเลขที่ของคนที่เหลือในห้องเดียวกันขึ้นมาแทนที่ (ทุกคนที่เลขที่มากกว่าคนที่ถูกลบ ลดลง 1)
+  if(target&&rid&&target.order_no!=null){
+    await shiftOrderNoDown(rid,target.order_no).catch(function(){});
+  }
   admStuLoad();
+}
+async function shiftOrderNoDown(classroomId,fromOrderNo){
+  var rest=await api('/rest/v1/students?classroom_id=eq.'+classroomId+'&order_no=gt.'+fromOrderNo+'&status=eq.active&select=id,order_no&order=order_no')||[];
+  for(var i=0;i<rest.length;i++){
+    await api('/rest/v1/students?id=eq.'+rest[i].id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({order_no:rest[i].order_no-1})}).catch(function(){});
+  }
 }
 
 // ---------- จัดการครู ----------
