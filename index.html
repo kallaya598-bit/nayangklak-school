@@ -3048,7 +3048,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
 var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqYWp1a3dteHVsYXl4eHh4bXByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDc4MDAsImV4cCI6MjA5NTcyMzgwMH0.DbiP5Qelewl0ozjTNn8GpAkjq256bCGusO4irblMVOo';
 var VAPID_PUBLIC_KEY='BH_AfFb6-2qX0pizdJOs6LMGtmQyvPOhDO5i0fkG_z-hMZbF-J4jaLzSUlTccJPTwzj4tltnHOYuUWFvUSEXv1A';
-var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+// x-app-key: ไม่ใช่ระบบยืนยันตัวตนจริง (client-side เห็นได้เสมอ) แต่กันบอท/สแกนอัตโนมัติที่ยิง Supabase URL สาธารณะแบบสุ่ม
+// ต้อง match กับ app_authorized() ใน security_hardening.sql — ถ้าเปลี่ยนต้องเปลี่ยนพร้อมกันทั้งสองฝั่ง
+var APP_KEY='49790950ea1d82dcf4a1cb68e4cdb53a7e6c6ad5f97a0236';
+var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','x-app-key':APP_KEY};
 
 // ===== STATE =====
 var G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null};
@@ -10798,7 +10801,7 @@ async function admWriteRemote(table,row){
   try{
     var body=Object.assign({},row);
     delete body.id;
-    await fetch(SB+'/rest/v1/'+table,{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify([body])});
+    await fetch(SB+'/rest/v1/'+table,{method:'POST',headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','x-app-key':APP_KEY,'Prefer':'return=minimal'},body:JSON.stringify([body])});
     return true;
   }catch(e){return false;}
 }
