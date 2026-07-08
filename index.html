@@ -7257,7 +7257,7 @@ var SA_DOW=['อาทิตย์','จันทร์','อังคาร','�
 
 // โหลดนักเรียนที่ลงทะเบียนในกลุ่มเรียน
 async function loadEnrolledStudents(assignId){
-  var enr=await api('/rest/v1/enrollments?assignment_id=eq.'+assignId+'&status=eq.active&select=students(id,student_code,fullname,order_no)&order=student_id');
+  var enr=await api('/rest/v1/enrollments?assignment_id=eq.'+assignId+'&status=eq.active&select=students!inner(id,student_code,fullname,order_no)&students.status=eq.active&order=student_id');
   var stus=(enr||[]).map(function(e){return e.students;}).filter(Boolean);
   stus.sort(function(a,b){return (a.order_no||0)-(b.order_no||0);});
   return stus;
@@ -10543,7 +10543,7 @@ async function saveStudent(){
       religion:v('sfReligion')||null,address:v('sfAddress')||null,photo_url:finalPhotoUrl,updated_at:new Date().toISOString()
     };
     if(id){
-      stuData.status='active';
+      // ไม่ตั้ง status ทับตรงนี้ — ต้องคงสถานะเดิมไว้ (เช่น "พ้นสภาพ") เวลาแก้ไขข้อมูลอื่นของนักเรียนคนเดิม
       await api('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify(stuData)});
       sid=parseInt(id);
     }else{
