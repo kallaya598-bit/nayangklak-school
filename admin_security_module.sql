@@ -45,3 +45,11 @@ alter table public.teachers
   add column if not exists permissions jsonb not null default '{}'::jsonb;
 
 comment on column public.teachers.permissions is 'JSON permissions for admin/security screens';
+
+-- เดิมถูกเพิ่มตรงผ่าน Supabase dashboard โดยไม่มีไฟล์ .sql ไหนบันทึกไว้เลย
+-- (พบตอนตรวจสอบ security hardening 2569-07-08) — เก็บไว้ตรงนี้กันโปรเจกต์ใหม่ (พอร์ตไปโรงเรียนอื่น)
+-- ลืมสร้างคอลัมน์นี้แล้วฟีเจอร์ "บันทึกทางลัด" (shortcuts) พังเงียบๆ
+alter table public.teachers
+  add column if not exists shortcuts jsonb not null default '[]'::jsonb;
+
+comment on column public.teachers.shortcuts is 'รายการ id เมนูทางลัดที่ครูปักไว้เอง (array)';
