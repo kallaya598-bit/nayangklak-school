@@ -1085,7 +1085,18 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 .ag-radio{display:inline-block;width:21px;height:21px;border:2px solid #c4c4c4;border-radius:50%;cursor:pointer;vertical-align:middle;transition:all .1s;background:#fff;}
 .ag-radio:hover{border-color:var(--c);transform:scale(1.1);}
 .ag-radio.on{border-color:var(--c);background:var(--c);box-shadow:inset 0 0 0 3px #fff;}
-@media(max-width:560px){.att-grid{font-size:11.5px;min-width:320px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:0;}.ag-radio{width:18px;height:18px;}.att-grid .agNo{width:22px;}}
+.ag-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1.5px solid #e3e7ee;background:#fff;cursor:pointer;transition:all .1s;color:#8a96a3;padding:0;}
+.ag-btn:hover{transform:scale(1.06);}
+.ag-btn.on{border-color:var(--c);background:var(--c);color:#fff;}
+.ag-btn .ms{font-size:18px;}
+.ag-more{display:inline-flex;align-items:center;justify-content:center;width:28px;height:34px;border-radius:8px;border:1px solid #e3e7ee;background:#fafbfc;cursor:pointer;color:#8a96a3;padding:0;}
+.ag-more.on{border-color:var(--c);background:var(--c);color:#fff;}
+.ag-more .ms{font-size:16px;}
+#agMorePop{display:none;position:absolute;z-index:300;background:#fff;border:1.5px solid var(--blue);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);padding:6px;min-width:140px;}
+.agMoreOpt{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:8px;border:none;background:#fff;font-size:13.5px;font-family:inherit;cursor:pointer;margin-bottom:2px;color:var(--text);}
+.agMoreOpt:hover{background:#f4f8ff;}
+.agMoreOpt.on{background:var(--c);color:#fff;}
+@media(max-width:560px){.att-grid{font-size:11.5px;min-width:320px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:0;}.ag-radio{width:18px;height:18px;}.att-grid .agNo{width:22px;}.ag-btn{width:30px;height:30px;}.ag-btn .ms{font-size:16px;}.ag-more{width:24px;height:30px;}.ag-more .ms{font-size:14px;}}
 /* ===== เยี่ยมบ้านนักเรียน ===== */
 .hv-table{width:100%;border-collapse:collapse;font-size:15.6px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
 .hv-table th{background:var(--bluel);color:var(--blue);padding:9px 8px;text-align:left;font-weight:700;white-space:nowrap;}
@@ -2998,6 +3009,8 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   <button class="btn btn-xs btn-outline" style="width:100%;margin-top:5px;" onclick="setCellStatus('clear')">🗑️ ลบสถานะ</button>
   <button class="btn btn-xs" style="width:100%;margin-top:3px;color:#999;border:none;background:none;" onclick="closeCellEdit()">ปิด</button>
 </div>
+<!-- POPUP: เลือกสถานะ "อื่นๆ" (กิจกรรม/หนีเรียน) ในตารางเช็คชื่อ -->
+<div id="agMorePop"></div>
 
 <!-- MODAL: โอนรายวิชา/เปลี่ยนครูผู้สอน -->
 <div class="modal-bg" id="modalReassign">
@@ -7167,6 +7180,8 @@ function attBadgeHTML(status,defsType){
   if(!def)return '<span style="color:#bbb;">–</span>';
   return '<span class="badge" style="background:'+def.bg+';color:'+def.c+';white-space:nowrap;">'+def.label+'</span>';
 }
+// ไอคอนต่อสถานะ (Material Symbols ligature) — ใช้ร่วมกันทั้งปุ่มหลักและเมนู "อื่นๆ"
+var AG_ICON={present:'check',late:'schedule',absent:'close',leave:'event_busy',gone_home:'home',special_leave:'celebration',skip:'directions_run'};
 function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap,entryOpts){
   entryOpts=entryOpts||{};
   var entryLabel=entryOpts.label||'ตอนเข้า',entryDefsType=entryOpts.defsType||type,warnStatuses=entryOpts.warnStatuses||null;
@@ -7175,18 +7190,24 @@ function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap,entryOpts){
   if(statsFn)statsFn();
   if(!students.length){el.innerHTML='<div class="loading">ไม่พบนักเรียน</div>';return;}
   var hasEntry=!!entryMap;
-  var allChk=defs.map(function(d){return students.length>0&&students.every(function(s){return att[s.id]&&att[s.id].status===d.k;});});
+  // 4 สถานะที่ใช้บ่อยเป็นปุ่มใหญ่เด่นชัด ส่วนที่เหลือ (เช่น กิจกรรม/หนีเรียน) ย้ายไปปุ่ม "อื่นๆ" ต่อแถวแทน
+  var primary=defs.slice(0,4),more=defs.slice(4);
+  var allChk=primary.map(function(d){return students.length>0&&students.every(function(s){return att[s.id]&&att[s.id].status===d.k;});});
   var h='<div style="overflow-x:auto;padding-bottom:70px;"><table class="att-grid"><thead><tr><th class="agNo">ที่</th><th class="agName l">ชื่อ-สกุล</th>'+(hasEntry?'<th>'+entryLabel+'</th>':'')+
-    defs.map(function(d,di){return '<th><div style="margin-bottom:3px;">'+d.label+'</div><input type="checkbox" '+(allChk[di]?'checked':'')+' title="เลือก'+d.label+'ทั้งหมด" onclick="attGridMarkAll(\''+gridId+'\',\''+d.k+'\',this.checked)"></th>';}).join('')+'</tr></thead><tbody>';
+    primary.map(function(d,di){return '<th><div style="margin-bottom:3px;">'+d.label+'</div><input type="checkbox" '+(allChk[di]?'checked':'')+' title="เลือก'+d.label+'ทั้งหมด" onclick="attGridMarkAll(\''+gridId+'\',\''+d.k+'\',this.checked)"></th>';}).join('')+
+    (more.length?'<th>อื่นๆ</th>':'')+
+    '</tr></thead><tbody>';
   students.forEach(function(s,i){
     var cur=att[s.id]&&att[s.id].status,def=null;defs.forEach(function(d){if(d.k===cur)def=d;});
     var entryStatus=hasEntry?entryMap[s.id]:null;
     var warn=!!(hasEntry&&warnStatuses&&warnStatuses.indexOf(entryStatus)>=0&&warnStatuses.indexOf(cur)>=0);
+    var moreDef=null;more.forEach(function(d){if(d.k===cur)moreDef=d;});
     h+='<tr style="background:'+(warn?'#ffcdd2':(def?def.bg:'#fff'))+';'+(warn?'border-left:4px solid #c62828;':'')+'">'+
       '<td class="agNo">'+(s.order_no||i+1)+'</td>'+
       '<td class="agName l">'+s.fullname+'</td>'+
       (hasEntry?'<td>'+attBadgeHTML(entryStatus,entryDefsType)+'</td>':'')+
-      defs.map(function(d){return '<td><span class="ag-radio'+(cur===d.k?' on':'')+'" style="--c:'+d.c+';" onclick="attGridSet(\''+gridId+'\','+s.id+',\''+d.k+'\')"></span></td>';}).join('')+
+      primary.map(function(d){return '<td><button type="button" class="ag-btn'+(cur===d.k?' on':'')+'" style="--c:'+d.c+';" title="'+d.label+'" onclick="attGridSet(\''+gridId+'\','+s.id+',\''+d.k+'\')"><span class="ms">'+(AG_ICON[d.k]||'radio_button_unchecked')+'</span></button></td>';}).join('')+
+      (more.length?'<td><button type="button" class="ag-more'+(moreDef?' on':'')+'" style="'+(moreDef?'--c:'+moreDef.c+';':'')+'" title="'+(moreDef?moreDef.label:'อื่นๆ')+'" onclick="attGridMoreToggle(event,\''+gridId+'\','+s.id+')"><span class="ms">'+(moreDef?(AG_ICON[moreDef.k]||'more_horiz'):'more_horiz')+'</span></button></td>':'')+
     '</tr>';
   });
   h+='</tbody></table></div>';
@@ -7194,6 +7215,32 @@ function buildAttGrid(gridId,elId,students,att,type,statsFn,entryMap,entryOpts){
 }
 function attGridSet(gridId,sid,k){var g=ATTGRID[gridId];if(!g.att[sid])g.att[sid]={};g.att[sid].status=(g.att[sid].status===k?'':k);buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap,g.entryOpts);}
 function attGridMarkAll(gridId,k,checked){var g=ATTGRID[gridId];g.students.forEach(function(s){if(!g.att[s.id])g.att[s.id]={};if(checked)g.att[s.id].status=k;else if(g.att[s.id].status===k)g.att[s.id].status='';});buildAttGrid(gridId,g.elId,g.students,g.att,g.type,g.statsFn,g.entryMap,g.entryOpts);}
+// ปุ่ม "อื่นๆ" ต่อแถว — เปิด popup เล็กๆ ให้เลือกสถานะที่ไม่ค่อยได้ใช้ (เช่น กิจกรรม/หนีเรียน)
+function attGridMoreToggle(ev,gridId,sid){
+  ev.stopPropagation();
+  var g=ATTGRID[gridId];if(!g)return;
+  var defs=ATT_DEFS[g.type],more=defs.slice(4);
+  if(!more.length)return;
+  var cur=g.att[sid]&&g.att[sid].status;
+  var pop=document.getElementById('agMorePop');
+  pop.innerHTML=more.map(function(d){
+    return '<button type="button" class="agMoreOpt'+(cur===d.k?' on':'')+'" style="--c:'+d.c+';" onclick="attGridSetFromMore(\''+gridId+'\','+sid+',\''+d.k+'\')"><span class="ms" style="font-size:16px;vertical-align:-3px;margin-right:4px;">'+(AG_ICON[d.k]||'more_horiz')+'</span>'+d.label+'</button>';
+  }).join('');
+  var r=ev.currentTarget.getBoundingClientRect();
+  pop.style.display='block';
+  var left=r.left+window.scrollX-60,top=r.bottom+window.scrollY+4;
+  if(left+150>window.scrollX+document.documentElement.clientWidth)left=window.scrollX+document.documentElement.clientWidth-158;
+  pop.style.left=Math.max(8,left)+'px';
+  pop.style.top=top+'px';
+}
+function attGridSetFromMore(gridId,sid,k){
+  document.getElementById('agMorePop').style.display='none';
+  attGridSet(gridId,sid,k);
+}
+document.addEventListener('click',function(e){
+  var pop=document.getElementById('agMorePop');
+  if(pop&&pop.style.display!=='none'&&!pop.contains(e.target)&&!(e.target.closest&&e.target.closest('.ag-more')))pop.style.display='none';
+});
 
 function renderEveningAtt(list){
   buildAttGrid('evening','eaList',list,G.eveningAtt,'evening',function(){
