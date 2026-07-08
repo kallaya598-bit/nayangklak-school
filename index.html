@@ -1100,6 +1100,27 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 .agMoreOpt:hover{background:#f4f8ff;}
 .agMoreOpt.on{background:var(--c);color:#fff;}
 @media(max-width:560px){.att-grid{font-size:11.5px;min-width:320px;}.att-grid th,.att-grid td{padding:3px 2px;}.att-grid .agName{min-width:0;}.ag-radio{width:18px;height:18px;}.att-grid .agNo{width:22px;}.ag-btn{width:30px;height:30px;}.ag-btn .ms{font-size:16px;}.ag-more{width:24px;height:30px;}.ag-more .ms{font-size:14px;}}
+/* ===== ตารางสอน (เช็คเวลาเรียน) — การ์ดโค้งมน สีบอกสถานะ ===== */
+.tt-grid{table-layout:fixed;width:100%;min-width:360px;border-collapse:separate;border-spacing:3px;font-size:11px;}
+.tt-grid thead th{background:var(--blue);color:#fff;font-weight:500;padding:5px 2px;border-radius:6px;font-size:11px;}
+.tt-grid thead th.tt-corner{background:transparent;}
+.tt-day{width:28px;text-align:center;vertical-align:middle;font-weight:500;font-size:11.5px;color:var(--text);}
+.tt-today-badge{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;background:var(--blue);color:#fff;font-weight:500;}
+.tt-cell{border-radius:8px;text-align:center;vertical-align:middle;height:44px;padding:3px 1px;cursor:pointer;line-height:1.3;}
+.tt-cell .tt-l1{font-size:10.8px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tt-cell .tt-l2{font-size:9.8px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tt-empty{background:#fafbfc;cursor:default;}
+.tt-done{background:#e8f5e9;color:#1b5e20;}
+.tt-missed{background:#fdecea;color:#c62828;border:1.5px solid #ef9a9a;}
+.tt-due{background:#fffde7;color:#8d6e00;border:1.5px solid #fbc02d;}
+.tt-future{background:#f0f0f0;color:#9aa0a6;opacity:.8;}
+.tt-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.tt-lg{font-size:11px;padding:3px 10px;border-radius:20px;}
+.tt-lg.tt-done{background:#e8f5e9;color:#1b5e20;}
+.tt-lg.tt-missed{background:#fdecea;color:#c62828;}
+.tt-lg.tt-due{background:#fffde7;color:#8d6e00;}
+.tt-lg.tt-future{background:#f0f0f0;color:#9aa0a6;}
+@media(max-width:400px){.tt-grid{font-size:10px;border-spacing:2px;}.tt-cell{height:40px;}.tt-cell .tt-l1{font-size:10px;}.tt-cell .tt-l2{font-size:9px;}.tt-day{width:24px;}.tt-today-badge{width:20px;height:20px;}}
 /* ===== เยี่ยมบ้านนักเรียน ===== */
 .hv-table{width:100%;border-collapse:collapse;font-size:15.6px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
 .hv-table th{background:var(--bluel);color:var(--blue);padding:9px 8px;text-align:left;font-weight:700;white-space:nowrap;}
@@ -7340,7 +7361,7 @@ async function renderSaTimetable(){
     var actMap=await loadActivityTTMap();
     if(!tt.length&&!Object.keys(actMap).length){el.innerHTML='<div class="loading">ยังไม่ได้จัดตารางสอน<br><button class="btn btn-green btn-sm mt12" onclick="openPage(\'pgTeachTimetable\')">📅 ไปจัดตารางสอน</button><div class="mt12"><button class="btn btn-outline btn-sm" onclick="saManualPick()">หรือเลือกกลุ่มเรียนเอง →</button></div></div>';return;}
     var map={};tt.forEach(function(t){map[t.day_of_week+'_'+t.period]=t;});
-    var days=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'],periods=[1,2,3,4,5,6,7];
+    var days=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'],dayShort={'จันทร์':'จ','อังคาร':'อ','พุธ':'พ','พฤหัสบดี':'พฤ','ศุกร์':'ศ'},periods=[1,2,3,4,5,6,7];
     var todayDow=SA_DOW[new Date().getDay()],td=today();
     var weekStart=dateOfThisWeek('จันทร์'),weekEnd=dateOfThisWeek('ศุกร์');
     // เช็คสถานะรายวิชา
@@ -7351,36 +7372,36 @@ async function renderSaTimetable(){
     var actIds=[];Object.values(actMap).forEach(function(a){if(actIds.indexOf(a.id)<0)actIds.push(a.id);});
     var actChk={};
     if(actIds.length){try{var aa=await api('/rest/v1/activity_attendance?activity_id=in.('+actIds.join(',')+')&att_date=gte.'+weekStart+'&att_date=lte.'+weekEnd+'&select=activity_id,att_date');(aa||[]).forEach(function(r){actChk[r.activity_id+'_'+r.att_date]=1;});}catch(e){}}
-    var h='<div style="overflow-x:auto;"><table style="table-layout:fixed;width:100%;min-width:560px;border-collapse:collapse;font-size:13.2px;"><thead><tr>'+
-      '<th style="width:12%;background:var(--blue);color:#fff;border:1px solid #90caf9;padding:5px;">วัน/คาบ</th>'+
-      periods.map(function(p){return '<th style="width:12.5%;background:var(--blue);color:#fff;border:1px solid #90caf9;padding:5px;">'+p+'</th>';}).join('')+'</tr></thead><tbody>';
+    var h='<div style="overflow-x:auto;"><table class="tt-grid"><thead><tr>'+
+      '<th class="tt-corner"></th>'+
+      periods.map(function(p){return '<th>'+p+'</th>';}).join('')+'</tr></thead><tbody>';
     days.forEach(function(day){
-      var wd=dateOfThisWeek(day);
-      h+='<tr><td style="font-weight:700;border:1px solid var(--border);padding:4px;text-align:center;background:'+(day===todayDow?'#fff3e0':'#f5f9ff')+';white-space:nowrap;">'+day+(day===todayDow?'<br><span style="font-size:10.8px;color:#e65100;">(วันนี้)</span>':'')+'</td>'+periods.map(function(p){
+      var wd=dateOfThisWeek(day),isToday=day===todayDow;
+      h+='<tr><td class="tt-day">'+(isToday?'<span class="tt-today-badge">'+dayShort[day]+'</span>':dayShort[day])+'</td>'+periods.map(function(p){
         var t=map[day+'_'+p],act=actMap[day+'_'+p];
-        if(!t&&!act)return '<td style="border:1px solid var(--border);background:#fafafa;height:48px;"></td>';
+        if(!t&&!act)return '<td class="tt-cell tt-empty"></td>';
         // ช่องกิจกรรม (นศท./ชุมนุม ฯลฯ)
         if(!t&&act){
           var isFuture=wd>td,isActChk=!!actChk[act.id+'_'+wd];
-          var bg,tc,tag,click;
-          if(isFuture){bg='#e8eaed';tc='#9aa0a6';tag='⏳ ยังไม่ถึงวัน';click='onclick="toast(\'ยังไม่ถึงวันกิจกรรม ('+thaiDateShort(wd)+')\',\'info\')"';}
-          else if(isActChk){bg='#c8e6c9';tc='#1b5e20';tag='✅ เช็คแล้ว';click='style="cursor:pointer;" onclick="actGoManage('+act.id+')"';}
-          else if(wd<td){bg='#ffcdd2';tc='#b71c1c';tag='🔴 ลืมเช็ค';click='style="cursor:pointer;" onclick="actGoManage('+act.id+')"';}
-          else{bg='#fff9c4';tc='#5d4037';tag='✍️ เช็คได้';click='style="cursor:pointer;" onclick="actGoManage('+act.id+')"';}
-          return '<td '+click+' style="border:1px solid var(--border);background:'+bg+';padding:3px 2px;text-align:center;height:48px;vertical-align:middle;" title="กิจกรรม: '+act.name+'"><div style="font-weight:700;color:'+tc+';font-size:12px;">🎪 '+act.name+'</div><div style="color:'+tc+';font-size:10.8px;">'+(act.atype||'')+' '+(act.location||'')+'</div><div style="font-size:9.6px;color:'+tc+';">'+tag+'</div></td>';
+          var cls,click;
+          if(isFuture){cls='tt-future';click='onclick="toast(\'ยังไม่ถึงวันกิจกรรม ('+thaiDateShort(wd)+')\',\'info\')"';}
+          else if(isActChk){cls='tt-done';click='onclick="actGoManage('+act.id+')"';}
+          else if(wd<td){cls='tt-missed';click='onclick="actGoManage('+act.id+')"';}
+          else{cls='tt-due';click='onclick="actGoManage('+act.id+')"';}
+          return '<td class="tt-cell '+cls+'" '+click+' title="กิจกรรม: '+act.name+'"><div class="tt-l1">🎪'+act.name+'</div><div class="tt-l2">'+(act.atype||act.location||'')+'</div></td>';
         }
         // ช่องรายวิชาปกติ
         var code=(t.subjects&&t.subjects.subject_code)||'',rn=(t.classrooms&&t.classrooms.room_name)||'';
         var isFuture=wd>td,isChecked=!!chk[t.assignment_id+'_'+wd+'_'+p];
-        var bg,tc,tag,click;
-        if(isFuture){bg='#e8eaed';tc='#9aa0a6';tag='⏳ ยังไม่ถึงวัน';click='onclick="toast(\'ยังไม่ถึงวันสอน ('+thaiDateShort(wd)+') เช็คได้เมื่อถึงวันจริง\',\'info\')"';}
-        else if(isChecked){bg='#c8e6c9';tc='#1b5e20';tag='✅ เช็คแล้ว';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
-        else if(wd<td){bg='#ffcdd2';tc='#b71c1c';tag='🔴 ลืมเช็ค';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
-        else{bg='#fff9c4';tc='#5d4037';tag='✍️ เช็คได้';click='style="cursor:pointer;" onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
-        return '<td '+click+' style="border:1px solid var(--border);background:'+bg+';padding:3px 2px;text-align:center;height:48px;vertical-align:middle;"><div style="font-weight:700;color:'+tc+';">'+code+'</div><div style="color:'+tc+';font-size:12px;">'+rn+'</div><div style="font-size:9.6px;color:'+tc+';">'+tag+'</div></td>';
+        var cls,click;
+        if(isFuture){cls='tt-future';click='onclick="toast(\'ยังไม่ถึงวันสอน ('+thaiDateShort(wd)+') เช็คได้เมื่อถึงวันจริง\',\'info\')"';}
+        else if(isChecked){cls='tt-done';click='onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        else if(wd<td){cls='tt-missed';click='onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        else{cls='tt-due';click='onclick="onSaPickCell('+t.assignment_id+','+p+',\''+day+'\')"';}
+        return '<td class="tt-cell '+cls+'" '+click+'><div class="tt-l1">'+code+'</div><div class="tt-l2">'+rn+'</div></td>';
       }).join('')+'</tr>';
     });
-    h+='</tbody></table></div><div style="font-size:13.2px;color:var(--text3);margin-top:8px;line-height:1.9;"><span style="background:#c8e6c9;padding:2px 7px;border-radius:4px;">✅ เช็คแล้ว</span> <span style="background:#ffcdd2;padding:2px 7px;border-radius:4px;">🔴 ลืมเช็ค</span> <span style="background:#fff9c4;padding:2px 7px;border-radius:4px;">✍️ ยังเช็คได้</span> <span style="background:#e8eaed;padding:2px 7px;border-radius:4px;">⏳ ยังไม่ถึงวัน</span> <span style="background:#fafafa;padding:2px 7px;border-radius:4px;">🎪 กิจกรรม</span><br>💡 แตะวิชา→เช็คเวลาเรียน · แตะ 🎪→เช็คชื่อกิจกรรม (สัปดาห์ปัจจุบัน) · <button class="btn btn-outline btn-xs" onclick="saManualPick()">เลือกกลุ่มเรียนเอง</button></div>';
+    h+='</tbody></table></div><div class="tt-legend"><span class="tt-lg tt-done">เช็คแล้ว</span><span class="tt-lg tt-missed">ลืมเช็ค</span><span class="tt-lg tt-due">ยังเช็คได้</span><span class="tt-lg tt-future">ยังไม่ถึงวัน</span></div><div style="font-size:12px;color:var(--text3);margin-top:6px;">💡 แตะช่องเพื่อเช็คเวลาเรียน · แตะ 🎪→เช็คชื่อกิจกรรม (สัปดาห์ปัจจุบัน) · <button class="btn btn-outline btn-xs" onclick="saManualPick()">เลือกกลุ่มเรียนเอง</button></div>';
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
 }
