@@ -92,6 +92,10 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   background-size:auto,auto,20px 20px,20px 20px,auto;}
 .login-right{width:min(420px,100%);position:relative;z-index:1;padding:18px;background:#fff;border:1px solid #d7e3f4;border-radius:24px;
   box-shadow:0 24px 60px rgba(13,45,94,.16),0 3px 12px rgba(13,45,94,.08);display:flex;flex-direction:column;}
+.login-right{z-index:2;}
+.nyk-login-mascot{position:absolute;z-index:1;pointer-events:none;object-fit:contain;filter:drop-shadow(0 18px 28px rgba(13,45,94,.16));}
+.nyk-login-mascot.wave{width:210px;right:max(6px,calc(50% - 350px));bottom:48px;opacity:.82;}
+.nyk-login-mascot.thumb{width:230px;left:max(-40px,calc(50% - 560px));top:34px;opacity:.14;filter:none;}
 .login-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;}
 .login-brand{display:flex;align-items:center;gap:10px;min-width:0;}
 .login-logo{width:44px;height:44px;border-radius:12px;object-fit:contain;flex-shrink:0;background:#fff;border:1px solid #d9e6f6;padding:2px;}
@@ -296,6 +300,8 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .login-foot b{font-weight:700;}
 @media(max-width:860px){
   #loginPage{align-items:flex-start;padding:14px 10px 64px;}
+  .nyk-login-mascot.wave{width:138px;right:-20px;bottom:42px;opacity:.52;}
+  .nyk-login-mascot.thumb{width:160px;left:-58px;top:70px;opacity:.10;}
   .login-right{width:100%;max-width:420px;margin:0 auto;padding:16px;border-radius:22px;}
   .login-status{display:none;}
   .role-tabs{grid-template-columns:repeat(2,1fr);}
@@ -509,13 +515,22 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .dash-hero::before{content:'';position:absolute;inset:0;border-radius:24px;background:none;z-index:1;pointer-events:none;}
 .dash-hero::after{content:'';position:absolute;inset:0;border-radius:24px;background:transparent;transition:background .9s ease;z-index:1;pointer-events:none;}
 
+.dash-hero-inner,.dash-hero-card{z-index:2;}
+.nyk-kpi-morph{position:absolute;right:-14px;bottom:-28px;width:118px;height:118px;z-index:1;pointer-events:none;}
+.nyk-kpi-morph img{position:absolute;right:0;bottom:0;width:100%;height:100%;object-fit:contain;transform-origin:78% 88%;filter:saturate(1.18) contrast(1.05) drop-shadow(0 14px 20px rgba(13,45,94,.18));transition:opacity .24s ease,transform .24s cubic-bezier(.22,1,.36,1),filter .24s ease;}
+.nyk-kpi-morph .m-wave{opacity:1;transform:translateY(8px) scale(.94) rotate(-3deg);}
+.nyk-kpi-morph .m-thumb{opacity:0;transform:translateY(22px) scale(.76) rotate(8deg);filter:saturate(1.12) contrast(1.04) drop-shadow(0 10px 18px rgba(13,45,94,.08));}
+.kpi:hover .nyk-kpi-morph,.kpi:focus-within .nyk-kpi-morph{z-index:3;}
+.kpi:hover .nyk-kpi-morph .m-wave,.kpi:focus-within .nyk-kpi-morph .m-wave{opacity:0;transform:translateY(24px) scale(.66) rotate(-10deg);}
+.kpi:hover .nyk-kpi-morph .m-thumb,.kpi:focus-within .nyk-kpi-morph .m-thumb{opacity:1;transform:translateY(-3px) scale(1.02) rotate(0deg);filter:saturate(1.2) contrast(1.06) drop-shadow(0 18px 24px rgba(13,45,94,.24));}
+.kpi-lbl,.kpi-val,.kpi-pill,.kpi-ico,.chal-hdr,.chal-list{position:relative;z-index:2;}
 
-.dash-hero-inner{position:relative;z-index:1;flex:0 0 auto;align-self:flex-start;background:rgba(255,255,255,0.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.35);border-radius:18px;padding:16px 20px;}
+.dash-hero-inner{position:relative;z-index:2;flex:0 0 auto;align-self:flex-start;background:rgba(255,255,255,0.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.35);border-radius:18px;padding:16px 20px;}
 .dash-hero-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 13px;font-size:13.8px;font-weight:700;color:#fff;margin-bottom:12px;}
 .dash-hero-name{font-size:31.2px;font-weight:800;color:#fff;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.25);}
 .dash-hero-room{display:inline-flex;align-items:center;margin-top:10px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:5px 15px;font-size:15px;font-weight:700;color:#fff;}
 .dash-hero-date{font-size:14.4px;color:rgba(255,255,255,.72);margin-top:8px;}
-.dash-hero-card{position:relative;z-index:1;flex-shrink:0;margin-left:auto;width:230px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);border-radius:18px;padding:16px 18px;color:#fff;}
+.dash-hero-card{position:relative;z-index:2;flex-shrink:0;margin-left:auto;width:230px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);border-radius:18px;padding:16px 18px;color:#fff;}
 .dhc-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.9);}
 .dhc-title .ms{font-size:16px;}
 .dhc-cta{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
@@ -547,7 +562,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 
 /* KPI ROW (dashboard) */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:16px 14px 4px;align-items:start;}
-@media(max-width:760px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:760px){.kpi-row{grid-template-columns:repeat(2,1fr);}.nyk-kpi-morph{right:-10px;bottom:-24px;width:94px;height:94px;}.nyk-kpi-morph .m-wave{transform:translateY(7px) scale(.90) rotate(-3deg);}.kpi:hover .nyk-kpi-morph .m-thumb,.kpi:focus-within .nyk-kpi-morph .m-thumb{transform:translateY(-2px) scale(.98) rotate(0deg);}}
 .kpi-chal{padding:14px 14px 8px!important;overflow:hidden;}
 /* CHALLENGE LEADERBOARD — compact redesign */
 .challenge-card{margin:10px 14px 4px;background:#fff;border:1.5px solid #e8ecf0;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(21,101,192,.06);}
@@ -598,9 +613,9 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 /* Skeleton */
 .chal-skel{height:24px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:skelShimmer 1.2s infinite;border-radius:8px;margin-bottom:4px;}
 @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.kpi{position:relative;overflow:hidden;background:#fff;border:1px solid #c5d5ee;border-radius:18px;padding:16px 18px 15px;box-shadow:0 6px 22px rgba(13,45,94,.10);transition:transform .22s cubic-bezier(.34,1.39,.64,1),box-shadow .22s ease,border-color .22s ease;}
+.kpi{position:relative;overflow:hidden;background:#fff;border:1px solid #c5d5ee;border-radius:18px;padding:16px 18px 15px;box-shadow:0 6px 22px rgba(13,45,94,.10);transition:transform .22s cubic-bezier(.34,1.39,.64,1),box-shadow .22s ease,border-color .22s ease;isolation:isolate;}
 .kpi:hover{transform:translateY(-10px) scale(1.028);box-shadow:0 16px 32px rgba(13,45,94,.20),0 0 0 2px rgba(0,229,255,.45);border-color:rgba(0,229,255,.6);}
-.kpi::after{content:'';position:absolute;right:-22px;bottom:-22px;width:86px;height:86px;border-radius:50%;background:linear-gradient(135deg,rgba(0,229,255,.14),rgba(13,45,94,.05));pointer-events:none;}
+.kpi::after{content:'';position:absolute;right:-22px;bottom:-22px;width:86px;height:86px;border-radius:50%;background:linear-gradient(135deg,rgba(0,229,255,.14),rgba(13,45,94,.05));pointer-events:none;z-index:0;}
 .kpi-ico{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;}
 .kpi-ico .ms{font-size:19px;}
 .kico-b{background:linear-gradient(145deg,#00e5ff,#0d2d5e);}
@@ -1214,6 +1229,8 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 
 <!-- ===== LOGIN ===== -->
 <div id="loginPage" style="display:none;">
+  <img class="nyk-login-mascot wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt="" aria-hidden="true">
+  <img class="nyk-login-mascot thumb" src="assets/mascots/nyk-mascot-thumb-cutout.png" alt="" aria-hidden="true">
   <div class="login-right">
     <div class="login-top">
       <div class="login-brand">
@@ -1521,10 +1538,11 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 
         <!-- KPI CARDS -->
         <div class="kpi-row">
-          <div class="kpi"><div class="kpi-ico kico-b"><span class="ms">groups</span></div><div class="kpi-lbl">นักเรียนทั้งหมด</div><div class="kpi-val" id="sTotal">—</div><span class="kpi-pill pb">ในความดูแล</span></div>
-          <div class="kpi"><div class="kpi-ico kico-g"><span class="ms">check_circle</span></div><div class="kpi-lbl">มาเรียนวันนี้</div><div class="kpi-val" id="sPresent">—</div><span class="kpi-pill pg">เข้าแถวแล้ว</span></div>
-          <div class="kpi"><div class="kpi-ico kico-r"><span class="ms">person_off</span></div><div class="kpi-lbl">ขาด / ลา</div><div class="kpi-val" id="sAbsent">—</div><span class="kpi-pill pr">ต้องติดตาม</span></div>
+          <div class="kpi"><span class="nyk-kpi-morph" aria-hidden="true"><img class="m-wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt=""><img class="m-thumb" src="assets/mascots/nyk-mascot-thumb-cutout.png" alt=""></span><div class="kpi-ico kico-b"><span class="ms">groups</span></div><div class="kpi-lbl">นักเรียนทั้งหมด</div><div class="kpi-val" id="sTotal">—</div><span class="kpi-pill pb">ในความดูแล</span></div>
+          <div class="kpi"><span class="nyk-kpi-morph" aria-hidden="true"><img class="m-wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt=""><img class="m-thumb" src="assets/mascots/nyk-mascot-thumb-cutout.png" alt=""></span><div class="kpi-ico kico-g"><span class="ms">check_circle</span></div><div class="kpi-lbl">มาเรียนวันนี้</div><div class="kpi-val" id="sPresent">—</div><span class="kpi-pill pg">เข้าแถวแล้ว</span></div>
+          <div class="kpi"><span class="nyk-kpi-morph" aria-hidden="true"><img class="m-wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt=""><img class="m-thumb" src="assets/mascots/nyk-mascot-thumb-cutout.png" alt=""></span><div class="kpi-ico kico-r"><span class="ms">person_off</span></div><div class="kpi-lbl">ขาด / ลา</div><div class="kpi-val" id="sAbsent">—</div><span class="kpi-pill pr">ต้องติดตาม</span></div>
           <div class="kpi kpi-chal" onclick="openPage('pgChallengeAll');loadChallengeAll('week')" style="cursor:pointer;">
+            <span class="nyk-kpi-morph" aria-hidden="true"><img class="m-wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt=""><img class="m-thumb" src="assets/mascots/nyk-mascot-thumb-cutout.png" alt=""></span>
             <div class="chal-hdr" style="padding:0 0 6px;">
               <span class="chal-hdr-ico">🏆</span>
               <span class="chal-hdr-title">Challenge</span>
