@@ -3667,7 +3667,7 @@ async function examRunBatch(){
         canvases.forEach(function(cv,i){pages.push({name:file.name,page:i+1,canvas:cv});});
       }else pages.push({name:file.name,page:1,canvas:await examGetOrientedCanvas(file,1600)});
     }
-    await examProcessPages(pages);
+    await examProcessPages(pages,true);
     examSetTab('results');
     examMsg('ตรวจเสร็จ '+pages.length+' หน้า โปรดตรวจทานและแก้คะแนนก่อนบันทึก');
   }catch(e){examMsg('ตรวจไม่สำเร็จ: '+e.message,true);}
