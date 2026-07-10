@@ -3386,6 +3386,23 @@ function examDetectMarkersAt(gray,w,h,markerThr){
 }
 function examSolveHomography(src,dst){var A=[],b=[];for(var i=0;i<4;i++){var x=src[i][0],y=src[i][1],X=dst[i][0],Y=dst[i][1];A.push([x,y,1,0,0,0,-x*X,-y*X]);b.push(X);A.push([0,0,0,x,y,1,-x*Y,-y*Y]);b.push(Y);}var n=8;for(i=0;i<n;i++){var p=i;for(var r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;var ta=A[i];A[i]=A[p];A[p]=ta;var tb=b[i];b[i]=b[p];b[p]=tb;if(Math.abs(A[i][i])<1e-9)return null;for(r=0;r<n;r++){if(r===i)continue;var f=A[r][i]/A[i][i];for(var c=i;c<n;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}var out=[];for(i=0;i<n;i++)out[i]=b[i]/A[i][i];return out;}
 function examApplyH(h,x,y){var d=h[6]*x+h[7]*y+1;return [(h[0]*x+h[1]*y+h[2])/d,(h[3]*x+h[4]*y+h[5])/d];}
+function examQrCropFromMarkers(canvas,markers,gw,gh){
+  var srcQuad=[[EX_MK.tl.x,EX_MK.tl.y],[EX_MK.tr.x,EX_MK.tr.y],[EX_MK.br.x,EX_MK.br.y],[EX_MK.bl.x,EX_MK.bl.y]];
+  var Hm=examSolveHomography(srcQuad,markers);if(!Hm)return null;
+  var qrCanon=[[628,87],[720,87],[720,180],[628,180]];
+  var scaleX=canvas.width/gw,scaleY=canvas.height/gh;
+  var pts=qrCanon.map(function(p){var q=examApplyH(Hm,p[0],p[1]);return [q[0]*scaleX,q[1]*scaleY];});
+  var xs=pts.map(function(p){return p[0];}),ys=pts.map(function(p){return p[1];});
+  var minx=Math.max(0,Math.min.apply(null,xs)),maxx=Math.min(canvas.width,Math.max.apply(null,xs));
+  var miny=Math.max(0,Math.min.apply(null,ys)),maxy=Math.min(canvas.height,Math.max.apply(null,ys));
+  var sw=maxx-minx,sh=maxy-miny;
+  if(sw<8||sh<8)return null;
+  var scale=Math.max(1,Math.round(360/Math.max(sw,sh)));
+  var out=document.createElement('canvas');out.width=Math.round(sw*scale);out.height=Math.round(sh*scale);
+  var ctx=out.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(canvas,minx,miny,sw,sh,0,0,out.width,out.height);
+  return out;
+}
 function examSampleBubble(gray,w,h,cx,cy,r){var ri=Math.max(2,r*0.55),ri2=ri*ri,sum=0,cnt=0;for(var dy=-Math.ceil(ri);dy<=Math.ceil(ri);dy++)for(var dx=-Math.ceil(ri);dx<=Math.ceil(ri);dx++){if(dx*dx+dy*dy>ri2)continue;var x=(cx+dx)|0,y=(cy+dy)|0;if(x<0||y<0||x>=w||y>=h)continue;sum+=gray[y*w+x];cnt++;}return cnt?sum/cnt:255;}
 function examRunOMR(img,numQ,manualQuad,choicesCount){
   var g=examOmrToGray(img),gray=g.gray,w=g.w,h=g.h,markers;
@@ -3395,7 +3412,7 @@ function examRunOMR(img,numQ,manualQuad,choicesCount){
   var answers={},uncertain=0;
   for(var q=1;q<=numQ;q++){var bubbles=[];for(var k=0;k<choices.length;k++){var b=L.bubbles[(q-1)*choices.length+k],pt=examApplyH(Hm,b.x,b.y),bright=examSampleBubble(gray,w,h,pt[0],pt[1],bubbleR);bubbles.push({choice:choices[k],bright:bright});}var paper=Math.max.apply(null,bubbles.map(function(b){return b.bright;}));bubbles.forEach(function(b){b.dark=paper-b.bright;});var dark=bubbles.map(function(b){return b.dark;}),wi=0;for(k=1;k<choices.length;k++)if(dark[k]>dark[wi])wi=k;var c0=dark[wi],c1=dark.slice().sort(function(a,b){return b-a;})[1]||0;if(c0<EX_DARK_MIN)answers[q]='-';else if(c1>EX_AMBIG*c0){answers[q]='?';uncertain++;}else answers[q]=choices[wi];}
   var blankCount=Object.values(answers).filter(function(a){return a==='-';}).length;
-  return {ok:true,answers:answers,uncertain:uncertain,blankCount:blankCount,markedCount:numQ-blankCount,choicesCount:choices.length};
+  return {ok:true,answers:answers,uncertain:uncertain,blankCount:blankCount,markedCount:numQ-blankCount,choicesCount:choices.length,markers:markers,gw:w,gh:h};
 }
 function examChooseBestOMR(img,numQ,manualQuad,preferredChoices,key){var first=examRunOMR(img,numQ,manualQuad,preferredChoices);if(!first.ok)return first;if(first.blankCount<Math.ceil(numQ*0.65)||Object.values(key||{}).indexOf('จ')>=0)return first;var other=preferredChoices===5?4:5,second=examRunOMR(img,numQ,manualQuad,other);if(!second.ok)return first;return second.markedCount>first.markedCount+Math.ceil(numQ*0.15)?second:first;}
 function examImageFromDataUrl(url){return new Promise(function(resolve,reject){var img=new Image();img.onload=function(){resolve(img);};img.onerror=function(){reject(new Error('โหลดรูปไม่ได้'));};img.src=url;});}
@@ -3701,10 +3718,14 @@ async function examProcessPages(pages,noGuess){
 
 async function examGradeCanvas(page,index,key,numQ,choices,noGuess){
   var qr=await examDecodeQrFromCanvas(page.canvas).catch(function(){return null;});
-  var student=examStudentFromQr(qr)||(noGuess?null:EX.students[index])||null;
   var capturedAt=new Date().toISOString();
   var img=await examImageFromDataUrl(page.canvas.toDataURL('image/jpeg',0.9));
   var omr=examChooseBestOMR(img,numQ,null,choices,key);
+  if(!qr&&omr.ok&&omr.markers){
+    var qrCrop=examQrCropFromMarkers(page.canvas,omr.markers,omr.gw,omr.gh);
+    if(qrCrop)qr=await examDecodeQrFromCanvas(qrCrop).catch(function(){return null;});
+  }
+  var student=examStudentFromQr(qr)||(noGuess?null:EX.students[index])||null;
   if(!omr.ok)return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',capturedAt:capturedAt,error:omr.reason,answers:{},objective_score:0,objective_total:Number(EX.subject.objective_full||numQ),subjective_score:0,subjective_total:Number(EX.subject.subjective_full||0),raw_score:0,raw_total:0,final_score:0,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
   var g=examScoreResult(omr.answers,key);
   var objTotal=Number(EX.subject.objective_full||numQ),objScore=g.keyCount?g.correct/g.keyCount*objTotal:0,subTotal=Number(EX.subject.subjective_full||0);
