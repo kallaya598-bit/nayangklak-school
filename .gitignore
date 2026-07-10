@@ -3,6 +3,10 @@ Thumbs.db
 desktop.ini
 *.lnk
 
+# macOS (เกิดอัตโนมัติเวลา copy ผ่าน USB/แฟลชไดรฟ์ที่ไม่ใช่ HFS+)
+._*
+.DS_Store
+
 # Editor
 .vscode/
 .idea/

@@ -100,9 +100,11 @@ fetch(SB + '/rest/v1/students?select=id&classroom_id=eq.5', {
 ├── index.html              ← ระบบหลัก (deploy บน GitHub Pages)
 ├── nayangklak_system.html  ← ระบบหลัก (สำเนาสำหรับแก้ไข)
 ├── CLAUDE.md               ← ไฟล์นี้
-├── expand_schema.sql       ← SQL ขยาย database
-├── fix_room_teachers.sql   ← SQL ผูกครูกับห้อง
-├── nayangklak_all_in_one.sql ← SQL ตั้งต้นระบบ
+├── sql/                     ← ไฟล์ SQL ทั้งหมด (รันบน Supabase SQL Editor)
+│   ├── expand_schema.sql       ← SQL ขยาย database
+│   ├── fix_room_teachers.sql   ← SQL ผูกครูกับห้อง
+│   └── nayangklak_all_in_one.sql ← SQL ตั้งต้นระบบ
+├── archive/                 ← ไฟล์ mockup/backup เก่า (ไม่กระทบเว็บจริง)
 └── teacher_accounts.xlsx   ← username/password ครูทุกคน
 ```
 
@@ -128,11 +130,11 @@ fetch(SB + '/rest/v1/students?select=id&classroom_id=eq.5', {
   - **tab "ยังไม่เช็ค" (buildSarMissing):** แจกแจงคาบที่ต้องสอนทั้งภาคจากตารางสอน → แสดงวันไหนเช็คแล้ว/ยังไม่เช็ค (แถวแดง) → กดเช็คย้อนหลัง/แก้ไข (ทั้งห้องด้วย checkbox หัวคอลัมน์ หรือรายคน)
 
 ## ⚠️ ต้องทำก่อนใช้โมดูลการสอน
-รัน `teaching_module.sql` ใน Supabase SQL Editor ก่อน (สร้างตาราง teaching_assignments,
+รัน `sql/teaching_module.sql` ใน Supabase SQL Editor ก่อน (สร้างตาราง teaching_assignments,
 enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_structures
 + INSERT วิชาตัวอย่าง) — ตอนนี้ตารางยังไม่ถูกสร้าง (API จะ 404 จนกว่าจะรัน SQL)
 
-## ตารางใหม่ (จาก teaching_module.sql)
+## ตารางใหม่ (จาก sql/teaching_module.sql)
 | ตาราง | รายละเอียด |
 |-------|-----------|
 | `teaching_assignments` | กลุ่มเรียนรายวิชา (วิชา+ห้อง+ครู+กลุ่มที่) |
@@ -146,16 +148,16 @@ enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_stru
 - ดูรายงานทุกห้อง: ปุ่ม "ดูห้องนี้" (adminViewRoom) → set G.room → เข้าถึงเช็คชื่อ/ความดี/คะแนน/รายงานของห้องนั้น
 - **โอนรายวิชา/เปลี่ยนครูผู้สอน** (admAssignments): ครูย้าย→โอนเจ้าของกลุ่ม เช็คชื่อ/คะแนน/รายชื่อเดิมตามไปครบ (ผูก assignment_id)
 - **สอนร่วม (co-teacher):** loadMyAssigns รวมกลุ่มจาก assignment_teachers → ครูที่ถูกเชิญเห็นกลุ่ม (badge "ร่วมสอน")
-- **ต้องรัน `admin_rpc.sql` ก่อน** (RPC admin_create_teacher / admin_set_password — รหัสผ่าน bcrypt)
+- **ต้องรัน `sql/admin_rpc.sql` ก่อน** (RPC admin_create_teacher / admin_set_password — รหัสผ่าน bcrypt)
 
 ## การตรวจเครื่องแต่งกาย + การ์ดแจ้งนักเรียน (เพิ่มใหม่)
 - **ครั้งที่ตรวจ (round_no):** หน้าบันทึกการแต่งกาย (แท็บ "บันทึก") มีช่อง "ครั้งที่ตรวจ" กำหนดได้ว่าเป็นการตรวจครั้งที่เท่าไหร่ของเทอม → เก็บลง `behavior_records.round_no` (แท็บ "แก้ไข" แสดงครั้งที่ในหัวตาราง)
 - **การ์ดผลตรวจในพอร์ทัลนักเรียน/ผู้ปกครอง (stuDressCard):** แสดงในแท็บ "ภาพรวม" — แบนเนอร์ผลตรวจครั้งล่าสุด (✅ ผ่าน / ❌ ไม่ผ่าน + รายการที่ผิด) พร้อมประวัติการตรวจครั้งก่อน จัดกลุ่มตาม ครั้งที่+วันที่
-- **⚠️ ต้องรัน `dress_code_round.sql` ก่อน** (ALTER behavior_records ADD round_no) — ถ้ายังไม่รัน การบันทึก round_no จะ error
+- **⚠️ ต้องรัน `sql/dress_code_round.sql` ก่อน** (ALTER behavior_records ADD round_no) — ถ้ายังไม่รัน การบันทึก round_no จะ error
 
 ## สิ่งที่ยังค้างอยู่ ⏳
-- [ ] รัน dress_code_round.sql บน Supabase (เพิ่มคอลัมน์ round_no)
-- [ ] รัน teaching_module.sql + admin_rpc.sql บน Supabase + ทดสอบ end-to-end
+- [ ] รัน sql/dress_code_round.sql บน Supabase (เพิ่มคอลัมน์ round_no)
+- [ ] รัน sql/teaching_module.sql + sql/admin_rpc.sql บน Supabase + ทดสอบ end-to-end
 - [ ] Deploy index.html เวอร์ชันใหม่ขึ้น GitHub Pages
 - [ ] Admin Panel เต็มรูปแบบ
 - [ ] รายงานเช็คชื่อรายวิชา รายเดือน/% (ตอนนี้มีเฉพาะเสาธง/เย็น)

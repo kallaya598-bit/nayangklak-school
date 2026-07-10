@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulator หลักการมิเตอร์ไฟฟ้ากระแสตรง</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --blue:#1565c0;
+      --blue2:#1976d2;
+      --bluel:#e3f2fd;
+      --green:#2e7d32;
+      --red:#c62828;
+      --amber:#ef8f00;
+      --ink:#102033;
+      --muted:#51687f;
+      --line:#d7e5f4;
+      --soft:#f5f9fe;
+      --surface:#ffffff;
+      --shadow:0 18px 42px rgba(21,101,192,.14);
+      --radius:8px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:'Sarabun',system-ui,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 16% 8%, rgba(25,118,210,.16), transparent 28%),
+        radial-gradient(circle at 88% 20%, rgba(46,125,50,.10), transparent 26%),
+        linear-gradient(180deg,#f8fbff 0%,#edf6ff 52%,#f9fbff 100%);
+    }
+    button,input,select{font-family:inherit}
+    .app{
+      width:min(1180px,100%);
+      margin:0 auto;
+      padding:18px 14px 36px;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:16px;
+      align-items:stretch;
+      margin-bottom:12px;
+    }
+    .hero-main{
+      background:linear-gradient(135deg,var(--blue),#0f4f9c);
+      color:#fff;
+      border-radius:var(--radius);
+      padding:22px;
+      min-height:286px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      overflow:hidden;
+      position:relative;
+    }
+    .hero-main:after{
+      content:"";
+      position:absolute;
+      width:280px;
+      height:280px;
+      right:-92px;
+      bottom:-122px;
+      border:34px solid rgba(255,255,255,.13);
+      border-radius:50%;
+    }
+    .hero-main h1{
+      margin:0;
+      max-width:760px;
+      font-size:2rem;
+      line-height:1.16;
+      letter-spacing:0;
+      text-wrap:balance;
+    }
+    .hero-main p{
+      margin:12px 0 0;
+      max-width:66ch;
+      color:#edf7ff;
+      font-size:1.05rem;
+      line-height:1.72;
+    }
+    .hero-tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:18px;
+      position:relative;
+      z-index:1;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      min-height:34px;
+      padding:6px 12px;
+      border-radius:999px;
+      background:#fff;
+      color:#0d3c76;
+      border:1px solid rgba(255,255,255,.82);
+      font-weight:800;
+      font-size:.92rem;
+    }
+    .stage{
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:12px;
+      align-content:center;
+    }
+    .meter-card{
+      width:min(390px,100%);
+      aspect-ratio:1.36/1;
+      margin:0 auto;
+      border-radius:8px;
+      background:linear-gradient(180deg,#fff,#edf6ff);
+      border:1px solid #c4d8ed;
+      box-shadow:inset 0 -12px 32px rgba(21,101,192,.08),0 14px 26px rgba(16,32,51,.12);
+      overflow:hidden;
+    }
+    .meter-card svg{width:100%;height:100%;display:block}
+    .needle{transform-origin:210px 226px;transition:transform .22s ease-out}
+    .readout{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+    .mini{
+      min-height:62px;
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:8px;
+    }
+    .mini b{display:block;color:var(--blue);font-size:1rem;line-height:1.25}
+    .mini span{display:block;color:var(--muted);font-size:.84rem;line-height:1.35;margin-top:2px}
+    .tabs{
+      position:sticky;
+      top:0;
+      z-index:6;
+      display:flex;
+      gap:8px;
+      overflow-x:auto;
+      padding:10px 0 12px;
+      background:linear-gradient(180deg,rgba(248,251,255,.98),rgba(248,251,255,.88));
+      backdrop-filter:blur(10px);
+      scrollbar-width:none;
+    }
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{
+      min-height:44px;
+      white-space:nowrap;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      color:#24425f;
+      padding:8px 14px;
+      font-size:.98rem;
+      font-weight:800;
+      cursor:pointer;
+      transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
+    }
+    .tab:hover{background:var(--bluel);border-color:#b8d5f2}
+    .tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 8px 18px rgba(21,101,192,.18)}
+    .tab:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{
+      outline:3px solid rgba(25,118,210,.28);
+      outline-offset:2px;
+    }
+    .panel{display:none}
+    .panel.active{display:block}
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+      gap:14px;
+      align-items:start;
+    }
+    .box{
+      background:rgba(255,255,255,.94);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:0 10px 28px rgba(21,101,192,.08);
+    }
+    .box h2,.box h3{
+      margin:0 0 10px;
+      color:#103a6d;
+      letter-spacing:0;
+      text-wrap:balance;
+    }
+    .box h2{font-size:1.36rem;line-height:1.28}
+    .box h3{font-size:1.12rem;line-height:1.3}
+    .lead{
+      margin:0 0 14px;
+      color:#30475e;
+      line-height:1.72;
+      max-width:74ch;
+    }
+    .controls{
+      display:grid;
+      gap:12px;
+    }
+    .control{
+      display:grid;
+      gap:7px;
+      padding:10px;
+      border:1px solid #dce8f4;
+      border-radius:var(--radius);
+      background:#fbfdff;
+    }
+    .control label{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-weight:800;
+      color:#173a5c;
+      line-height:1.35;
+    }
+    .control label span{
+      color:var(--blue);
+      font-weight:800;
+      text-align:right;
+      min-width:72px;
+    }
+    .control input[type=range]{width:100%;min-height:34px;accent-color:var(--blue)}
+    .control select{
+      width:100%;
+      min-height:44px;
+      border:1px solid #c8d9eb;
+      border-radius:var(--radius);
+      background:#fff;
+      color:var(--ink);
+      padding:8px 10px;
+      font-size:1rem;
+    }
+    .scene{
+      width:100%;
+      min-height:300px;
+      border:1px solid #d8e4f2;
+      border-radius:var(--radius);
+      background:linear-gradient(180deg,#fff,#f6fbff);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+    .scene svg{width:100%;max-width:660px;height:auto;display:block}
+    .wire{stroke:#17324d;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .hot{stroke:var(--red)}
+    .bluewire{stroke:var(--blue)}
+    .soft-fill{fill:#eef6ff;stroke:#a8c8ea;stroke-width:2}
+    .ok-fill{fill:#ebf7ee;stroke:#9ad0a1;stroke-width:2}
+    .warn-fill{fill:#fff4e5;stroke:#ffc56b;stroke-width:2}
+    .bad-fill{fill:#fff1f1;stroke:#f2aaaa;stroke-width:2}
+    .device-label{font-size:18px;font-weight:800;fill:#143656}
+    .tiny-label{font-size:14px;font-weight:700;fill:#4b6075}
+    .path-dot{transition:opacity .2s ease}
+    .concept-list{
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .concept{
+      display:grid;
+      grid-template-columns:34px 1fr;
+      gap:10px;
+      align-items:start;
+      min-height:58px;
+      padding:10px;
+      background:#fbfdff;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      line-height:1.62;
+    }
+    .badge{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      background:var(--blue);
+      font-weight:800;
+      flex:none;
+    }
+    .status{
+      margin-top:12px;
+      padding:12px;
+      border-radius:var(--radius);
+      border:1px solid var(--line);
+      background:#f6fbff;
+      color:#26455f;
+      line-height:1.65;
+      font-weight:700;
+    }
+    .status.ok{background:#eef9f1;border-color:#abd8b1;color:#165b24}
+    .status.warn{background:#fff7e8;border-color:#ffd187;color:#704000}
+    .status.bad{background:#fff1f1;border-color:#f1b7b7;color:#8a1515}
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    .btn{
+      min-height:44px;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:8px 13px;
+      background:#fff;
+      color:#17324d;
+      font-weight:800;
+      cursor:pointer;
+      transition:background .18s ease,border-color .18s ease,transform .18s ease;
+    }
+    .btn:hover{background:var(--bluel);border-color:#b8d5f2}
+    .btn.active,.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+    .compare{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .tile{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:var(--radius);
+      padding:12px;
+      min-height:126px;
+    }
+    .tile b{display:block;color:#0c3e73;font-size:1.08rem;margin-bottom:4px}
+    .tile span{display:block;color:#415a72;line-height:1.55}
+    .footer-note{
+      margin-top:16px;
+      padding:14px;
+      border-radius:var(--radius);
+      border:1px solid #cde0f2;
+      background:rgba(255,255,255,.78);
+      color:#38536e;
+      line-height:1.72;
+    }
+    @media (max-width:900px){
+      .hero,.grid{grid-template-columns:1fr}
+      .hero-main{min-height:auto}
+      .hero-main h1{font-size:1.72rem}
+      .stage{min-height:auto}
+    }
+    @media (max-width:560px){
+      .app{padding:12px 10px 28px}
+      .hero-main,.box,.stage{padding:14px}
+      .hero-main h1{font-size:1.44rem}
+      .hero-main p{font-size:.98rem}
+      .readout,.compare{grid-template-columns:1fr}
+      .tabs{top:0}
+      .tab{font-size:.94rem;padding-inline:12px}
+      .scene{min-height:246px}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*:before,*:after{transition:none!important;scroll-behavior:auto!important}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero" aria-labelledby="pageTitle">
+      <div class="hero-main">
+        <div>
+          <h1 id="pageTitle">เข้าใจมิเตอร์ไฟฟ้าด้วยภาพ</h1>
+          <p>หน้านี้ตั้งใจให้เด็กเห็นภาพก่อนว่า แกลวานอมิเตอร์คืออะไร ทำไมต้องดัดแปลงเป็นแอมมิเตอร์และโวลต์มิเตอร์ และเวลานำไปใช้ต้องต่อวงจรแบบไหน</p>
+        </div>
+        <div class="hero-tags" aria-label="แนวการเรียนรู้">
+          <span class="tag">ไม่เริ่มด้วยสูตร</span>
+          <span class="tag">ดูเข็มและทางเดินกระแส</span>
+          <span class="tag">เชื่อมกับวงจรจริง</span>
+        </div>
+      </div>
+      <aside class="stage" aria-label="มิเตอร์จำลอง">
+        <div class="meter-card">
+          <svg viewBox="0 0 420 310" role="img" aria-label="เข็มมิเตอร์จำลอง">
+            <defs>
+              <linearGradient id="dialGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#ffffff"/>
+                <stop offset="1" stop-color="#dfeeff"/>
+              </linearGradient>
+            </defs>
+            <rect x="18" y="18" width="384" height="274" rx="22" fill="url(#dialGrad)" stroke="#b6cce3" stroke-width="3"/>
+            <path d="M70 226 A140 140 0 0 1 350 226" fill="none" stroke="#16395a" stroke-width="5"/>
+            <path d="M91 226 A119 119 0 0 1 329 226" fill="none" stroke="#bdd5ee" stroke-width="18"/>
+            <g id="heroTicks"></g>
+            <text x="210" y="94" text-anchor="middle" font-size="22" font-weight="800" fill="#143656" id="meterTitle">มิเตอร์เข็ม</text>
+            <text x="210" y="252" text-anchor="middle" font-size="17" font-weight="700" fill="#4d6279" id="meterHint">เข็มเบนตามผลของกระแส</text>
+            <g id="heroNeedle" class="needle">
+              <line x1="210" y1="226" x2="210" y2="88" stroke="#c62828" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="210" cy="226" r="18" fill="#17324d"/>
+              <circle cx="210" cy="226" r="8" fill="#ffffff"/>
+            </g>
+          </svg>
+        </div>
+        <div class="readout">
+          <div class="mini"><b id="needleText">เบนเล็กน้อย</b><span>การตอบสนองของเข็ม</span></div>
+          <div class="mini"><b id="roleText">ใช้สังเกต</b><span>หน้าที่ของเครื่องวัด</span></div>
+          <div class="mini"><b id="safeText">ปลอดภัย</b><span>ผลต่อเครื่องวัด</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="tabs" aria-label="เลือกฉากการเรียนรู้">
+      <button class="tab active" data-tab="overview">ภาพรวม</button>
+      <button class="tab" data-tab="galvanometer">แกลวานอมิเตอร์</button>
+      <button class="tab" data-tab="ammeter">แอมมิเตอร์</button>
+      <button class="tab" data-tab="voltmeter">โวลต์มิเตอร์</button>
+      <button class="tab" data-tab="using">การต่อใช้งาน</button>
+    </nav>
+
+    <section id="overview" class="panel active">
+      <div class="grid">
+        <div class="box">
+          <h2>ภาพเดียวก่อน: มิเตอร์ทั้งสามเกี่ยวกันอย่างไร</h2>
+          <p class="lead">ให้คิดว่าแกลวานอมิเตอร์เป็น “หัวใจเข็ม” ที่ไวมาก ส่วนแอมมิเตอร์และโวลต์มิเตอร์คือการนำหัวใจเข็มนั้นไปใส่ตัวช่วยคนละแบบ เพื่อให้เหมาะกับงานวัดคนละชนิด</p>
+          <div class="compare">
+            <div class="tile"><b>แกลวานอมิเตอร์</b><span>ตรวจจับกระแสเล็ก ๆ เข็มเบนเมื่อมีกระแสผ่านขดลวด</span></div>
+            <div class="tile"><b>แอมมิเตอร์</b><span>ใช้วัดกระแสในเส้นทางวงจร ต้องต่ออนุกรมกับโหลด</span></div>
+            <div class="tile"><b>โวลต์มิเตอร์</b><span>ใช้วัดความต่างศักย์ระหว่างสองจุด ต้องต่อขนานคร่อมส่วนที่วัด</span></div>
+          </div>
+          <div class="status ok">เป้าหมายของบทนี้: เห็นก่อนว่า “วัดอะไร” “เข็มเบนเพราะอะไร” และ “ต้องต่ออย่างไร” แล้วค่อยไปเรื่องตัวเลขในขั้นถัดไป</div>
+        </div>
+        <div class="box">
+          <div class="scene" aria-label="ภาพรวมเครื่องวัด">
+            <svg viewBox="0 0 660 340" role="img">
+              <path class="wire" d="M64 170 H160"/>
+              <circle cx="218" cy="170" r="48" class="soft-fill"/>
+              <text x="218" y="166" text-anchor="middle" class="device-label">G</text>
+              <text x="218" y="189" text-anchor="middle" class="tiny-label">หัวใจเข็ม</text>
+              <path class="wire bluewire" d="M266 170 C330 110 390 94 456 94"/>
+              <path class="wire hot" d="M266 170 C330 230 390 246 456 246"/>
+              <rect x="456" y="58" width="144" height="72" rx="10" class="ok-fill"/>
+              <text x="528" y="88" text-anchor="middle" class="device-label">ทำเป็น A</text>
+              <text x="528" y="112" text-anchor="middle" class="tiny-label">แบ่งกระแส</text>
+              <rect x="456" y="210" width="144" height="72" rx="10" class="warn-fill"/>
+              <text x="528" y="240" text-anchor="middle" class="device-label">ทำเป็น V</text>
+              <text x="528" y="264" text-anchor="middle" class="tiny-label">จำกัดกระแส</text>
+              <text x="86" y="256" class="tiny-label">เริ่มจากเครื่องวัดเข็มที่ไวมาก</text>
+            </svg>
+          </div>
+          <div class="concept-list">
+            <div class="concept"><span class="badge">1</span><span><b>เข็มเบนเพราะกระแส</b> ยิ่งผลของกระแสต่อขดลวดมาก เข็มยิ่งเบนมาก</span></div>
+            <div class="concept"><span class="badge">2</span><span><b>แอมมิเตอร์</b> ต้องให้กระแสในวงจรไหลผ่านเครื่องวัด จึงต่ออนุกรม</span></div>
+            <div class="concept"><span class="badge">3</span><span><b>โวลต์มิเตอร์</b> ต้องเปรียบเทียบสองจุดในวงจร จึงต่อขนานคร่อมสองจุดนั้น</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="galvanometer" class="panel">
+      <div class="grid">
+        <div class="box">
+          <h2>แกลวานอมิเตอร์: เครื่องตรวจจับกระแสเล็ก ๆ</h2>
+          <p class="lead">ภายในมีขดลวดอยู่ในสนามแม่เหล็ก เมื่อมีกระแสผ่านขดลวด ขดลวดจะถูกแรงบิด เข็มจึงเบน การเบนของเข็มจึงเป็นสัญญาณว่ามีกระแสผ่านมากหรือน้อย</p>
+          <div class="controls">
+            <div class="control">
+              <label for="gCurrent">ลองเพิ่มกระแสผ่านขดลวด <span id="gCurrentLabel">น้อย</span></label>
+              <input id="gCurrent" type="range" min="0" max="100" value="22">
+            </div>
+            <div class="control">
+              <label for="gSensitive">ความไวของเข็ม <span id="gSensitiveLabel">ปกติ</span></label>
+              <input id="gSensitive" type="range" min="0" max="100" value="55">
+            </div>
+          </div>
+          <div class="status" id="gStatus"></div>
+        </div>
+        <div class="box">
+          <div class="scene" aria-label="หลักการแกลวานอมิเตอร์">
+            <svg viewBox="0 0 660 340" role="img">
+              <rect x="70" y="94" width="96" height="152" rx="12" class="soft-fill"/>
+              <rect x="494" y="94" width="96" height="152" rx="12" class="soft-fill"/>
+              <text x="118" y="178" text-anchor="middle" class="device-label">N</text>
+              <text x="542" y="178" text-anchor="middle" class="device-label">S</text>
+              <rect x="260" y="108" width="140" height="124" rx="18" fill="#fff" stroke="#17324d" stroke-width="4"/>
+              <path id="coilGlow" d="M282 134 C326 106 380 122 378 166 C376 210 286 216 284 170 C282 136 342 136 362 156" fill="none" stroke="#1976d2" stroke-width="7" stroke-linecap="round"/>
+              <line x1="330" y1="232" x2="330" y2="286" stroke="#17324d" stroke-width="5"/>
+              <path id="gNeedleScene" d="M330 286 L396 254" stroke="#c62828" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="330" cy="286" r="12" fill="#17324d"/>
+              <path class="wire hot" d="M210 170 H260"/>
+              <path class="wire bluewire" d="M400 170 H454"/>
+              <text x="288" y="78" class="tiny-label">ขดลวดอยู่ในสนามแม่เหล็ก</text>
+              <text x="214" y="272" class="tiny-label">กระแสเข้า</text>
+              <text x="410" y="272" class="tiny-label">กระแสออก</text>
+            </svg>
+          </div>
+          <div class="concept-list">
+            <div class="concept"><span class="badge">ดู</span><span>เมื่อเลื่อนกระแสสูงขึ้น เข็มจะเบนมากขึ้น</span></div>
+            <div class="concept"><span class="badge">จำ</span><span>เครื่องนี้ไวมาก จึงไม่เหมาะวัดกระแสหรือแรงดันมาก ๆ โดยตรง</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ammeter" class="panel">
+      <div class="grid">
+        <div class="box">
+          <h2>แอมมิเตอร์: วัดกระแสโดยให้กระแสไหลผ่าน</h2>
+          <p class="lead">เมื่อต้องวัดกระแสในวงจร เราต้องให้เครื่องวัดเข้าไปอยู่ในเส้นทางเดียวกับกระแส แต่แกลวานอมิเตอร์รับกระแสได้เล็กมาก จึงต้องมี “ทางเลี่ยงกระแส” ขนานไว้ข้างใน</p>
+          <div class="controls">
+            <div class="control">
+              <label for="aFlow">กระแสในวงจร <span id="aFlowLabel">ปานกลาง</span></label>
+              <input id="aFlow" type="range" min="0" max="100" value="55">
+            </div>
+            <div class="control">
+              <label for="aBypass">ทางเลี่ยงกระแสในแอมมิเตอร์ <span id="aBypassLabel">เปิดไว้</span></label>
+              <input id="aBypass" type="range" min="0" max="100" value="78">
+            </div>
+          </div>
+          <div class="btn-row" role="group" aria-label="เลือกสถานการณ์แอมมิเตอร์">
+            <button class="btn active" data-am-mode="good">ต่อถูก: อนุกรม</button>
+            <button class="btn" data-am-mode="bad">ต่อผิด: ขนาน</button>
+          </div>
+          <div class="status" id="aStatus"></div>
+        </div>
+        <div class="box">
+          <div class="scene" aria-label="วงจรแอมมิเตอร์">
+            <svg id="aScene" viewBox="0 0 660 340" role="img"></svg>
+          </div>
+          <div class="concept-list">
+            <div class="concept"><span class="badge">A</span><span><b>หน้าที่</b> วัดว่ากระแสไหลผ่านสายนั้นมากหรือน้อย</span></div>
+            <div class="concept"><span class="badge">ต่อ</span><span><b>ใช้งาน</b> แทรกเครื่องวัดเข้าไปในเส้นทางเดียวกับโหลด เรียกว่าต่ออนุกรม</span></div>
+            <div class="concept"><span class="badge">ระวัง</span><span>ถ้าเอาแอมมิเตอร์ไปต่อขนาน จะคล้ายสร้างทางลัด กระแสอาจสูงจนเครื่องเสียหาย</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="voltmeter" class="panel">
+      <div class="grid">
+        <div class="box">
+          <h2>โวลต์มิเตอร์: วัดความต่างศักย์ระหว่างสองจุด</h2>
+          <p class="lead">โวลต์มิเตอร์ไม่ได้อยากให้กระแสไหลผ่านตัวเองมาก ๆ แต่ต้องการ “แตะดู” ว่าสองจุดมีความต่างศักย์กันมากแค่ไหน จึงต้องต่อคร่อมสองจุดนั้น และภายในต้องต้านกระแสไว้สูง</p>
+          <div class="controls">
+            <div class="control">
+              <label for="vPush">แรงผลักไฟฟ้าระหว่างสองจุด <span id="vPushLabel">ปานกลาง</span></label>
+              <input id="vPush" type="range" min="0" max="100" value="52">
+            </div>
+            <div class="control">
+              <label for="vGuard">การกันกระแสในโวลต์มิเตอร์ <span id="vGuardLabel">ดี</span></label>
+              <input id="vGuard" type="range" min="0" max="100" value="82">
+            </div>
+          </div>
+          <div class="btn-row" role="group" aria-label="เลือกสถานการณ์โวลต์มิเตอร์">
+            <button class="btn active" data-vm-mode="good">ต่อถูก: ขนาน</button>
+            <button class="btn" data-vm-mode="bad">ต่อผิด: อนุกรม</button>
+          </div>
+          <div class="status" id="vStatus"></div>
+        </div>
+        <div class="box">
+          <div class="scene" aria-label="วงจรโวลต์มิเตอร์">
+            <svg id="vScene" viewBox="0 0 660 340" role="img"></svg>
+          </div>
+          <div class="concept-list">
+            <div class="concept"><span class="badge">V</span><span><b>หน้าที่</b> วัดความต่างศักย์คร่อมอุปกรณ์หรือระหว่างสองจุด</span></div>
+            <div class="concept"><span class="badge">ต่อ</span><span><b>ใช้งาน</b> แตะหัววัดสองข้างของส่วนที่ต้องการวัด เรียกว่าต่อขนาน</span></div>
+            <div class="concept"><span class="badge">ระวัง</span><span>ถ้าเอาไปต่ออนุกรม วงจรเหมือนถูกกั้น กระแสหลักจะไหลยากหรือแทบไม่ไหล</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="using" class="panel">
+      <div class="grid">
+        <div class="box">
+          <h2>ลองเลือกเครื่องวัดและวิธีต่อ</h2>
+          <p class="lead">กิจกรรมนี้ให้เด็กฝึกตัดสินใจก่อนว่า “อยากวัดอะไร” แล้วเลือกเครื่องวัดกับวิธีต่อให้สัมพันธ์กัน</p>
+          <div class="controls">
+            <div class="control">
+              <label for="goal">ต้องการวัดอะไร <span></span></label>
+              <select id="goal">
+                <option value="current">วัดกระแสที่ไหลผ่านหลอดไฟ</option>
+                <option value="voltage">วัดแรงดันคร่อมหลอดไฟ</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="tool">เลือกเครื่องวัด <span></span></label>
+              <select id="tool">
+                <option value="ammeter">แอมมิเตอร์</option>
+                <option value="voltmeter">โวลต์มิเตอร์</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="place">เลือกวิธีต่อ <span></span></label>
+              <select id="place">
+                <option value="series">ต่ออนุกรมกับหลอดไฟ</option>
+                <option value="parallel">ต่อขนานคร่อมหลอดไฟ</option>
+              </select>
+            </div>
+          </div>
+          <div class="status" id="useStatus"></div>
+        </div>
+        <div class="box">
+          <div class="scene" aria-label="ฝึกต่อเครื่องวัด">
+            <svg id="useScene" viewBox="0 0 660 340" role="img"></svg>
+          </div>
+          <div class="concept-list">
+            <div class="concept"><span class="badge">ถาม</span><span>ต้องการวัด “กระแสผ่าน” หรือ “แรงดันคร่อม”</span></div>
+            <div class="concept"><span class="badge">เลือก</span><span>กระแสใช้ A, แรงดันใช้ V</span></div>
+            <div class="concept"><span class="badge">ต่อ</span><span>A อยู่ในเส้นทางเดียวกับโหลด, V แตะสองข้างโหลด</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      สรุปสั้นสำหรับครูใช้ปิดคาบ: <b>แกลวานอมิเตอร์</b> คือหัวใจเข็มที่ไวต่อกระแส, <b>แอมมิเตอร์</b> คือเครื่องวัดกระแสที่ต้องต่ออนุกรม, และ <b>โวลต์มิเตอร์</b> คือเครื่องวัดแรงดันที่ต้องต่อขนาน
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      var $ = function(id){ return document.getElementById(id); };
+      var activeTab = 'overview';
+      var amMode = 'good';
+      var vmMode = 'good';
+
+      function clamp(n,min,max){ return Math.min(max, Math.max(min,n)); }
+      function val(id){ return parseFloat($(id).value); }
+      function labelLevel(n){
+        if(n < 26) return 'น้อย';
+        if(n < 58) return 'ปานกลาง';
+        if(n < 84) return 'มาก';
+        return 'มากมาก';
+      }
+      function setMeter(amount, title, hint, role, safe, state){
+        var p = clamp(amount,0,1);
+        var angle = -62 + p * 124;
+        $('heroNeedle').style.transform = 'rotate(' + angle + 'deg)';
+        $('meterTitle').textContent = title;
+        $('meterHint').textContent = hint;
+        $('needleText').textContent = p < .18 ? 'แทบไม่เบน' : p < .55 ? 'เบนพอดี' : p < .88 ? 'เบนมาก' : 'ใกล้สุดสเกล';
+        $('roleText').textContent = role;
+        $('safeText').textContent = safe;
+        $('safeText').style.color = state === 'bad' ? 'var(--red)' : state === 'warn' ? 'var(--amber)' : 'var(--green)';
+      }
+      function buildTicks(){
+        var html = '';
+        for(var i=0;i<=10;i++){
+          var a = (-180 + i*18) * Math.PI / 180;
+          var cx = 210, cy = 226;
+          var r1 = i%5===0 ? 118 : 124;
+          var r2 = 138;
+          var x1 = cx + Math.cos(a)*r1;
+          var y1 = cy + Math.sin(a)*r1;
+          var x2 = cx + Math.cos(a)*r2;
+          var y2 = cy + Math.sin(a)*r2;
+          html += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#16395a" stroke-width="'+(i%5===0?4:2)+'"/>';
+          if(i%5===0){
+            var tx = cx + Math.cos(a)*94;
+            var ty = cy + Math.sin(a)*94 + 6;
+            var text = i === 0 ? 'น้อย' : i === 5 ? 'กลาง' : 'มาก';
+            html += '<text x="'+tx+'" y="'+ty+'" text-anchor="middle" font-size="15" font-weight="800" fill="#17324d">'+text+'</text>';
+          }
+        }
+        $('heroTicks').innerHTML = html;
+      }
+      function bindTabs(){
+        document.querySelectorAll('.tab').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            activeTab = btn.dataset.tab;
+            document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('active', b === btn); });
+            document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id === activeTab); });
+            updateAll();
+          });
+        });
+      }
+      function bindInputs(){
+        document.querySelectorAll('input,select').forEach(function(el){
+          el.addEventListener('input', updateAll);
+          el.addEventListener('change', updateAll);
+        });
+        document.querySelectorAll('[data-am-mode]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            amMode = btn.dataset.amMode;
+            document.querySelectorAll('[data-am-mode]').forEach(function(b){ b.classList.toggle('active', b === btn); });
+            updateAll();
+          });
+        });
+        document.querySelectorAll('[data-vm-mode]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            vmMode = btn.dataset.vmMode;
+            document.querySelectorAll('[data-vm-mode]').forEach(function(b){ b.classList.toggle('active', b === btn); });
+            updateAll();
+          });
+        });
+      }
+      function updateOverview(){
+        if(activeTab === 'overview') setMeter(.34,'มิเตอร์เข็ม','เริ่มจากเข็มที่ไวต่อกระแส','ดูภาพรวม','พร้อมเรียน','ok');
+      }
+      function updateGalvanometer(){
+        var current = val('gCurrent');
+        var sensitive = val('gSensitive');
+        var response = clamp((current/100) * (.55 + sensitive/90),0,1);
+        $('gCurrentLabel').textContent = labelLevel(current);
+        $('gSensitiveLabel').textContent = sensitive < 34 ? 'ต่ำ' : sensitive < 72 ? 'ปกติ' : 'ไวมาก';
+        $('coilGlow').style.strokeWidth = 4 + response * 8;
+        $('coilGlow').style.opacity = .45 + response * .55;
+        var endX = 330 + Math.cos((-70 + response*140) * Math.PI/180) * 78;
+        var endY = 286 + Math.sin((-70 + response*140) * Math.PI/180) * 78;
+        $('gNeedleScene').setAttribute('d','M330 286 L'+endX+' '+endY);
+        var status = $('gStatus');
+        if(response > .86){
+          status.className = 'status warn';
+          status.innerHTML = 'เข็มเบนเกือบสุด แปลว่าขดลวดรับผลของกระแสมากแล้ว ถ้ามากกว่านี้อาจเกินช่วงที่เครื่องรับได้';
+        }else if(response < .18){
+          status.className = 'status';
+          status.innerHTML = 'กระแสน้อย เข็มจึงเบนน้อย เด็กควรเห็นว่ามิเตอร์ตอบสนองตามกระแสที่ผ่านขดลวด';
+        }else{
+          status.className = 'status ok';
+          status.innerHTML = 'เข็มเบนในช่วงที่มองเห็นชัด เหมาะสำหรับอธิบายว่า “กระแสทำให้เข็มเบน”';
+        }
+        if(activeTab === 'galvanometer') setMeter(response,'แกลวานอมิเตอร์','เข็มเบนเมื่อมีกระแสผ่านขดลวด','ตรวจจับกระแส','ระวังเกินสเกล',response>.86?'warn':'ok');
+      }
+      function updateAmmeter(){
+        var flow = val('aFlow');
+        var bypass = val('aBypass');
+        $('aFlowLabel').textContent = labelLevel(flow);
+        $('aBypassLabel').textContent = bypass < 28 ? 'แทบไม่มี' : bypass < 62 ? 'พอมี' : 'เปิดไว้';
+        var throughCoil = amMode === 'bad' ? 1 : clamp((flow/100) * (1 - bypass/125),0,1);
+        drawAmmeterScene(flow,bypass,amMode);
+        var status = $('aStatus');
+        if(amMode === 'bad'){
+          status.className = 'status bad';
+          status.innerHTML = 'ต่อผิด: แอมมิเตอร์มีความต้านทานต่ำมาก ถ้าต่อขนานจะกลายเป็นทางลัด กระแสไหลผ่านเครื่องวัดมากเกินไป';
+        }else if(throughCoil > .72){
+          status.className = 'status warn';
+          status.innerHTML = 'ต่อถูกแล้ว แต่ทางเลี่ยงกระแสน้อยเกินไป เข็มรับภาระมาก ควรให้กระแสส่วนใหญ่เลี่ยงผ่านทางขนาน';
+        }else{
+          status.className = 'status ok';
+          status.innerHTML = 'ต่อถูก: แอมมิเตอร์อยู่ในเส้นทางเดียวกับวงจร และมีทางเลี่ยงกระแสช่วยป้องกันขดลวดไว ๆ ข้างใน';
+        }
+        if(activeTab === 'ammeter') setMeter(throughCoil,'แอมมิเตอร์','วัดกระแสที่ไหลผ่านเส้นทางวงจร','วัดกระแส',amMode==='bad'?'อันตราย':'ปลอดภัย',amMode==='bad'?'bad':throughCoil>.72?'warn':'ok');
+      }
+      function drawAmmeterScene(flow,bypass,mode){
+        var strong = flow > 65 ? 'มาก' : flow > 30 ? 'ปานกลาง' : 'น้อย';
+        var bypassOpacity = clamp(bypass/100,.12,1);
+        var html = '';
+        html += '<path class="wire" d="M74 204 V112 H564 V204 H74"/>';
+        html += '<line x1="74" y1="154" x2="110" y2="154" stroke="#17324d" stroke-width="4"/>';
+        html += '<line x1="84" y1="172" x2="102" y2="172" stroke="#17324d" stroke-width="4"/>';
+        html += '<rect x="462" y="88" width="94" height="54" rx="8" class="soft-fill"/><text x="509" y="122" text-anchor="middle" class="device-label">โหลด</text>';
+        if(mode === 'good'){
+          html += '<circle cx="278" cy="112" r="42" class="ok-fill"/><text x="278" y="120" text-anchor="middle" class="device-label">A</text>';
+          html += '<path class="wire hot" d="M116 112 H236"/><path class="wire hot" d="M320 112 H462"/>';
+          html += '<path class="wire bluewire" style="opacity:'+bypassOpacity+'" d="M236 112 C236 210 320 210 320 112"/>';
+          html += '<text x="206" y="248" class="tiny-label">ทางเลี่ยงกระแสภายในเครื่อง</text>';
+          html += '<text x="138" y="78" class="tiny-label">กระแสในเส้นทางนี้: '+strong+'</text>';
+        }else{
+          html += '<path class="wire hot" d="M116 112 H462"/>';
+          html += '<path class="wire bluewire" d="M462 112 V222 H556 V112"/>';
+          html += '<circle cx="509" cy="222" r="42" class="bad-fill"/><text x="509" y="230" text-anchor="middle" class="device-label">A</text>';
+          html += '<text x="340" y="282" class="tiny-label">ต่อขนานแบบนี้เสี่ยงเป็นทางลัด</text>';
+        }
+        html += '<text x="76" y="286" class="tiny-label">แอมมิเตอร์ต้องแทรกในเส้นทางเดียวกับกระแส</text>';
+        $('aScene').innerHTML = html;
+      }
+      function updateVoltmeter(){
+        var push = val('vPush');
+        var guard = val('vGuard');
+        $('vPushLabel').textContent = labelLevel(push);
+        $('vGuardLabel').textContent = guard < 34 ? 'ต่ำ' : guard < 70 ? 'พอใช้' : 'ดี';
+        var needle = vmMode === 'bad' ? .05 : clamp((push/100) * (.35 + guard/160),0,1);
+        drawVoltmeterScene(push,guard,vmMode);
+        var status = $('vStatus');
+        if(vmMode === 'bad'){
+          status.className = 'status warn';
+          status.innerHTML = 'ต่อผิด: โวลต์มิเตอร์ไม่ควรอยู่อนุกรม เพราะภายในต้านกระแสสูงมาก วงจรหลักจึงเหมือนถูกกั้น';
+        }else if(guard < 30){
+          status.className = 'status warn';
+          status.innerHTML = 'ต่อถูกแล้ว แต่ถ้าเครื่องกันกระแสได้ไม่ดี มันจะดึงกระแสจากวงจรมากเกินไป ทำให้การวัดรบกวนวงจร';
+        }else{
+          status.className = 'status ok';
+          status.innerHTML = 'ต่อถูก: โวลต์มิเตอร์แตะสองข้างของโหลดเพื่อดูความต่างศักย์ โดยพยายามดึงกระแสน้อยที่สุด';
+        }
+        if(activeTab === 'voltmeter') setMeter(needle,'โวลต์มิเตอร์','วัดความต่างศักย์ระหว่างสองจุด','วัดแรงดัน',vmMode==='bad'?'วงจรถูกกั้น':'ปลอดภัย',vmMode==='bad'?'warn':'ok');
+      }
+      function drawVoltmeterScene(push,guard,mode){
+        var guardText = guard > 70 ? 'ดึงกระแสน้อย' : guard > 34 ? 'ดึงกระแสพอควร' : 'ดึงกระแสมาก';
+        var html = '';
+        html += '<path class="wire" d="M74 204 V112 H564 V204 H74"/>';
+        html += '<line x1="74" y1="154" x2="110" y2="154" stroke="#17324d" stroke-width="4"/>';
+        html += '<line x1="84" y1="172" x2="102" y2="172" stroke="#17324d" stroke-width="4"/>';
+        html += '<rect x="456" y="86" width="104" height="56" rx="8" class="soft-fill"/><text x="508" y="122" text-anchor="middle" class="device-label">โหลด</text>';
+        if(mode === 'good'){
+          html += '<path class="wire hot" d="M116 112 H456"/>';
+          html += '<path class="wire bluewire" d="M456 112 V228 H560 V112"/>';
+          html += '<circle cx="508" cy="228" r="42" class="ok-fill"/><text x="508" y="236" text-anchor="middle" class="device-label">V</text>';
+          html += '<text x="382" y="286" class="tiny-label">แตะสองข้างของโหลด</text>';
+          html += '<text x="150" y="82" class="tiny-label">แรงดันที่อยากวัด: '+labelLevel(push)+'</text>';
+          html += '<text x="150" y="306" class="tiny-label">ภายในโวลต์มิเตอร์: '+guardText+'</text>';
+        }else{
+          html += '<circle cx="278" cy="112" r="42" class="warn-fill"/><text x="278" y="120" text-anchor="middle" class="device-label">V</text>';
+          html += '<path class="wire hot" d="M116 112 H236"/><path class="wire hot" d="M320 112 H456"/>';
+          html += '<text x="192" y="76" class="tiny-label">ต่ออนุกรมทำให้กระแสหลักไหลยาก</text>';
+        }
+        html += '<text x="76" y="272" class="tiny-label">โวลต์มิเตอร์ต้องต่อคร่อมสองจุดที่ต้องการเปรียบเทียบ</text>';
+        $('vScene').innerHTML = html;
+      }
+      function updateUsing(){
+        var goal = $('goal').value;
+        var tool = $('tool').value;
+        var place = $('place').value;
+        var ok = (goal === 'current' && tool === 'ammeter' && place === 'series') || (goal === 'voltage' && tool === 'voltmeter' && place === 'parallel');
+        drawUseScene(tool,place,ok);
+        var status = $('useStatus');
+        if(ok){
+          status.className = 'status ok';
+          status.innerHTML = goal === 'current'
+            ? 'ถูกต้อง: ต้องการวัดกระแส จึงเลือกแอมมิเตอร์และต่ออนุกรมกับหลอดไฟ'
+            : 'ถูกต้อง: ต้องการวัดแรงดันคร่อมหลอดไฟ จึงเลือกโวลต์มิเตอร์และต่อขนานคร่อมหลอดไฟ';
+        }else{
+          status.className = goal === 'current' && tool === 'ammeter' && place === 'parallel' ? 'status bad' : 'status warn';
+          status.innerHTML = makeUseHint(goal,tool,place);
+        }
+        if(activeTab === 'using') setMeter(ok ? .56 : .92, tool === 'ammeter' ? 'แอมมิเตอร์' : 'โวลต์มิเตอร์', ok ? 'เลือกเครื่องและตำแหน่งถูก' : 'ลองคิดใหม่จากสิ่งที่ต้องการวัด', ok ? 'ใช้งานจริง' : 'ฝึกตัดสินใจ', ok ? 'ถูกต้อง' : 'ยังไม่เหมาะ', ok ? 'ok' : 'warn');
+      }
+      function makeUseHint(goal,tool,place){
+        if(goal === 'current') return 'โจทย์ต้องการวัดกระแสที่ไหลผ่านหลอดไฟ ให้ใช้แอมมิเตอร์และวางในเส้นทางเดียวกับหลอดไฟ';
+        if(goal === 'voltage') return 'โจทย์ต้องการวัดแรงดันคร่อมหลอดไฟ ให้ใช้โวลต์มิเตอร์แตะสองข้างของหลอดไฟ';
+        return 'ลองเลือกเครื่องวัดและวิธีต่อให้สัมพันธ์กับสิ่งที่ต้องการวัด';
+      }
+      function drawUseScene(tool,place,ok){
+        var letter = tool === 'ammeter' ? 'A' : 'V';
+        var fill = ok ? 'ok-fill' : (tool === 'ammeter' && place === 'parallel' ? 'bad-fill' : 'warn-fill');
+        var html = '';
+        html += '<path class="wire" d="M78 206 V112 H564 V206 H78"/>';
+        html += '<line x1="78" y1="154" x2="114" y2="154" stroke="#17324d" stroke-width="4"/>';
+        html += '<line x1="88" y1="172" x2="106" y2="172" stroke="#17324d" stroke-width="4"/>';
+        html += '<rect x="462" y="86" width="96" height="54" rx="8" class="soft-fill"/><text x="510" y="121" text-anchor="middle" class="device-label">หลอด</text>';
+        if(place === 'series'){
+          html += '<circle cx="282" cy="112" r="42" class="'+fill+'"/><text x="282" y="120" text-anchor="middle" class="device-label">'+letter+'</text>';
+          html += '<path class="wire hot" d="M116 112 H240"/><path class="wire hot" d="M324 112 H462"/>';
+          html += '<text x="188" y="66" class="tiny-label">วางเครื่องวัดในเส้นทางเดียวกับหลอด</text>';
+        }else{
+          html += '<path class="wire hot" d="M116 112 H462"/>';
+          html += '<path class="wire bluewire" d="M462 112 V228 H558 V112"/>';
+          html += '<circle cx="510" cy="228" r="42" class="'+fill+'"/><text x="510" y="236" text-anchor="middle" class="device-label">'+letter+'</text>';
+          html += '<text x="378" y="286" class="tiny-label">แตะสองข้างของหลอด</text>';
+        }
+        html += '<text x="78" y="286" class="tiny-label">'+(ok?'การเลือกนี้สัมพันธ์กับสิ่งที่ต้องการวัด':'ยังไม่สัมพันธ์กับสิ่งที่ต้องการวัด')+'</text>';
+        $('useScene').innerHTML = html;
+      }
+      function updateAll(){
+        updateOverview();
+        updateGalvanometer();
+        updateAmmeter();
+        updateVoltmeter();
+        updateUsing();
+      }
+      buildTicks();
+      bindTabs();
+      bindInputs();
+      updateAll();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ม็อกอัปหน้าแรกคุณครู 3 แบบ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#edf3fb;color:#102f61;font-family:Sarabun,sans-serif;background-image:linear-gradient(#dce5f2 1px,transparent 1px),linear-gradient(90deg,#dce5f2 1px,transparent 1px);background-size:38px 38px}
+.page{max-width:1400px;margin:auto;padding:36px}
+.head{display:flex;align-items:end;justify-content:space-between;margin-bottom:28px}
+.head h1{font-size:30px;margin:0}
+.head p{font-size:16px;color:#526987;margin:4px 0 0}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.variant{background:rgba(255,255,255,.75);border:1px solid #c8d7eb;border-radius:26px;padding:22px;box-shadow:0 18px 45px rgba(22,62,111,.1)}
+.vhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.num{width:34px;height:34px;border-radius:11px;background:#143f79;color:#fff;display:grid;place-items:center;font-size:16px;font-weight:800;flex-shrink:0}
+.vtitle{font-size:19px;font-weight:800}
+.vdesc{font-size:13px;color:#607590;line-height:1.5}
+.phone{background:#f4f8fd;border-radius:20px;overflow:hidden;border:1px solid #d8e6f7}
+
+/* avatar upload badge (shared) */
+.avwrap{position:relative;flex-shrink:0}
+.avbadge{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:#1976d2;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+
+/* variant 1: classic card */
+.p1 .hero{background:#1565c0;padding:20px 16px 40px;color:#fff}
+.p1 .hero .hi{font-size:13px;opacity:.85}
+.p1 .hero .name{font-size:17px;font-weight:700;margin-top:2px}
+.p1 .hero .sub{font-size:12px;opacity:.85;margin-top:2px}
+.p1 .profcard{margin:-30px 16px 0;background:#fff;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;border:1px solid #e3edf9;box-shadow:0 1px 3px rgba(21,101,192,.08)}
+.p1 .av{width:56px;height:56px;border-radius:50%;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#1565c0}
+.p1 .proftext b{display:block;font-size:13.5px;color:#0c447c}
+.p1 .proftext span{font-size:11.5px;color:#5f6b7a}
+.p1 .editbtn{border:1px solid #b5d4f4;background:#e6f1fb;color:#0c447c;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px}
+.p1 .stats{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.p1 .stat{background:#fff;border-radius:12px;padding:12px;border:1px solid #e3edf9}
+.p1 .stat .l{font-size:11.5px;color:#5f6b7a}
+.p1 .stat .v{font-size:20px;font-weight:800;margin-top:2px}
+.p1 .menu{padding:0 16px 16px}
+.p1 .menu .t{font-size:13px;font-weight:700;color:#0c447c;margin-bottom:8px}
+.p1 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.p1 .tile{background:#fff;border-radius:12px;padding:10px 4px;text-align:center;border:1px solid #e3edf9}
+.p1 .tile .ic{font-size:20px}
+.p1 .tile .lb{font-size:10px;color:#333;margin-top:4px}
+
+/* variant 2: cover profile */
+.p2 .cover{height:88px;background:#1565c0;position:relative}
+.p2 .bell{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#fff}
+.p2 .avcenter{text-align:center;margin-top:-38px}
+.p2 .av{width:76px;height:76px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#1565c0;margin:auto}
+.p2 .name{font-size:16.5px;font-weight:700;color:#0c2c53;margin-top:8px}
+.p2 .sub{font-size:12px;color:#5f6b7a;margin-top:2px}
+.p2 .metrics{display:flex;justify-content:center;gap:22px;padding:16px 16px 4px;text-align:center}
+.p2 .metrics .m .v{font-size:17px;font-weight:800}
+.p2 .metrics .m .l{font-size:10.5px;color:#5f6b7a}
+.p2 .div{width:1px;background:#dbe6f2}
+.p2 .list{padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.p2 .row{background:#fff;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;border:1px solid #e3edf9}
+.p2 .row .lbl{flex:1;font-size:13px;color:#333}
+.p2 .row .chev{color:#9aa7b5}
+
+/* variant 3: colorful tiles */
+.p3 .topbar{padding:16px 16px 8px;display:flex;align-items:center;gap:12px}
+.p3 .av{width:50px;height:50px;border-radius:14px;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#1565c0}
+.p3 .name{font-size:15px;font-weight:700;color:#0c2c53}
+.p3 .sub{font-size:11.5px;color:#5f6b7a}
+.p3 .tiles{padding:8px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.p3 .hero{background:#e6f1fb;border-radius:14px;padding:14px;grid-column:span 2}
+.p3 .hero .l{font-size:11.5px;color:#0c447c;font-weight:700}
+.p3 .hero .v{font-size:22px;font-weight:800;color:#0c447c;margin-top:2px}
+.p3 .hero .v small{font-size:13px;font-weight:600}
+.p3 .hero .bar{height:6px;background:#b5d4f4;border-radius:3px;margin-top:8px;overflow:hidden}
+.p3 .hero .bar i{display:block;height:100%;background:#1565c0}
+.p3 .tile{border-radius:14px;padding:12px;text-align:center}
+.p3 .tile .ic{font-size:22px}
+.p3 .tile .lb{font-size:11px;margin-top:6px;font-weight:700}
+.p3 .green{background:#eaf3de}.p3 .green .lb{color:#27500a}
+.p3 .pink{background:#fbeaf0}.p3 .pink .lb{color:#72243e}
+.p3 .amber{background:#faeeda}.p3 .amber .lb{color:#633806}
+.p3 .purple{background:#eeedfe}.p3 .purple .lb{color:#3c3489}
+
+.footer{margin-top:22px;font-size:13px;color:#607590;text-align:center}
+</style>
+</head>
+<body>
+<main class="page">
+ <div class="head">
+  <div><h1>ม็อกอัปหน้าแรกคุณครู 3 แบบ</h1><p>ทุกแบบมีจุดอัปโหลด/แก้ไขรูปโปรไฟล์ (ไอคอนกล้องมุมล่างขวาของ avatar)</p></div>
+  <p>StudentCare 360°</p>
+ </div>
+ <section class="board">
+
+  <article class="variant">
+   <div class="vhead"><span class="num">1</span><div><div class="vtitle">การ์ดคลาสสิก</div><div class="vdesc">ใกล้เคียงธีมเดิมของระบบ ผสานง่ายที่สุด</div></div></div>
+   <div class="phone p1">
+    <div class="hero"><div class="hi">สวัสดีตอนเช้า</div><div class="name">ครูอดิศักดิ์ วนาใส</div><div class="sub">ครูที่ปรึกษา ม.5/1 · ภาษาไทย</div></div>
+    <div class="profcard">
+     <div class="avwrap"><div class="av">อด</div><div class="avbadge">📷</div></div>
+     <div class="proftext"><b>แตะรูปเพื่ออัปโหลด</b><span>JPG/PNG ไม่เกิน 2MB</span></div>
+     <button class="editbtn">แก้ไข</button>
+    </div>
+    <div class="stats">
+     <div class="stat"><div class="l">เช็คชื่อวันนี้</div><div class="v" style="color:#1565c0">32/34</div></div>
+     <div class="stat"><div class="l">ขาด/ลา วันนี้</div><div class="v" style="color:#c62828">2</div></div>
+    </div>
+    <div class="menu">
+     <div class="t">เมนูลัด</div>
+     <div class="grid4">
+      <div class="tile"><div class="ic">📋</div><div class="lb">เช็คชื่อ</div></div>
+      <div class="tile"><div class="ic">⭐</div><div class="lb">บันทึกดี</div></div>
+      <div class="tile"><div class="ic">📝</div><div class="lb">พฤติกรรม</div></div>
+      <div class="tile"><div class="ic">📊</div><div class="lb">รายงาน</div></div>
+     </div>
+    </div>
+   </div>
+  </article>
+
+  <article class="variant">
+   <div class="vhead"><span class="num">2</span><div><div class="vtitle">โปรไฟล์คัฟเวอร์</div><div class="vdesc">รูปโปรไฟล์วงกลมใหญ่กลางจอ แบบโซเชียล ดูเป็นทางการน้อยลง</div></div></div>
+   <div class="phone p2">
+    <div class="cover"><div class="bell">🔔</div></div>
+    <div class="avcenter">
+     <div class="avwrap" style="display:inline-block"><div class="av">อด</div><div class="avbadge">📷</div></div>
+     <div class="name">ครูอดิศักดิ์ วนาใส</div>
+     <div class="sub">ครูที่ปรึกษา ม.5/1 · กลุ่มสาระภาษาไทย</div>
+    </div>
+    <div class="metrics">
+     <div class="m"><div class="v" style="color:#1565c0">34</div><div class="l">นักเรียน</div></div>
+     <div class="div"></div>
+     <div class="m"><div class="v" style="color:#2e7d32">96%</div><div class="l">มาเรียน</div></div>
+     <div class="div"></div>
+     <div class="m"><div class="v" style="color:#c62828">3</div><div class="l">ค้างเช็ค</div></div>
+    </div>
+    <div class="list">
+     <div class="row"><span>📋</span><span class="lbl">เช็คชื่อเสาธงเช้า</span><span class="chev">›</span></div>
+     <div class="row"><span>⭐</span><span class="lbl">บันทึกความดี/พฤติกรรม</span><span class="chev">›</span></div>
+     <div class="row"><span>📊</span><span class="lbl">ดูรายงานห้อง</span><span class="chev">›</span></div>
+    </div>
+   </div>
+  </article>
+
+  <article class="variant">
+   <div class="vhead"><span class="num">3</span><div><div class="vtitle">ไทล์สีสัน</div><div class="vdesc">แยกสีตามหมวด เข้าถึงง่ายด้วยสายตา เหมาะใช้บ่อยบนมือถือ</div></div></div>
+   <div class="phone p3">
+    <div class="topbar">
+     <div class="avwrap"><div class="av">อด</div><div class="avbadge" style="width:20px;height:20px">📷</div></div>
+     <div style="flex:1"><div class="name">ครูอดิศักดิ์ วนาใส</div><div class="sub">ม.5/1 · ภาษาไทย</div></div>
+     <span>🔔</span>
+    </div>
+    <div class="tiles">
+     <div class="hero">
+      <div class="l">เช็คชื่อวันนี้</div>
+      <div class="v">32<small>/34 คน</small></div>
+      <div class="bar"><i style="width:94%"></i></div>
+     </div>
+     <div class="tile green"><div class="ic">⭐</div><div class="lb">บันทึกดี</div></div>
+     <div class="tile pink"><div class="ic">⚠️</div><div class="lb">พฤติกรรม</div></div>
+     <div class="tile amber"><div class="ic">👕</div><div class="lb">แต่งกาย</div></div>
+     <div class="tile purple"><div class="ic">📊</div><div class="lb">รายงาน</div></div>
+    </div>
+   </div>
+  </article>
+
+ </section>
+ <div class="footer">เปิดไฟล์นี้บนมือถือ (iPhone Safari) เพื่อดูสัดส่วนจริง — กว้างการ์ดจำลองไว้ที่ ~360px เท่าหน้าจอมือถือ</div>
+</main>
+</body>
+</html>

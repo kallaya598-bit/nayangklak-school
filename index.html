@@ -4121,14 +4121,6 @@ function examSheetPayload(subject,student){
 function examSheetCode(payload){
   return 'E'+payload.exam_subject_id+'-A'+payload.assignment_id+'-S'+payload.student_id;
 }
-function examSheetQrMarkup(qr,code){
-  var svg='<rect x="610" y="88" width="96" height="118" rx="4" fill="#fff" stroke="#111" stroke-width="1"/>';
-  svg+='<text x="658" y="103" text-anchor="middle" font-size="9" font-weight="700">QR ตรวจข้อสอบ</text>';
-  if(qr)svg+='<image href="'+qr+'" xlink:href="'+qr+'" x="622" y="108" width="72" height="72"/>';
-  else svg+='<text x="658" y="149" text-anchor="middle" font-size="10" fill="#c62828">QR ไม่โหลด</text>';
-  svg+='<text x="658" y="193" text-anchor="middle" font-size="8.5" fill="#333">'+examEsc(code)+'</text>';
-  return svg;
-}
 function examMakeQr(payload){
   return examLoadQrGen().then(function(QRious){
     var q=new QRious({value:JSON.stringify(payload),size:200,level:'M'});
@@ -5684,7 +5676,6 @@ function sdqTotLv(score,form){var c=(MH_CFG.sdq.cut[form]||MH_CFG.sdq.cut.studen
 function sdqLvCls(lv){return {normal:'sdq-lv-n',risk:'sdq-lv-r',problem:'sdq-lv-p'}[lv]||'';}
 function sdqLvLab(lv){return {normal:'ปกติ',risk:'เสี่ยง',problem:'มีปัญหา'}[lv]||'-';}
 function sdqLvColor(lv){return {normal:'#2e7d32',risk:'#f57c00',problem:'#c62828'}[lv]||'#666';}
-function sdqLvBg(lv){return {normal:'#e8f5e9',risk:'#fff3e0',problem:'#ffebee'}[lv]||'#f5f5f5';}
 function sdqCell(score,lv){if(score==null)return '<td>-</td><td>-</td>';return '<td>'+score+'</td><td class="'+sdqLvCls(lv)+'">'+sdqLvLab(lv)+'</td>';}
 
 function sdqTabBar(active){
@@ -7422,7 +7413,6 @@ function renderEveningAtt(list){
     setTxt('eaAll',list.length);setTxt('eaP',p);setTxt('eaL',gh);setTxt('eaA',o);
   },G.eveMorningRef,{label:'เช้า',defsType:'morning',warnStatuses:['absent','skip']});
 }
-function setEveAtt(sid,status){if(!G.eveningAtt[sid])G.eveningAtt[sid]={};G.eveningAtt[sid].status=status;renderEveningAtt(G.students);}
 
 // RENDER MORNING (ใช้ grid กลาง)
 function renderAtt(elId,list,attObj,type){
@@ -7431,14 +7421,7 @@ function renderAtt(elId,list,attObj,type){
     setTxt('maAll',list.length);setTxt('maP',p);setTxt('maL',ab);setTxt('maA',ll);
   });
 }
-// stubs เผื่อโค้ดเดิมเรียก
-function setAttStatus(sid,status,btn,type){var o=type==='morning'?G.att:G.eveningAtt;if(!o[sid])o[sid]={};o[sid].status=status;}
-function setAttRemark(sid,val){if(!G.att[sid])G.att[sid]={};G.att[sid].remark=val;}
-function updateAttCount(){}
 
-// MARK ALL (ปุ่มถูกแทนด้วย checkbox หัวคอลัมน์ — เหลือเฉพาะรีเซ็ต)
-function markAllAs(status){G.students.forEach(function(s){G.att[s.id]={status:status};});renderAtt('maList',G.students,G.att,'morning');}
-function markEveAllAs(status){G.students.forEach(function(s){G.eveningAtt[s.id]={status:status};});renderEveningAtt(G.students);}
 document.getElementById('maBtnReset').addEventListener('click',function(){G.att={};renderAtt('maList',G.students,G.att,'morning');});
 
 
@@ -7771,8 +7754,6 @@ function renderSubjectAtt(){
     setTxt('saAll',SA.stus.length);setTxt('saP',p);setTxt('saAb',ab);setTxt('saLt',ll);
   },SA.entry);
 }
-function saSet(sid,status){if(!SA.att[sid])SA.att[sid]={};SA.att[sid].status=status;renderSubjectAtt();}
-function saSetAll(status){SA.stus.forEach(function(s){SA.att[s.id]={status:status};});renderSubjectAtt();}
 
 // ดึงข้อมูลเช็คชื่อจากคาบก่อนหน้า (วิชา 2 คาบติด) มาใส่ — ยังแก้ไขได้ก่อนบันทึก
 async function saCopyPrevPeriod(){
@@ -9636,13 +9617,6 @@ function buildSarSummary(){
   h+='</tbody></table><div style="font-size:13.2px;color:var(--text3);margin-top:6px;">เข้าเรียน% = (มา + สาย) / ครั้งเรียนทั้งหมด</div>';
   return h;
 }
-async function deleteSession(date,period){
-  if(!confirm('ลบการเช็คชื่อของ '+thaiDateShort(date)+' คาบ '+period+' ทั้งหมด?'))return;
-  try{
-    await api('/rest/v1/subject_attendance?assignment_id=eq.'+SAR.assignId+'&att_date=eq.'+date+'&period=eq.'+period,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
-    toast('✅ ลบแล้ว');loadSubjAttReport();
-  }catch(e){toast('❌ '+e.message,'err');}
-}
 function printSubjAttReport(){
   if(!SAR.assignId||!SAR.sessions.length){toast('ยังไม่มีข้อมูล','err');return;}
   var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+(SAR.tab==='detail'?buildSarDetail():buildSarSummary());
@@ -9815,54 +9789,6 @@ async function loadAttSummary(){
 }
 
 var G_arSumRows=[], G_arSumStus=[], G_arAttMap={}, G_arSumDates=[];
-function renderAttSummary(stus, rows){
-  G_arSumRows=rows; G_arSumStus=stus;
-  var isMorning=G_arTab==='morning';
-  // status keys per type
-  var cols=isMorning?
-    [['present','มาเรียน','var(--green)'],['absent','ขาด','var(--red)'],['leave','ลา','var(--teal)'],['late','มาสาย','var(--purple)'],['skip','หนีเรียน','var(--purple)']]:
-    [['present','อยู่ครบ','var(--green)'],['gone_home','กลับบ้าน','var(--teal)'],['absent','ขาด','var(--red)'],['leave','ลา','var(--teal)'],['special_leave','พิเศษ','var(--purple)'],['skip','หนีเรียน','var(--purple)']];
-  // collect distinct dates (school days checked)
-  var dateSet={}; rows.forEach(function(r){dateSet[r.att_date]=1;});
-  var totalDays=Object.keys(dateSet).length;
-  // per-student count
-  var cnt={}; stus.forEach(function(s){cnt[s.id]={};cols.forEach(function(c){cnt[s.id][c[0]]=0;});});
-  rows.forEach(function(r){if(cnt[r.student_id]&&cnt[r.student_id][r.status]!==undefined)cnt[r.student_id][r.status]++;});
-
-  document.getElementById('arSumDaysNote').textContent='จำนวนวันที่เช็คชื่อในช่วงนี้: '+totalDays+' วัน';
-
-  if(!totalDays){document.getElementById('arSummaryTable').innerHTML='<div class="loading">ยังไม่มีข้อมูลเช็คชื่อในช่วงวันที่นี้</div>';return;}
-
-  var pct=function(n){return totalDays?((n/totalDays)*100).toFixed(2):'0.00';};
-  // header
-  var th='<tr><th>ที่</th><th>รหัส</th><th style="text-align:left;">ชื่อ-สกุล</th>';
-  cols.forEach(function(c){th+='<th style="text-align:center;">'+c[1]+'</th><th style="text-align:center;">%'+c[1]+'</th>';});
-  th+='<th style="text-align:center;">รวม</th><th style="text-align:center;">แก้ไข</th></tr>';
-  // body
-  var tot={};cols.forEach(function(c){tot[c[0]]=0;});
-  var body=stus.map(function(s,i){
-    var c=cnt[s.id];
-    var sumRow=cols.reduce(function(a,col){return a+c[col[0]];},0);
-    var cells=cols.map(function(col){
-      tot[col[0]]+=c[col[0]];
-      var v=c[col[0]];
-      var color=v>0?col[2]:'#bbb';
-      return '<td style="text-align:center;font-weight:700;color:'+color+';">'+v+'</td>'+
-             '<td style="text-align:center;font-size:14.4px;color:'+(v>0?col[2]:'#bbb')+';">'+pct(v)+'</td>';
-    }).join('');
-    return '<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'-')+'</td>'+
-      '<td style="text-align:left;white-space:nowrap;">'+s.fullname+'</td>'+cells+
-      '<td style="text-align:center;font-weight:700;">'+sumRow+'</td>'+
-      '<td style="text-align:center;"><button class="btn btn-outline btn-xs" onclick="openStudentRangeEdit('+s.id+')">✏️</button></td></tr>';
-  }).join('');
-  // footer totals
-  var foot='<tr style="background:var(--bluel);font-weight:800;"><td colspan="3" style="text-align:right;">รวมทั้งหมด</td>';
-  var grand=0;cols.forEach(function(col){foot+='<td style="text-align:center;color:'+col[2]+';">'+tot[col[0]]+'</td><td></td>';grand+=tot[col[0]];});
-  foot+='<td style="text-align:center;">'+grand+'</td><td></td></tr>';
-
-  document.getElementById('arSummaryTable').innerHTML=
-    '<div class="tbl-wrap"><table style="font-size:15px;"><thead>'+th+'</thead><tbody>'+body+foot+'</tbody></table></div>';
-}
 
 // ===== CROSS-REFERENCE TABLE (รายสัปดาห์/รายเดือน) =====
 function renderAttCross(stus,attMap,dates){
@@ -10076,32 +10002,6 @@ function renderAttReport(stus,dt){
   document.getElementById('arBtnSave').style.display='none';
 }
 
-function setArAtt(sid, status, btn){
-  var isMorning=G_arTab==='morning';
-  var keys=isMorning?['present','absent','late','leave','skip']:['present','gone_home','absent','leave','special_leave','skip'];
-  var item=btn.closest('.stu-item');
-  var btns=item.querySelectorAll('button');
-  var statusColor={present:'var(--green)',absent:'var(--red)',late:'var(--purple)',leave:'var(--teal)',gone_home:'var(--teal)',special_leave:'var(--purple)',skip:'var(--purple)'};
-  var statusBc={present:'#a5d6a7',absent:'#ef9a9a',late:'#ce93d8',leave:'#80cbc4',gone_home:'#80cbc4',special_leave:'#ce93d8'};
-  btns.forEach(function(b,i){
-    var k=keys[i]; var active=k===status;
-    b.style.background=active?statusColor[k]:'#fff';
-    b.style.color=active?'#fff':statusColor[k];
-    b.style.borderColor=active?statusColor[k]:statusBc[k];
-  });
-  if(!G_arAtt[sid])G_arAtt[sid]={remark:''};
-  G_arAtt[sid].status=status;
-  var statLabels=isMorning?
-    {present:'มาเรียน',absent:'ขาด',late:'มาสาย',leave:'ลา',skip:'หนีเรียน'}:
-    {present:'อยู่ครบ',gone_home:'กลับบ้าน',absent:'ขาด',leave:'ลา',special_leave:'พิเศษ',skip:'หนีเรียน'};
-  var noEl=item.querySelector('.stu-no');
-  if(noEl) noEl.innerHTML=noEl.textContent.split('·')[0].trim()+' · <span style="color:'+statusColor[status]+';">'+statLabels[status]+'</span>';
-  G_arChanged=true;
-  document.getElementById('arBtnSave').style.display='';
-  var p=0,ab=0,other=0;
-  G.students.forEach(function(s){var st=G_arAtt[s.id]&&G_arAtt[s.id].status;if(st==='present')p++;else if(st==='absent')ab++;else if(st)other++;});
-  document.getElementById('arP').textContent=p;document.getElementById('arL').textContent=ab;document.getElementById('arA').textContent=other;
-}
 
 async function saveAttReport(){
   var dt=document.getElementById('arDate').value;
@@ -10599,7 +10499,6 @@ function renderStudentGrid(list){
 }
 
 function spCardExp(btn){var c=btn.closest('.scard2');if(c)c.classList.toggle('exp');}
-function spSoon(name){toast('โมดูล "'+name+'" อยู่ระหว่างพัฒนา','info');}
 function spNoPerm(){toast('🔒 แก้ไขได้เฉพาะครูที่ปรึกษาของห้องนี้ หรือผู้ดูแลระบบ','err');}
 function spGoBehave(id){G.preStudent=id;openPage('pgBehave');}
 function spGoGrades(id){openPage('pgGrades');}
@@ -11089,11 +10988,7 @@ function admLoginEvent(entry,actor){
   admWriteRemote('login_events',row);
   return row;
 }
-function admReadRemoteOrLocal(table,key){
-  return api('/rest/v1/'+table+'?select=*'+key).catch(function(){return admLocalRead(table==='login_events'?NYK_LOGIN_KEY:NYK_AUDIT_KEY);});
-}
 function admPermObj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
-function admPermSet(v,key,on){var p=admPermObj(v);p[key]=!!on;return p;}
 function admHasPerm(v,key){v=admPermObj(v);return !!v[key];}
 function admPermLabel(key){
   for(var i=0;i<NYK_PERM_KEYS.length;i++)if(NYK_PERM_KEYS[i][0]===key)return NYK_PERM_KEYS[i][1];
@@ -12567,7 +12462,6 @@ async function admSaveCat(id){
   }catch(e){toast('❌ '+e.message,'err');}
 }
 
-function openAbsentList(){openPage('pgMorning');toast('โหลดรายชื่อขาดเรียน...','info');}
 
 // ============================================================
 //  โมดูลเยี่ยมบ้านนักเรียน (ระบบดูแลช่วยเหลือนักเรียน สพฐ.)
@@ -13124,8 +13018,6 @@ async function stuHvSave(){
   }catch(e){toast('❌ '+(e.message||''),'err');if(btn){btn.disabled=false;btn.textContent='📤 ส่งข้อมูลให้ครู';}}
 }
 
-// ---------- แปลง URL รูป → dataURL (กัน canvas taint ตอนทำ PDF) ----------
-function hvImgData(url){return new Promise(function(res){fetch(url).then(function(r){return r.blob();}).then(function(b){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=function(){res(null);};fr.readAsDataURL(b);}).catch(function(){res(null);});});}
 
 // ---------- PDF รายคน ----------
 // สร้างแผนที่เป็นรูปภาพ (stitch OSM tiles ลง canvas + วาดหมุด) เพื่อให้พิมพ์ออกแน่นอน

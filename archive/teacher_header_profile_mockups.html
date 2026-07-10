@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ม็อกอัปใส่รูปโปรไฟล์ในการ์ดหัวข้อ 3 แบบ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#edf3fb;color:#102f61;font-family:Sarabun,sans-serif;background-image:linear-gradient(#dce5f2 1px,transparent 1px),linear-gradient(90deg,#dce5f2 1px,transparent 1px);background-size:38px 38px}
+.page{max-width:1400px;margin:auto;padding:36px}
+.head{margin-bottom:28px}
+.head h1{font-size:28px;margin:0}
+.head p{font-size:15px;color:#526987;margin:4px 0 0}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.variant{background:rgba(255,255,255,.75);border:1px solid #c8d7eb;border-radius:24px;padding:20px;box-shadow:0 18px 45px rgba(22,62,111,.1)}
+.vhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.num{width:30px;height:30px;border-radius:10px;background:#143f79;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800;flex-shrink:0}
+.vtitle{font-size:17px;font-weight:800}
+.vdesc{font-size:12.5px;color:#607590;line-height:1.5}
+
+.card{border-radius:24px;padding:22px 20px;background:linear-gradient(160deg,#3a4a63,#232d3f 60%,#1a2233);color:#fff;position:relative;overflow:hidden}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}
+.roompill{display:inline-flex;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 14px;font-size:14px;font-weight:700;margin-top:10px}
+.name{font-size:27px;font-weight:800;margin:12px 0 0;line-height:1.25}
+.datetime{font-size:13.5px;color:#c8d2e0;margin-top:14px;display:flex;align-items:center;gap:6px}
+.weather{display:flex;align-items:center;gap:10px;margin-top:10px}
+.wicon{font-size:26px}
+.wtemp{font-size:24px;font-weight:800}
+.wtext{font-size:12.5px;color:#c8d2e0}
+.wtext b{color:#fff}
+
+.avwrap{position:relative;flex-shrink:0}
+.avbadge{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:#1976d2;border:2px solid #232d3f;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+
+/* v1: avatar top-right beside badge */
+.v1 .toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.v1 .av{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800}
+
+/* v2: large avatar overlapping top-center */
+.v2 .card{padding-top:44px;text-align:center}
+.v2 .avcenter{margin:-58px auto 10px}
+.v2 .av{width:88px;height:88px;border-radius:50%;background:#3a4a63;border:3px solid #232d3f;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;margin:auto;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v2 .badge{margin-top:2px}
+.v2 .weather{justify-content:center}
+.v2 .datetime{justify-content:center}
+.v2 .roomrow{display:flex;justify-content:center}
+
+/* v3: avatar inline with name */
+.v3 .namerow{display:flex;align-items:center;gap:12px;margin-top:14px}
+.v3 .av{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0}
+.v3 .name{margin:0}
+.v3 .roomrow{margin-top:10px}
+
+.footer{margin-top:22px;font-size:13px;color:#607590;text-align:center}
+</style>
+</head>
+<body>
+<main class="page">
+ <div class="head">
+  <h1>ม็อกอัปใส่รูปโปรไฟล์ในการ์ดหัวข้อ 3 แบบ</h1>
+  <p>ต่อยอดจากการ์ดเดิม (badge StudentCare 360° + ชื่อครู + ห้อง + วันเวลา + สภาพอากาศ) ทุกแบบมีจุดแตะอัปโหลดรูป (ไอคอนกล้องมุมขวาล่างของ avatar)</p>
+ </div>
+ <section class="board">
+
+  <article class="variant v1">
+   <div class="vhead"><span class="num">1</span><div><div class="vtitle">avatar มุมขวาบน</div><div class="vdesc">คงเลย์เอาต์เดิมทั้งหมด เพิ่มวงกลมรูปเล็กชิดขวา ไม่บังข้อความ</div></div></div>
+   <div class="card">
+    <div class="toprow">
+     <span class="badge">🎓 StudentCare 360°</span>
+     <div class="avwrap"><div class="av">อด</div><div class="avbadge">📷</div></div>
+    </div>
+    <div class="name">นายอดิศักดิ์ วนาใส</div>
+    <div><span class="roompill">ครูที่ปรึกษา ม.5/1</span></div>
+    <div class="datetime">🕒 จันทร์ที่ 6 ก.ค. 2569 · 22:36:38 น.</div>
+    <div class="weather"><span class="wicon">🌧️</span><span class="wtemp">24°C</span><span class="wtext">ฝนปานกลาง · กลางคืน<br><b>สูงสุด 28°</b> · ต่ำสุด 23°</span></div>
+   </div>
+  </article>
+
+  <article class="variant v2">
+   <div class="vhead"><span class="num">2</span><div><div class="vtitle">avatar ใหญ่กลางบน</div><div class="vdesc">รูปวงกลมใหญ่ยื่นทับขอบบนตรงกลาง เน้นตัวตนครูเป็นจุดเด่นสุด</div></div></div>
+   <div class="card">
+    <span class="badge">🎓 StudentCare 360°</span>
+    <div class="avcenter"><div class="avwrap" style="display:inline-block"><div class="av">อด</div><div class="avbadge" style="right:2px;bottom:2px">📷</div></div></div>
+    <div class="name">นายอดิศักดิ์ วนาใส</div>
+    <div class="roomrow"><span class="roompill">ครูที่ปรึกษา ม.5/1</span></div>
+    <div class="datetime">🕒 จันทร์ที่ 6 ก.ค. 2569 · 22:36:38 น.</div>
+    <div class="weather"><span class="wicon">🌧️</span><span class="wtemp">24°C</span><span class="wtext">ฝนปานกลาง · กลางคืน<br><b>สูงสุด 28°</b> · ต่ำสุด 23°</span></div>
+   </div>
+  </article>
+
+  <article class="variant v3">
+   <div class="vhead"><span class="num">3</span><div><div class="vtitle">avatar เหลี่ยมคู่ชื่อ</div><div class="vdesc">รูปสี่เหลี่ยมมุมโค้งวางคู่กับชื่อในแถวเดียว ดูเป็นการ์ดโปรไฟล์แอปทั่วไป</div></div></div>
+   <div class="card">
+    <span class="badge">🎓 StudentCare 360°</span>
+    <div class="namerow">
+     <div class="avwrap"><div class="av">อด</div><div class="avbadge">📷</div></div>
+     <div class="name">นายอดิศักดิ์ วนาใส</div>
+    </div>
+    <div class="roomrow"><span class="roompill">ครูที่ปรึกษา ม.5/1</span></div>
+    <div class="datetime">🕒 จันทร์ที่ 6 ก.ค. 2569 · 22:36:38 น.</div>
+    <div class="weather"><span class="wicon">🌧️</span><span class="wtemp">24°C</span><span class="wtext">ฝนปานกลาง · กลางคืน<br><b>สูงสุด 28°</b> · ต่ำสุด 23°</span></div>
+   </div>
+  </article>
+
+ </section>
+ <div class="footer">เปิดไฟล์นี้ด้วย Chrome/Safari โดยตรง (ดับเบิลคลิก) ไม่ต้องใช้ server</div>
+</main>
+</body>
+</html>

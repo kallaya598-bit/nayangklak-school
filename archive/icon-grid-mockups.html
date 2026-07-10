@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudentCare Icon Grid Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24..48,400,0,0&family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Sarabun,sans-serif;color:#102d5a}
+body{background:#dfe8f4;padding:34px}
+.board{display:grid;grid-template-columns:repeat(4,390px);gap:28px;justify-content:center}
+.phone{position:relative;width:390px;height:844px;overflow:hidden;border-radius:42px;border:8px solid #0a1830;box-shadow:0 24px 60px #18365f35;background:#f7faff}
+.status{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;font-weight:800}
+.status .signals{letter-spacing:2px}
+.topbar{height:66px;margin:0 12px 12px;padding:0 12px;border-radius:22px;display:flex;align-items:center;gap:10px;background:#173765;color:white}
+.menu{width:42px;height:42px;border:0;border-radius:14px;display:grid;place-items:center;background:#ffffff17;color:white}
+.brand{width:42px;height:42px;border-radius:13px;background:white;display:grid;place-items:center;color:#1565c0;font-weight:800;font-size:13px}
+.search{height:42px;flex:1;border-radius:14px;background:#fff;color:#7b8da6;display:flex;align-items:center;gap:7px;padding:0 12px;font-size:13px}
+.logout{height:42px;padding:0 12px;border:1px solid #ffffff66;border-radius:13px;display:grid;place-items:center;font-weight:700;font-size:13px}
+.headline{display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 13px}
+.headline h1{font-size:20px;line-height:1;margin:0;color:inherit}.headline span{font-size:11px;font-weight:700;opacity:.62}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px;padding:0 12px 88px}
+.app{min-width:0;text-align:center}
+.icon{width:66px;height:66px;margin:auto;display:grid;place-items:center;position:relative}
+.icon .ms{font-family:"Material Symbols Rounded";font-size:34px;font-weight:400;line-height:1;font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 40}
+.label{font-size:12.2px;font-weight:700;line-height:1.14;margin:8px auto 0;max-width:83px;min-height:28px;text-wrap:balance}
+.foot{position:absolute;left:15px;right:15px;bottom:13px;height:58px;border-radius:18px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700}
+.online{width:8px;height:8px;border-radius:50%;background:#35b557;box-shadow:0 0 0 4px #35b55718}
+.variant-tag{position:absolute;right:18px;top:122px;font-size:9px;font-weight:800;padding:4px 8px;border-radius:999px;letter-spacing:.4px}
+
+/* 1 — Prism Soft */
+.v1{background-color:#f8fbff;background-image:linear-gradient(#dce7f455 1px,transparent 1px),linear-gradient(90deg,#dce7f455 1px,transparent 1px);background-size:26px 26px}
+.v1 .icon{border-radius:21px;color:white;background:linear-gradient(145deg,color-mix(in srgb,var(--c),white 24%),var(--c));box-shadow:0 9px 18px color-mix(in srgb,var(--c),transparent 73%),inset 0 1px 0 #ffffff80}
+.v1 .icon:before{content:"";position:absolute;inset:1px;border-radius:20px;background:linear-gradient(135deg,#fff5,transparent 46%);pointer-events:none}
+.v1 .foot{background:#fff;border:1px solid #d9e5f4;box-shadow:0 10px 28px #244f7d14}
+.v1 .variant-tag{background:#e8f2ff;color:#1565c0}
+
+/* 2 — Orbit */
+.v2{background:#f4f9ff}
+.v2 .topbar{background:#fff;color:#143861;border:1px solid #dce9f6;box-shadow:0 7px 24px #24507912}
+.v2 .menu{background:#e9f2fb;color:#174575}.v2 .search{background:#eff5fb}.v2 .logout{border-color:#c7d9eb}
+.v2 .icon{border-radius:50%;background:color-mix(in srgb,var(--c),white 86%);color:var(--c);border:1px solid color-mix(in srgb,var(--c),white 65%)}
+.v2 .icon:after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:var(--c);right:2px;top:8px;box-shadow:0 0 0 4px white}
+.v2 .foot{background:#163a67;color:white}.v2 .variant-tag{background:#153b68;color:white}
+
+/* 3 — Editorial Bento */
+.v3{background:#f7f8fb}
+.v3 .topbar{margin-bottom:15px;background:#132b4f;border-radius:17px}
+.v3 .apps{gap:10px 7px}
+.v3 .app{height:104px;padding:10px 4px 6px;border-radius:17px;background:white;border:1px solid #e1e6ee;box-shadow:0 4px 11px #243b5a0a}
+.v3 .icon{width:48px;height:48px;border-radius:15px;background:color-mix(in srgb,var(--c),white 88%);color:var(--c)}
+.v3 .icon .ms{font-size:28px}.v3 .label{margin-top:7px;font-size:11.5px;min-height:25px}
+.v3 .foot{background:white;border:1px solid #dde4ed}.v3 .variant-tag{background:#eceff4;color:#40546e}
+
+/* 4 — Midnight Aura */
+.v4{background:#081b35;color:#f7fbff}
+.v4:before{content:"";position:absolute;inset:110px 0 0;background:radial-gradient(circle at 12% 18%,#0aa8ca22,transparent 28%),radial-gradient(circle at 88% 42%,#e72d7f1d,transparent 30%)}
+.v4 .topbar{background:#102c52;border:1px solid #2b4f79}.v4 .headline,.v4 .apps,.v4 .foot{position:relative}
+.v4 .icon{border-radius:20px;background:#102c4e;color:var(--c);border:1px solid color-mix(in srgb,var(--c),transparent 45%);box-shadow:0 0 22px color-mix(in srgb,var(--c),transparent 73%),inset 0 0 20px color-mix(in srgb,var(--c),transparent 88%)}
+.v4 .label{color:#e7effa}.v4 .foot{background:#102b4d;border:1px solid #274b74}.v4 .variant-tag{background:#1a3a64;color:#8bdcff}
+
+@media(max-width:900px){body{padding:18px}.board{grid-template-columns:390px}.phone{box-shadow:0 18px 50px #18365f2e}}
+</style>
+</head>
+<body>
+<main class="board" id="board"></main>
+<script>
+const apps=[
+["assignment","รายงานเช็คชื่อ","#0798b8"],["person_off","นักเรียนขาด","#dd3038"],["favorite","บันทึกความดี","#d21f70"],["warning","บันทึกพฤติกรรม","#f35b23"],
+["bar_chart","คะแนนสุทธิ","#2f963b"],["home_work","เยี่ยมบ้านนักเรียน","#008fb1"],["map","แผนที่บ้านนักเรียน","#0098b9"],["psychology","สุขภาพจิต","#8e2dad"],
+["groups","กิจกรรมชุมนุม","#3f4cad"],["calendar_month","ตารางสอน","#0099b9"],["star","คะแนนรายวิชา","#f57c00"],["analytics","เวลาเรียนรายวิชา","#338f3b"],
+["school","เวลาเรียนรายห้อง","#008cb0"],["calendar_view_week","ตารางนักเรียน","#0098b8"],["event_busy","ขาดเรียนรายวิชา","#f05428"],["directions_run","นักเรียนหนีเรียน","#dc3439"],
+["picture_as_pdf","ออกรายงาน PDF","#008bae"]
+];
+const variants=[
+["v1","PRISM SOFT","สีโปร่ง พรีเมียม"],
+["v2","ORBIT","เบา เป็นมิตร"],
+["v3","BENTO PRO","มินิมอล มืออาชีพ"],
+["v4","MIDNIGHT","เข้ม คอนทราสต์สูง"]
+];
+function phone(v,i){
+ const grid=apps.map(a=>`<div class="app"><div class="icon" style="--c:${a[2]}"><span class="ms">${a[0]}</span></div><div class="label">${a[1]}</div></div>`).join("");
+ return `<section class="phone ${v[0]}">
+  <div class="status"><b>14:29</b><span class="signals">▮▮▮ ◉ 36%</span></div>
+  <div class="topbar"><button class="menu"><span class="ms">menu</span></button><div class="brand">นพ</div><div class="search"><span class="ms">search</span>ค้นหานักเรียน</div><div class="logout">ออก</div></div>
+  <div class="headline"><div><h1>เมนูระบบ</h1><span>${v[2]}</span></div></div><div class="variant-tag">${String(i+1).padStart(2,"0")} · ${v[1]}</div>
+  <div class="apps">${grid}</div>
+  <div class="foot"><span class="online"></span><span>ออนไลน์ · ภาคเรียน 1/2569</span><span style="margin-left:auto;opacity:.65">796 คน</span></div>
+ </section>`;
+}
+document.getElementById("board").innerHTML=variants.map(phone).join("");
+const q=new URLSearchParams(location.search).get("variant");
+if(q){document.querySelectorAll(".phone").forEach((p,i)=>p.style.display=(i+1==q?"block":"none"));document.getElementById("board").style.gridTemplateColumns="390px"}
+</script>
+</body>
+</html>
