@@ -2583,6 +2583,11 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     <div class="exam-camera-foot" id="exCamStatus">กำลังเปิดกล้อง...</div>
     <div id="exCamConfirm" style="display:none;padding:12px 14px;background:#182430;border-top:1px solid #2a3846;">
       <div id="exCamConfirmInfo" style="font-weight:700;margin-bottom:8px;color:#fff;font-size:14px;"></div>
+      <div id="exCamConfirmScore" style="display:none;font-weight:700;color:#69f0ae;font-size:22px;margin-bottom:8px;"></div>
+      <div id="exCamConfirmGrid" style="display:none;flex-wrap:wrap;gap:5px;margin-bottom:6px;"></div>
+      <div id="exCamConfirmLegend" style="display:none;gap:10px;flex-wrap:wrap;font-size:11px;color:#c7d2db;margin-bottom:10px;">
+        <span>🟩 ตอบตรงเฉลย</span><span>🟥 ตอบผิดเฉลย</span><span>🟨 ไม่ชัด</span><span>⬜ ไม่ตอบ</span>
+      </div>
       <select id="exCamConfirmSelect" onchange="examCamSelectChange(this.value)" style="display:none;width:100%;padding:8px;border-radius:8px;margin-bottom:8px;"></select>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-sm" style="flex:1;background:#c62828;color:#fff;border:none;padding:10px;" onclick="examCamRetake()">↺ ถ่ายใหม่</button>
@@ -4195,17 +4200,33 @@ async function examCaptureFrame(){
 }
 function examShowCamConfirm(r){
   var info=document.getElementById('exCamConfirmInfo'),sel=document.getElementById('exCamConfirmSelect'),box=document.getElementById('exCamConfirm'),btn=document.getElementById('exCamConfirmBtn'),status=document.getElementById('exCamStatus');
+  var scoreEl=document.getElementById('exCamConfirmScore'),gridEl=document.getElementById('exCamConfirmGrid'),legendEl=document.getElementById('exCamConfirmLegend');
   var t=examFmtTime(r.capturedAt);
   if(!r.ok){
     info.innerHTML='<span style="color:#ff8a65;">⚠️ อ่านกระดาษคำตอบไม่ได้ ('+examEsc(r.error||'')+') · '+t+'</span>';
     sel.style.display='none';btn.disabled=true;
-  }else if(r.student){
-    info.innerHTML='✅ '+examEsc(r.student.fullname)+' · เลขที่ '+examEsc(String(r.student.order_no||''))+' · '+t+(r.qr?' · อ่าน QR สำเร็จ':'');
-    sel.style.display='none';btn.disabled=false;
+    scoreEl.style.display='none';gridEl.style.display='none';legendEl.style.display='none';
   }else{
-    info.innerHTML='<span style="color:#ffca28;">⚠️ อ่าน QR ไม่ได้ กรุณาเลือกชื่อนักเรียนเอง · '+t+'</span>';
-    sel.innerHTML='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+'</option>';}).join('');
-    sel.value='';sel.style.display='block';btn.disabled=true;
+    if(r.student){
+      info.innerHTML='✅ '+examEsc(r.student.fullname)+' · เลขที่ '+examEsc(String(r.student.order_no||''))+' · '+t+(r.qr?' · อ่าน QR สำเร็จ':'');
+      sel.style.display='none';btn.disabled=false;
+    }else{
+      info.innerHTML='<span style="color:#ffca28;">⚠️ อ่าน QR ไม่ได้ กรุณาเลือกชื่อนักเรียนเอง · '+t+'</span>';
+      sel.innerHTML='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+'</option>';}).join('');
+      sel.value='';sel.style.display='block';btn.disabled=true;
+    }
+    scoreEl.textContent='คะแนน: '+r.final_score+' / '+r.target_total;
+    scoreEl.style.display='block';
+    var key=EX.subject.answer_key||{};
+    gridEl.innerHTML=Object.keys(r.answers||{}).sort(function(a,b){return Number(a)-Number(b);}).map(function(q){
+      var a=r.answers[q],bg='#455a64',fg='#fff';
+      if(a==='-'){bg='#37474f';}
+      else if(a==='?'){bg='#f9a825';fg='#000';}
+      else if(key[q]!=null){bg=(a===key[q])?'#2e7d32':'#c62828';}
+      else{bg='#546e7a';}
+      return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:'+bg+';color:'+fg+';font-size:11px;font-weight:700;">'+q+'</span>';
+    }).join('');
+    gridEl.style.display='flex';legendEl.style.display='flex';
   }
   box.style.display='block';status.style.display='none';
 }
