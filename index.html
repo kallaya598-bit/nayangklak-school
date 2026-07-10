@@ -8979,10 +8979,24 @@ async function saveGradeStruct(){
     if(name&&max>0)rows.push({assignment_id:gradeStructKey(assignId),subject_id:gradeAssignSubject(assignId),name:name,max_score:max,grade_type:type,order_no:i+1});
   });
   if(!rows.length){toast('เพิ่มช่องคะแนนอย่างน้อย 1 ช่อง','err');return;}
+  var key=gradeStructKey(assignId);
   try{
-    // ลบของเดิมแล้วใส่ใหม่ (โครงสร้างใช้ร่วมทุกกลุ่มของวิชา+ครูเดียวกัน)
-    await api('/rest/v1/grade_structures?assignment_id=eq.'+gradeStructKey(assignId),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
-    await api('/rest/v1/grade_structures',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(rows)});
+    // แก้ของเดิมทีละแถว (คง id ไว้เพื่อไม่ให้คะแนนที่กรอกแล้วหลุด) แทนการลบทั้งหมดแล้วสร้างใหม่
+    // เพราะ grades.structure_id อ้างอิง id เดิมอยู่ ลบทั้งหมดจะชน foreign key ถ้ามีคะแนนกรอกไว้แล้ว
+    var existing=await api('/rest/v1/grade_structures?assignment_id=eq.'+key+'&select=id,order_no&order=order_no')||[];
+    var n=Math.min(existing.length,rows.length);
+    for(var i=0;i<n;i++){
+      await api('/rest/v1/grade_structures?id=eq.'+existing[i].id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({name:rows[i].name,max_score:rows[i].max_score,grade_type:rows[i].grade_type,order_no:rows[i].order_no})});
+    }
+    if(rows.length>existing.length){
+      var extra=rows.slice(existing.length);
+      await api('/rest/v1/grade_structures',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(extra)});
+    }else if(existing.length>rows.length){
+      var removeIds=existing.slice(rows.length).map(function(x){return x.id;}).join(',');
+      // ช่องที่ถูกลบออก: ลบคะแนนที่เคยกรอกในช่องนั้นด้วย (ตั้งใจลบช่องนี้ทิ้ง)
+      await api('/rest/v1/grades?structure_id=in.('+removeIds+')',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
+      await api('/rest/v1/grade_structures?id=in.('+removeIds+')',{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    }
     toast('✅ บันทึกโครงสร้างคะแนนแล้ว');closeModal('modalGradeStruct');loadGradeStructure();
   }catch(e){toast('❌ '+e.message,'err');}
 }
