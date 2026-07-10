@@ -2580,6 +2580,14 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <canvas id="exCamCanvas"></canvas>
     </div>
     <div class="exam-camera-foot" id="exCamStatus">กำลังเปิดกล้อง...</div>
+    <div id="exCamConfirm" style="display:none;padding:12px 14px;background:#182430;border-top:1px solid #2a3846;">
+      <div id="exCamConfirmInfo" style="font-weight:700;margin-bottom:8px;color:#fff;font-size:14px;"></div>
+      <select id="exCamConfirmSelect" onchange="examCamSelectChange(this.value)" style="display:none;width:100%;padding:8px;border-radius:8px;margin-bottom:8px;"></select>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" style="flex:1;background:#c62828;color:#fff;border:none;padding:10px;" onclick="examCamRetake()">↺ ถ่ายใหม่</button>
+        <button class="btn btn-sm" id="exCamConfirmBtn" style="flex:1;background:#2e7d32;color:#fff;border:none;padding:10px;" onclick="examCamConfirm()">✓ ยืนยัน ถ่ายใบต่อไป</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3679,26 +3687,27 @@ async function examEnsureReady(){
   return true;
 }
 
-async function examProcessPages(pages){
+async function examProcessPages(pages,noGuess){
   var key=EX.subject.answer_key||{},numQ=EX.subject.num_questions||20,choices=examChoiceCount(EX.subject.choices);
   for(var i=0;i<pages.length;i++){
     examSetProgress(i,pages.length);
-    EX.results.push(await examGradeCanvas(pages[i],EX.results.length,key,numQ,choices));
+    EX.results.push(await examGradeCanvas(pages[i],EX.results.length,key,numQ,choices,noGuess));
     examRenderResults();
     await new Promise(function(resolve){setTimeout(resolve,20);});
   }
   examSetProgress(pages.length,pages.length);
 }
 
-async function examGradeCanvas(page,index,key,numQ,choices){
+async function examGradeCanvas(page,index,key,numQ,choices,noGuess){
   var qr=await examDecodeQrFromCanvas(page.canvas).catch(function(){return null;});
-  var student=examStudentFromQr(qr)||EX.students[index]||null;
+  var student=examStudentFromQr(qr)||(noGuess?null:EX.students[index])||null;
+  var capturedAt=new Date().toISOString();
   var img=await examImageFromDataUrl(page.canvas.toDataURL('image/jpeg',0.9));
   var omr=examChooseBestOMR(img,numQ,null,choices,key);
-  if(!omr.ok)return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',error:omr.reason,answers:{},objective_score:0,objective_total:Number(EX.subject.objective_full||numQ),subjective_score:0,subjective_total:Number(EX.subject.subjective_full||0),raw_score:0,raw_total:0,final_score:0,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
+  if(!omr.ok)return {page:index+1,file:page.name,pdfPage:page.page,ok:false,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',capturedAt:capturedAt,error:omr.reason,answers:{},objective_score:0,objective_total:Number(EX.subject.objective_full||numQ),subjective_score:0,subjective_total:Number(EX.subject.subjective_full||0),raw_score:0,raw_total:0,final_score:0,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
   var g=examScoreResult(omr.answers,key);
   var objTotal=Number(EX.subject.objective_full||numQ),objScore=g.keyCount?g.correct/g.keyCount*objTotal:0,subTotal=Number(EX.subject.subjective_full||0);
-  var res={page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',uncertain:omr.uncertain,blank:g.blank,answers:omr.answers,objective_score:objScore,objective_total:objTotal,subjective_score:0,subjective_total:subTotal,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
+  var res={page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',capturedAt:capturedAt,uncertain:omr.uncertain,blank:g.blank,answers:omr.answers,objective_score:objScore,objective_total:objTotal,subjective_score:0,subjective_total:subTotal,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
   examRecalcResult(res);
   return res;
 }
@@ -3799,12 +3808,21 @@ function examRenderResults(){
     var select='<select class="exam-mini-select" onchange="examAssignStudent('+i+',this.value)">'+stuOpts+'</select>';
     var omr='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.objective_total)+'" value="'+examFmt(r.objective_score)+'" onchange="examRecalcFromInput('+i+',\'obj\',this.value)"> / '+examFmt(r.objective_total);
     var sub='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.subjective_total)+'" value="'+examFmt(r.subjective_score||0)+'" onchange="examRecalcFromInput('+i+',\'sub\',this.value)"> / '+examFmt(r.subjective_total);
-    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.mapMethod||'')+(r.qr?' · QR':' · ใช้ลำดับหน้า')+'</div></td><td>'+omr+'</td><td>'+sub+'</td><td><b>'+examFmt(r.final_score)+'</b><span class="exam-muted"> / '+examFmt(r.target_total)+' ('+r.percent+'%)</span></td><td>'+status+(reasons.length?'<div class="exam-muted" style="color:'+(isDup?'var(--red)':'var(--text3)')+';">'+examEsc(reasons.join(' · '))+'</div>':'')+'</td></tr>';
+    var delBtn=r.saved?'':'<button class="btn btn-sm" style="color:#c62828;padding:2px 8px;font-size:11px;margin-top:4px;" onclick="examDeleteResultRow('+i+')">🗑️ ลบ</button>';
+    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.mapMethod||'')+(r.qr?' · QR':' · ใช้ลำดับหน้า')+(r.capturedAt?' · '+examFmtTime(r.capturedAt):'')+'</div></td><td>'+omr+'</td><td>'+sub+'</td><td><b>'+examFmt(r.final_score)+'</b><span class="exam-muted"> / '+examFmt(r.target_total)+' ('+r.percent+'%)</span></td><td>'+status+(reasons.length?'<div class="exam-muted" style="color:'+(isDup?'var(--red)':'var(--text3)')+';">'+examEsc(reasons.join(' · '))+'</div>':'')+delBtn+'</td></tr>';
   }).join('');
   EX.results.forEach(function(r,i){var sel=body.querySelectorAll('select')[i];if(sel&&r.student)sel.value=r.student.id;});
   examRenderStats();
 }
 function examAssignStudent(i,id){var r=EX.results[i];if(!r)return;r.student=EX.students.find(function(s){return String(s.id)===String(id);})||null;examRenderResults();}
+function examDeleteResultRow(i){
+  var r=EX.results[i];if(!r||r.saved)return;
+  if(!confirm('ลบรายการนี้ออกจากรายการตรวจ (หน้า/รูป '+(r.page||i+1)+') เพื่อสแกนใหม่?'))return;
+  EX.results.splice(i,1);examRenderResults();toast('ลบรายการแล้ว โปรดสแกนใหม่');
+}
+function examFmtTime(iso){
+  try{var d=new Date(iso);return d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return '';}
+}
 
 async function examSaveAll(){
   if(EX.standalone){
@@ -4106,8 +4124,10 @@ function examCameraErrorText(e){
 async function examOpenCamera(){
   if(!await examEnsureReady())return;
   if(!navigator.mediaDevices?.getUserMedia){toast('เบราว์เซอร์นี้ไม่รองรับกล้องสด','err');return;}
-  EX.camLastPts=null;EX.camStable=0;EX.camDone=false;
+  EX.camLastPts=null;EX.camStable=0;EX.camDone=false;EX.camPaused=false;EX.camPending=null;
   document.getElementById('exCameraModal').style.display='flex';
+  document.getElementById('exCamConfirm').style.display='none';
+  document.getElementById('exCamStatus').style.display='block';
   document.getElementById('exCamStatus').textContent='กำลังเปิดกล้อง...';
   try{
     EX.cam=await examGetCameraStream();
@@ -4116,15 +4136,62 @@ async function examOpenCamera(){
   }catch(e){examCloseCamera();toast('เปิดกล้องไม่ได้: '+examCameraErrorText(e),'err');examSetTab('scan');}
 }
 function examDetectLive(video){
-  if(!video.videoWidth||EX.camDone)return;
+  if(!video.videoWidth||EX.camDone||EX.camPaused)return;
   var maxDim=640,sc=Math.min(1,maxDim/Math.max(video.videoWidth,video.videoHeight)),w=Math.round(video.videoWidth*sc),h=Math.round(video.videoHeight*sc),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(video,0,0,w,h);
   var img=new Image();img.onload=function(){try{var g=examOmrToGray(img),det=examDetectMarkers(g.gray,g.w,g.h,examOtsu(g.gray)),status=document.getElementById('exCamStatus'),camCv=document.getElementById('exCamCanvas');if(det&&!det.extrapolated){examUpdateCamStability(det.pts,g.w,g.h);status.textContent=EX.camStable>=4?'ตรงและนิ่งแล้ว กำลังจับภาพ...':'พบจุดมุมครบ ถือให้นิ่ง';examDrawLiveQuad(camCv,video,det.pts,g.w,g.h);if(EX.camStable>=4){EX.camDone=true;setTimeout(examCaptureFrame,250);}}else{EX.camLastPts=null;EX.camStable=0;status.textContent='กำลังหาจุดดำ 4 มุม...';examClearCamCanvas(camCv);}}catch(e){}};img.src=cv.toDataURL('image/jpeg',0.72);
 }
 function examUpdateCamStability(pts,gw,gh){var diag=Math.hypot(gw,gh);if(!EX.camLastPts){EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});EX.camStable=1;return;}var move=pts.reduce(function(s,p,i){return s+Math.hypot(p[0]-EX.camLastPts[i][0],p[1]-EX.camLastPts[i][1]);},0)/(pts.length*diag);EX.camStable=move<0.012?EX.camStable+1:1;EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});}
 function examDrawLiveQuad(canvas,video,pts,gw,gh){var vw=video.clientWidth,vh=video.clientHeight,va=video.videoWidth/video.videoHeight,ca=vw/vh,rw,rh,ox,oy;if(va>ca){rh=vh;rw=vh*va;ox=(vw-rw)/2;oy=0;}else{rw=vw;rh=vw/va;oy=(vh-rh)/2;ox=0;}canvas.width=vw;canvas.height=vh;var ctx=canvas.getContext('2d');ctx.clearRect(0,0,vw,vh);var D=pts.map(function(p){return [ox+p[0]/gw*rw,oy+p[1]/gh*rh];});ctx.strokeStyle='rgba(25,195,125,.95)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.beginPath();ctx.moveTo(D[0][0],D[0][1]);for(var i=1;i<4;i++)ctx.lineTo(D[i][0],D[i][1]);ctx.closePath();ctx.stroke();ctx.setLineDash([]);D.forEach(function(d){ctx.beginPath();ctx.arc(d[0],d[1],11,0,7);ctx.fillStyle='rgba(25,195,125,.9)';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();});}
 function examClearCamCanvas(canvas){if(canvas&&canvas.width)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);}
-async function examCaptureFrame(){var video=document.getElementById('exCamVideo');if(!video.videoWidth)return;var cv=document.createElement('canvas');cv.width=video.videoWidth;cv.height=video.videoHeight;cv.getContext('2d').drawImage(video,0,0);examCloseCamera();await examProcessPages([{name:'camera.jpg',page:1,canvas:cv}]);toast('จับภาพและตรวจแล้ว โปรดตรวจทานก่อนบันทึก');}
-function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}document.getElementById('exCameraModal').style.display='none';examClearCamCanvas(document.getElementById('exCamCanvas'));}
+async function examCaptureFrame(){
+  var video=document.getElementById('exCamVideo');if(!video.videoWidth)return;
+  EX.camPaused=true;
+  var cv=document.createElement('canvas');cv.width=video.videoWidth;cv.height=video.videoHeight;cv.getContext('2d').drawImage(video,0,0);
+  var key=EX.subject.answer_key||{},numQ=EX.subject.num_questions||20,choices=examChoiceCount(EX.subject.choices);
+  var r=await examGradeCanvas({name:'camera.jpg',page:1,canvas:cv},EX.results.length,key,numQ,choices,true);
+  EX.camPending=r;
+  examShowCamConfirm(r);
+}
+function examShowCamConfirm(r){
+  var info=document.getElementById('exCamConfirmInfo'),sel=document.getElementById('exCamConfirmSelect'),box=document.getElementById('exCamConfirm'),btn=document.getElementById('exCamConfirmBtn'),status=document.getElementById('exCamStatus');
+  var t=examFmtTime(r.capturedAt);
+  if(!r.ok){
+    info.innerHTML='<span style="color:#ff8a65;">⚠️ อ่านกระดาษคำตอบไม่ได้ ('+examEsc(r.error||'')+') · '+t+'</span>';
+    sel.style.display='none';btn.disabled=true;
+  }else if(r.student){
+    info.innerHTML='✅ '+examEsc(r.student.fullname)+' · เลขที่ '+examEsc(String(r.student.order_no||''))+' · '+t+(r.qr?' · อ่าน QR สำเร็จ':'');
+    sel.style.display='none';btn.disabled=false;
+  }else{
+    info.innerHTML='<span style="color:#ffca28;">⚠️ อ่าน QR ไม่ได้ กรุณาเลือกชื่อนักเรียนเอง · '+t+'</span>';
+    sel.innerHTML='<option value="">เลือกนักเรียน...</option>'+EX.students.map(function(s){return '<option value="'+s.id+'">'+(s.order_no||'-')+' · '+examEsc(s.fullname)+'</option>';}).join('');
+    sel.value='';sel.style.display='block';btn.disabled=true;
+  }
+  box.style.display='block';status.style.display='none';
+}
+function examCamSelectChange(v){
+  if(!EX.camPending)return;
+  EX.camPending.student=EX.students.find(function(s){return String(s.id)===String(v);})||null;
+  document.getElementById('exCamConfirmBtn').disabled=!EX.camPending.student;
+}
+function examCamConfirm(){
+  if(!EX.camPending)return;
+  EX.results.push(EX.camPending);
+  EX.camPending=null;
+  examRenderResults();
+  toast('บันทึกใบนี้ในรายการตรวจแล้ว โปรดถ่ายใบต่อไป');
+  examCamResume();
+}
+function examCamRetake(){
+  EX.camPending=null;
+  toast('ยกเลิกใบนี้ กรุณาถ่ายใหม่','err');
+  examCamResume();
+}
+function examCamResume(){
+  document.getElementById('exCamConfirm').style.display='none';
+  var status=document.getElementById('exCamStatus');status.style.display='block';status.textContent='กำลังหาจุดดำ 4 มุม...';
+  EX.camDone=false;EX.camPaused=false;EX.camStable=0;EX.camLastPts=null;
+}
+function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}EX.camPending=null;EX.camPaused=false;document.getElementById('exCameraModal').style.display='none';document.getElementById('exCamConfirm').style.display='none';document.getElementById('exCamStatus').style.display='block';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
 // สแตกหน้าที่เปิดเอง (ไม่พึ่ง history.state) — กันปัญหา iOS PWA แบบ standalone
 // ที่ history API ไม่เสถียร (state หายเป็นระยะ) ทำให้ปุ่มกลับเด้งไปหน้าหลักเสมอ
