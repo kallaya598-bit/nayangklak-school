@@ -2023,6 +2023,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
                 <div class="exam-stat"><div class="v" id="exStReview">0</div><div class="l">ต้องตรวจทาน</div></div>
                 <div class="exam-stat"><div class="v" id="exStSaved">0</div><div class="l">บันทึกแล้ว</div></div>
               </div>
+              <div id="exSyncLine" style="font-size:12px;color:var(--text3);margin:-4px 0 10px;">🔄 บันทึกในระบบแล้ว (ทุกเครื่อง): -</div>
               <div class="exam-actions" style="margin-bottom:10px;">
                 <button class="btn btn-primary btn-sm" id="exSaveBtn" onclick="examSaveAll()" disabled>💾 บันทึกคะแนนทั้งหมด</button>
                 <button class="btn btn-green btn-sm" onclick="examExportCsv()">📊 Excel</button>
@@ -3785,6 +3786,25 @@ function examSetTab(tab){
   document.querySelectorAll('#pgExam .exam-tab-pane').forEach(function(pane){
     pane.classList.toggle('active',pane.dataset.examPane===tab);
   });
+  if(tab==='results')examSyncStart();else examSyncStop();
+}
+function examSyncStart(){
+  examSyncStop();
+  examSyncPoll();
+  EX.syncTimer=setInterval(examSyncPoll,8000);
+}
+function examSyncStop(){
+  if(EX.syncTimer){clearInterval(EX.syncTimer);EX.syncTimer=null;}
+}
+async function examSyncPoll(){
+  var el=document.getElementById('exSyncLine');if(!el)return;
+  if(!EX.subject||!EX.subject.id){el.textContent='🔄 บันทึกในระบบแล้ว (ทุกเครื่อง): -';return;}
+  try{
+    var rows=await api('/rest/v1/exam_results?subject_id=eq.'+EX.subject.id+'&select=student_id');
+    var n=(rows||[]).length,total=EX.students.length||0;
+    var now=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    el.textContent='🔄 บันทึกในระบบแล้ว (ทุกเครื่อง): '+n+(total?'/'+total:'')+' คน · อัปเดตล่าสุด '+now;
+  }catch(e){el.textContent='🔄 บันทึกในระบบแล้ว (ทุกเครื่อง): ดึงข้อมูลไม่สำเร็จ';}
 }
 
 function examRenderStats(){
@@ -4205,6 +4225,7 @@ function openPage(id,fromPop){
   }
   if(!fromPop && changed && NAV_STACK[NAV_STACK.length-1]!==id){ NAV_STACK.push(id); }
   try{localStorage.setItem('nyk_last_page',id);}catch(e){}
+  if(id!=='pgExam'&&typeof examSyncStop==='function')examSyncStop();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById(id).classList.add('active');
   document.getElementById('app').classList.toggle('on-dash',id==='pgDash');
