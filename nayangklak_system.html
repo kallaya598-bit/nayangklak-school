@@ -4705,12 +4705,13 @@ async function buildStudentDetailHTML(stu,opts){
     var attByAss={};
     (subj||[]).forEach(function(a){
       var aid=a.assignment_id;if(!aid)return;
-      if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,total:0};
+      if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,special_leave:0,total:0};
       attByAss[aid].total++;
       if(a.status==='present')attByAss[aid].present++;
       else if(a.status==='late')attByAss[aid].late++;
       else if(a.status==='leave')attByAss[aid].leave++;
       else if(a.status==='absent')attByAss[aid].absent++;
+      else if(a.status==='special_leave')attByAss[aid].special_leave++;
     });
     html+='<div class="sp-card"><h3>📖 เวลาเรียนรายวิชา</h3>';
     var hasSubjAtt=false;
@@ -4719,7 +4720,7 @@ async function buildStudentDetailHTML(stu,opts){
       hasSubjAtt=true;
       var sname=(ass.subjects?ass.subjects.subject_name:'วิชา');
       var scode=(ass.subjects?ass.subjects.subject_code:'');
-      var attended=cnts.present+cnts.late;
+      var attended=cnts.present+cnts.late+cnts.leave+cnts.special_leave;
       var pct=Math.round(attended/cnts.total*100);
       var barCol=pct>=85?'#2e7d32':(pct>=80?'#f57f17':'#c62828');
       var bClass=pct>=85?'sp-att-safe':(pct>=80?'sp-att-warn':'sp-att-danger');
@@ -4887,19 +4888,20 @@ async function buildStuPortalTabbed(stu,mode){
   var attByAss={};
   subj.forEach(function(a){
     var aid=a.assignment_id;if(!aid)return;
-    if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,total:0};
+    if(!attByAss[aid])attByAss[aid]={present:0,late:0,leave:0,absent:0,special_leave:0,total:0};
     attByAss[aid].total++;
     if(a.status==='present')attByAss[aid].present++;
     else if(a.status==='late')attByAss[aid].late++;
     else if(a.status==='leave')attByAss[aid].leave++;
     else if(a.status==='absent')attByAss[aid].absent++;
+    else if(a.status==='special_leave')attByAss[aid].special_leave++;
   });
 
   // วิชาเสี่ยง มส
   var msRisk=[];
   (classAssAll||[]).forEach(function(ass){
     var c=attByAss[ass.id];if(!c||c.total===0)return;
-    var pct=Math.round((c.present+c.late)/c.total*100);
+    var pct=Math.round((c.present+c.late+c.leave+c.special_leave)/c.total*100);
     if(pct<85)msRisk.push({name:(ass.subjects?ass.subjects.subject_name:'วิชา'),pct:pct,danger:pct<80});
   });
 
@@ -4964,7 +4966,7 @@ async function buildStuPortalTabbed(stu,mode){
     var c=attByAss[ass.id];if(!c||c.total===0)return;
     hasSubjAtt=true;
     var sname=(ass.subjects?ass.subjects.subject_name:'วิชา'),scode=(ass.subjects?ass.subjects.subject_code:'');
-    var attended=c.present+c.late,pct=Math.round(attended/c.total*100);
+    var attended=c.present+c.late+c.leave+c.special_leave,pct=Math.round(attended/c.total*100);
     var barCol=pct>=85?'#2e7d32':(pct>=80?'#f57f17':'#c62828');
     var bClass=pct>=85?'sp-att-safe':(pct>=80?'sp-att-warn':'sp-att-danger');
     var bLabel=pct>=85?'✅ ปกติ':(pct>=80?'⚠️ เสี่ยง':'🚨 สุ่มเสี่ยง มส');
@@ -9658,16 +9660,17 @@ document.addEventListener('click',function(e){
   var pop=document.getElementById('sarEditPop');
   if(pop&&pop.style.display!=='none'&&!pop.contains(e.target)&&!(e.target.closest&&e.target.closest('.sarCell')))closeCellEdit();
 });
-function buildSarSummary(){
+function buildSarSummary(forPrint){
   var total=SAR.sessions.length;
-  var h='<table style="table-layout:fixed;font-size:12px;">'+
-    '<colgroup><col style="width:24px;"><col style="width:48px;"><col><col style="width:44px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:64px;"></colgroup>'+
+  var h=(forPrint?
+    '<table style="table-layout:fixed;font-size:12px;"><colgroup><col style="width:24px;"><col style="width:48px;"><col><col style="width:44px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:64px;"></colgroup>':
+    '<table>')+
     '<thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ครั้งเรียน</th><th>มา</th><th>มา%</th><th>สาย</th><th>สาย%</th><th>ลา</th><th>ลา%</th><th>ขาด</th><th>ขาด%</th><th>เข้าเรียน%</th></tr></thead><tbody>';
   var pc=function(n){return total?((n/total)*100).toFixed(2):'0.00';};
   SAR.students.forEach(function(s,i){
-    var c={present:0,late:0,leave:0,absent:0};
+    var c={present:0,late:0,leave:0,absent:0,special_leave:0};
     SAR.sessions.forEach(function(k){var st=SAR.att[s.id+'_'+k];if(c[st]!==undefined)c[st]++;});
-    var attended=c.present+c.late;var apct=total?((attended/total)*100):0;
+    var attended=c.present+c.late+c.leave+c.special_leave;var apct=total?((attended/total)*100):0;
     h+='<tr><td style="text-align:center;">'+(i+1)+'</td><td style="text-align:center;">'+(s.student_code||'')+'</td><td class="l">'+s.fullname+'</td>'+
       '<td>'+total+'</td>'+
       '<td style="color:#2e7d32;">'+c.present+'</td><td>'+pc(c.present)+'</td>'+
@@ -9676,7 +9679,7 @@ function buildSarSummary(){
       '<td style="color:#c62828;">'+c.absent+'</td><td>'+pc(c.absent)+'</td>'+
       '<td style="font-weight:800;color:'+(apct>=80?'#2e7d32':'#c62828')+';">'+apct.toFixed(2)+'</td></tr>';
   });
-  h+='</tbody></table><div style="font-size:13.2px;color:var(--text3);margin-top:6px;">เข้าเรียน% = (มา + สาย) / ครั้งเรียนทั้งหมด</div>';
+  h+='</tbody></table><div style="font-size:13.2px;color:var(--text3);margin-top:6px;">เข้าเรียน% = (มา + สาย + ลา + กิจกรรม) / ครั้งเรียนทั้งหมด — นับลา/กิจกรรมเป็นเหมือนมาเรียน มีแค่ขาด/หนีเรียนเท่านั้นที่หักเวลาเรียน</div>';
   return h;
 }
 function printSubjAttReport(){
@@ -9684,7 +9687,7 @@ function printSubjAttReport(){
   if(SAR.tab==='detail'){
     printReportHTML('รายงานเวลาเรียนรายวิชา',buildSarDetailPrint(),true);
   }else{
-    var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+buildSarSummary();
+    var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+buildSarSummary(true);
     printReportHTML('รายงานเวลาเรียนรายวิชา',body,false);
   }
 }
@@ -9703,8 +9706,8 @@ function excelSubjAttReport(){
     var total=SAR.sessions.length;
     data.push(['ที่','รหัส','ชื่อ-สกุล','ครั้งเรียน','มา','สาย','ลา','ขาด','เข้าเรียน%']);
     SAR.students.forEach(function(s,i){
-      var c={present:0,late:0,leave:0,absent:0};SAR.sessions.forEach(function(k){var st=SAR.att[s.id+'_'+k];if(c[st]!==undefined)c[st]++;});
-      var ap=total?(((c.present+c.late)/total)*100).toFixed(2):'0';
+      var c={present:0,late:0,leave:0,absent:0,special_leave:0};SAR.sessions.forEach(function(k){var st=SAR.att[s.id+'_'+k];if(c[st]!==undefined)c[st]++;});
+      var ap=total?(((c.present+c.late+c.leave+c.special_leave)/total)*100).toFixed(2):'0';
       data.push([i+1,s.student_code||'',s.fullname,total,c.present,c.late,c.leave,c.absent,ap]);
     });
   }
