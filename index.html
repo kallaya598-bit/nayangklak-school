@@ -9580,7 +9580,7 @@ function buildSarDetailPrint(){
   if(!pages.length)pages.push([]);
   var out='';
   pages.forEach(function(pcols,pi){
-    var rW='<tr class="sar-r1"><th rowspan="5" style="min-width:24px;">ที่</th><th rowspan="5">รหัส นร.</th><th rowspan="5" class="l" style="min-width:120px;">ชื่อ-สกุล</th><th class="sar-lbl" style="background:#1565c0;color:#fff;">สัปดาห์</th>';
+    var rW='<tr class="sar-r1"><th rowspan="5" style="min-width:24px;">ที่</th><th rowspan="5">รหัส นร.</th><th rowspan="5" class="l" style="min-width:135px;font-size:12px;">ชื่อ-สกุล</th><th class="sar-lbl" style="background:#1565c0;color:#fff;">สัปดาห์</th>';
     var rM='<tr class="sar-sub"><th class="sar-lbl">เดือน</th>';
     var rD='<tr class="sar-sub"><th class="sar-lbl">วัน</th>';
     var rN='<tr class="sar-sub"><th class="sar-lbl">วันที่</th>';
@@ -9604,7 +9604,7 @@ function buildSarDetailPrint(){
     SAR.students.forEach(function(s,i){
       h+='<tr><td style="text-align:center;color:#546e7a;font-weight:600;">'+(i+1)+'</td>'+
         '<td style="color:#546e7a;font-size:11px;">'+(s.student_code||'')+'</td>'+
-        '<td class="l" style="font-weight:600;">'+s.fullname+'</td>'+
+        '<td class="l" style="font-weight:600;font-size:12px;">'+s.fullname+'</td>'+
         '<td style="background:#f0f5ff;"></td>'+
         pcols.map(function(c){
           var st=SAR.att[s.id+'_'+c.key];
