@@ -10288,11 +10288,8 @@ async function generatePapo5PDF(mode){
         '<div style="font-size:'+f2+';font-weight:700;color:#1565c0;margin-top:1px;">'+title+'</div>'+
         '<div style="border-bottom:2px solid #1565c0;margin-top:4px;"></div></div>';
     };
-    var sign='<div style="margin-top:20px;display:flex;justify-content:space-between;gap:14px;font-size:12px;text-align:center;">'+
-      '<div style="flex:1;">......................................<br>('+(G.user?G.user.fullname:'')+')<br>ครูผู้สอน</div>'+
-      '<div style="flex:1;">......................................<br>&nbsp;<br>หัวหน้ากลุ่มสาระการเรียนรู้</div>'+
-      '<div style="flex:1;">......................................<br>&nbsp;<br>รองผู้อำนวยการฝ่ายวิชาการ</div>'+
-      '<div style="flex:1;">......................................<br>&nbsp;<br>ผู้อำนวยการโรงเรียน</div></div>';
+    var sign='<div style="margin-top:20px;text-align:right;font-size:12px;">'+
+      '......................................<br>('+(G.user?G.user.fullname:'')+')<br>ครูผู้สอน</div>';
 
     // ===== หน้า 1: สรุปผลการเรียน (แนวตั้ง) — max 30 คน/หน้า =====
     var pBuck={before_mid:[],midterm:[],after_mid:[],final:[],other:[]};
@@ -10345,8 +10342,10 @@ async function generatePapo5PDF(mode){
       '<tr><td style="border:1px solid '+BORD+';padding:4px 6px;text-align:left;">ร้อยละ</td>'+
       gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 6px;text-align:center;">'+(n?(dist[g]/n*100).toFixed(1):'0.0')+'</td>';}).join('')+'</tr>'+
       '</table>';
-    var stats1='<div style="margin-top:8px;font-size:12px;"><b>สรุป:</b> นักเรียน '+n+' คน · คะแนนเฉลี่ย '+(sumTotal/n).toFixed(1)+'/'+maxTotal+' · GPA เฉลี่ย <b>'+(sumGradeTotal/n).toFixed(2)+'</b></div>'+distTable;
-    var sumPages='<div class="pg1"><div id="pg1i">'+hdr('สรุปผลการเรียน (รวมทั้งภาคเรียน)','l')+'<table style="width:100%;border-collapse:collapse;">'+sumThead+'<tbody>'+rows1+'</tbody></table>'+stats1+sign+'</div></div>';
+    var stats1='<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:8px;">'+
+      '<div><div style="font-size:12px;margin-bottom:4px;"><b>สรุป:</b> นักเรียน '+n+' คน · คะแนนเฉลี่ย '+(sumTotal/n).toFixed(1)+'/'+maxTotal+' · GPA เฉลี่ย <b>'+(sumGradeTotal/n).toFixed(2)+'</b></div>'+distTable+'</div>'+
+      '<div style="flex-shrink:0;">'+sign.replace('margin-top:20px;','margin-top:0;')+'</div></div>';
+    var sumPages='<div class="pg1"><div id="pg1i">'+hdr('สรุปผลการเรียน (รวมทั้งภาคเรียน)','l')+'<table style="width:100%;border-collapse:collapse;">'+sumThead+'<tbody>'+rows1+'</tbody></table>'+stats1+'</div></div>';
 
     // ===== หน้า 2: รายละเอียดคะแนน (แนวนอน — สีตาม phaseColors) =====
     var h1c='',h2c='';
@@ -10400,7 +10399,7 @@ async function generatePapo5PDF(mode){
     }
 
     // pg1 landscape: usable height ~710px; header (crest+ตรา)+stats+dist-table+4-signature block~260 + rows×24
-    var z1=+(Math.min(710/Math.max(260+n*26,1),1)).toFixed(3);
+    var z1=+(Math.min(710/Math.max(195+n*26,1),1)).toFixed(3);
     var win=window.open('','_blank');
     var pgCss=
       '@page pg1{size:A4 landscape;margin:10mm 12mm;}'+
