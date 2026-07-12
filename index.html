@@ -1432,8 +1432,8 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <div class="nav-item active" data-page="pgDash"><span class="ni ms-blue">home</span> <span>หน้าหลัก</span></div>
 
       <div class="nav-section" style="font-size:11px;padding-top:14px;">วันนี้</div>
-      <div class="nav-item" data-page="pgMorning"><span class="ni ms-red">flag</span> <span style="flex:1;">เสาธงเช้า</span><span class="nav-chip nchip-done" id="navChipMorning" style="display:none;">เช็คแล้ว</span></div>
-      <div class="nav-item" data-page="pgEvening"><span class="ni ms-orange">wb_twilight</span> <span style="flex:1;">ตอนเย็น</span><span class="nav-chip nchip-wait" id="navChipEvening" style="display:none;">รอเช็ค</span></div>
+      <div class="nav-item" data-page="pgMorning"><span class="ni ms-red">flag</span> <span style="flex:1;">เช็คชื่อเช้า</span><span class="nav-chip nchip-done" id="navChipMorning" style="display:none;">เช็คแล้ว</span></div>
+      <div class="nav-item" data-page="pgEvening"><span class="ni ms-orange">wb_twilight</span> <span style="flex:1;">เช็คชื่อเย็น</span><span class="nav-chip nchip-wait" id="navChipEvening" style="display:none;">รอเช็ค</span></div>
       <div class="nav-item" data-page="pgSubjectAtt"><span class="ni ms-blue">schedule</span> <span>เช็คเวลาเรียน</span></div>
 
       <!-- นักเรียน & บันทึก -->
@@ -1445,10 +1445,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         </div>
         <div class="nav-group-bd">
           <div class="nav-item" data-page="pgStudents"><span class="ni ms-blue">groups</span> <span>ข้อมูลนักเรียน</span></div>
-          <div class="nav-item" data-page="pgGood"><span class="ni ms-red">favorite</span> <span>บันทึกความดี</span></div>
-          <div class="nav-item" data-page="pgBehave"><span class="ni ms-orange">warning</span> <span>บันทึกพฤติกรรม</span></div>
-          <div class="nav-item hidden" id="navDressCodeItem" data-page="pgDressCode"><span class="ni ms-orange">checkroom</span> <span>บันทึกการแต่งกาย</span></div>
-          <div class="nav-item" data-page="pgScore"><span class="ni ms-green">bar_chart</span> <span>คะแนนสุทธิ</span></div>
+          <div class="nav-item" data-page="pgGood"><span class="ni ms-red">favorite</span> <span>ทำความดี</span></div>
+          <div class="nav-item" data-page="pgBehave"><span class="ni ms-orange">warning</span> <span>แจ้งพฤติกรรม</span></div>
+          <div class="nav-item hidden" id="navDressCodeItem" data-page="pgDressCode"><span class="ni ms-orange">checkroom</span> <span>ตรวจเครื่องแบบ</span></div>
+          <div class="nav-item" data-page="pgScore"><span class="ni ms-green">bar_chart</span> <span>สรุปคะแนน</span></div>
         </div>
       </div>
 
@@ -1477,7 +1477,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         </div>
         <div class="nav-group-bd">
           <div class="nav-item" data-page="pgTeachSubjects"><span class="ni ms-blue">calendar_month</span> <span>ตารางสอน</span></div>
-          <div class="nav-item" data-page="pgGrades"><span class="ni ms-orange">grade</span> <span>คะแนนรายวิชา</span></div>
+          <div class="nav-item" data-page="pgGrades"><span class="ni ms-orange">grade</span> <span>ผลการเรียน</span></div>
           <div class="nav-item" data-page="pgExam"><span class="ni ms-purple">fact_check</span> <span>ตรวจข้อสอบ</span></div>
           <div class="nav-item" data-page="pgSubjAttReport"><span class="ni ms-green">analytics</span> <span>เวลาเรียนรายวิชา</span></div>
           <div class="nav-item" data-page="pgRoomAttReport"><span class="ni ms-blue">school</span> <span>เวลาเรียนรายห้อง</span></div>
@@ -1493,10 +1493,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <span class="ms ng-arr">expand_more</span>
         </div>
         <div class="nav-group-bd">
-          <div class="nav-item" data-page="pgAttReport"><span class="ni ms-blue">assignment</span> <span>รายงานเช็คชื่อ</span></div>
-          <div class="nav-item" data-page="pgAbsentRep"><span class="ni ms-red">person_off</span> <span>นักเรียนขาด</span></div>
+          <div class="nav-item" data-page="pgAttReport"><span class="ni ms-blue">assignment</span> <span>รายงานเข้าแถว</span></div>
+          <div class="nav-item" data-page="pgAbsentRep"><span class="ni ms-red">person_off</span> <span>สรุปขาดเรียน</span></div>
           <div class="nav-item" data-page="pgSubjAbsentRep"><span class="ni ms-orange">event_busy</span> <span>ขาดเรียนรายวิชา</span></div>
-          <div class="nav-item" data-page="pgSkipRep"><span class="ni ms-red">directions_run</span> <span>นักเรียนหนีเรียน</span></div>
+          <div class="nav-item" data-page="pgSkipRep"><span class="ni ms-red">directions_run</span> <span>รายงานหนีเรียน</span></div>
           <div class="nav-item" data-page="pgReport"><span class="ni ms-blue">picture_as_pdf</span> <span>ออกรายงาน PDF</span></div>
         </div>
       </div>
@@ -1572,28 +1572,28 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div id="dashMenuGrid">
           <div class="dico-grid">
             <div class="dico" onclick="openPage('pgStudents')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/01-student-info.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ข้อมูลนักเรียน</div></div>
-            <div class="dico" onclick="openPage('pgMorning')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/02-morning-flag.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เสาธงเช้า</div></div>
-            <div class="dico" onclick="openPage('pgEvening')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/03-evening-attendance.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตอนเย็น</div></div>
+            <div class="dico" onclick="openPage('pgMorning')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/02-morning-flag.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เช็คชื่อเช้า</div></div>
+            <div class="dico" onclick="openPage('pgEvening')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/03-evening-attendance.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เช็คชื่อเย็น</div></div>
             <div class="dico" onclick="openPage('pgSubjectAtt')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/04-class-check.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เช็คเวลาเรียน</div></div>
-            <div class="dico" onclick="openPage('pgAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/05-attendance-report.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">รายงานเช็คชื่อ</div></div>
-            <div class="dico" onclick="openPage('pgAbsentRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/06-absent-student.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">นักเรียนขาด</div></div>
-            <div class="dico" onclick="openPage('pgGood')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/07-good-deed.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">บันทึกความดี</div></div>
-            <div class="dico" onclick="openPage('pgBehave')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/08-behavior-record.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">บันทึกพฤติกรรม</div></div>
-            <div class="dico hidden" id="dicoDressCode" onclick="openPage('pgDressCode')"><div class="dico-ico iapp-indigo" style="background:linear-gradient(135deg,#e65100,#bf360c);"><span class="ms">checkroom</span></div><div class="dico-lbl">การแต่งกาย</div></div>
-            <div class="dico" onclick="openPage('pgScore')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/09-net-score.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">คะแนนสุทธิ</div></div>
+            <div class="dico" onclick="openPage('pgAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/05-attendance-report.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">รายงานเข้าแถว</div></div>
+            <div class="dico" onclick="openPage('pgAbsentRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/06-absent-student.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">สรุปขาดเรียน</div></div>
+            <div class="dico" onclick="openPage('pgGood')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/07-good-deed.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ทำความดี</div></div>
+            <div class="dico" onclick="openPage('pgBehave')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/08-behavior-record.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">แจ้งพฤติกรรม</div></div>
+            <div class="dico hidden" id="dicoDressCode" onclick="openPage('pgDressCode')"><div class="dico-ico iapp-indigo" style="background:linear-gradient(135deg,#e65100,#bf360c);"><span class="ms">checkroom</span></div><div class="dico-lbl">ตรวจเครื่องแบบ</div></div>
+            <div class="dico" onclick="openPage('pgScore')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/09-net-score.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">สรุปคะแนน</div></div>
             <div class="dico" onclick="openPage('pgHomeVisit')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/10-home-visit.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เยี่ยมบ้านนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgHvMap')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/11-home-map.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">แผนที่บ้านนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgMH')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/12-mental-health.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">สุขภาพจิต</div></div>
             <div class="dico" onclick="openPage('pgActivities')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/13-club-activities.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">กิจกรรมชุมนุม</div></div>
             <div class="dico" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="dico-ico iapp-indigo"><span class="ms">checklist</span></div><div class="dico-lbl">ภาพรวมชุมนุม</div></div>
             <div class="dico" onclick="openPage('pgTeachSubjects')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/14-teaching-schedule.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางสอน</div></div>
-            <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/15-subject-grades.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">คะแนนรายวิชา</div></div>
+            <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/15-subject-grades.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ผลการเรียน</div></div>
             <div class="dico" onclick="openPage('pgExam')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/22-exam-grader.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตรวจข้อสอบ</div></div>
             <div class="dico" onclick="openPage('pgSubjAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/16-subject-time.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เวลาเรียนรายวิชา</div></div>
             <div class="dico" onclick="openPage('pgRoomAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/17-classroom-time.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เวลาเรียนรายห้อง</div></div>
             <div class="dico" onclick="openPage('pgTimetable')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/18-student-timetable.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgSubjAbsentRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/19-subject-absence.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ขาดเรียนรายวิชา</div></div>
-            <div class="dico" onclick="openPage('pgSkipRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/20-truancy.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">นักเรียนหนีเรียน</div></div>
+            <div class="dico" onclick="openPage('pgSkipRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/20-truancy.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">รายงานหนีเรียน</div></div>
             <div class="dico" onclick="openPage('pgReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/21-pdf-report.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ออกรายงาน PDF</div></div>
             <div class="dico" id="iappAdminSection" style="display:none;" onclick="openPage('pgAdmin')"><div class="dico-ico iapp-gray"><span class="ms">settings</span></div><div class="dico-lbl">จัดการระบบ</div></div>
             <div id="adminDashBtn" style="display:none;"></div>
