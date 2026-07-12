@@ -10384,8 +10384,8 @@ async function generatePapo5PDF(mode){
         detThead+'<tbody>'+dchunk.join('')+'</tbody></table>'+sign+'</div></div>';
     }
 
-    // pg1 landscape: usable height ~710px; header~55 + rows×19 + stats~45 + sign~45 = 155+n×19
-    var z1=+(Math.min(710/Math.max(155+n*19,1),1)).toFixed(3);
+    // pg1 landscape: usable height ~710px; header+stats+sign~200 + rows×24 (safety margin so up to 30 students fits one page)
+    var z1=+(Math.min(710/Math.max(200+n*24,1),1)).toFixed(3);
     var win=window.open('','_blank');
     var pgCss=
       '@page pg1{size:A4 landscape;margin:10mm 12mm;}'+
