@@ -10337,13 +10337,13 @@ async function generatePapo5PDF(mode){
         '<td style="padding:5px 4px;border:1px solid '+BORD+';"></td></tr>';
     }).join('');
     var gradeSteps=[4,3.5,3,2.5,2,1.5,1,0];
-    var distTable='<table style="border-collapse:collapse;margin-top:4px;font-size:11px;">'+
-      '<tr><th style="border:1px solid '+BORD+';padding:4px 8px;background:'+WASH+';color:'+BLUEINK+';">ระดับผลการเรียน</th>'+
-      gradeSteps.map(function(g){return '<th style="border:1px solid '+BORD+';padding:4px 8px;background:'+WASH+';color:'+BLUEINK+';">'+g+'</th>';}).join('')+'</tr>'+
-      '<tr><td style="border:1px solid '+BORD+';padding:4px 8px;text-align:left;">จำนวนนักเรียน (คน)</td>'+
-      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 8px;text-align:center;">'+dist[g]+'</td>';}).join('')+'</tr>'+
-      '<tr><td style="border:1px solid '+BORD+';padding:4px 8px;text-align:left;">ร้อยละ</td>'+
-      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 8px;text-align:center;">'+(n?(dist[g]/n*100).toFixed(1):'0.0')+'</td>';}).join('')+'</tr>'+
+    var distTable='<table style="border-collapse:collapse;margin-top:4px;font-size:9.5px;width:auto;">'+
+      '<tr><th style="border:1px solid '+BORD+';padding:4px 6px;background:'+WASH+';color:'+BLUEINK+';">ระดับผลการเรียน</th>'+
+      gradeSteps.map(function(g){return '<th style="border:1px solid '+BORD+';padding:4px 6px;background:'+WASH+';color:'+BLUEINK+';">'+g+'</th>';}).join('')+'</tr>'+
+      '<tr><td style="border:1px solid '+BORD+';padding:4px 6px;text-align:left;">จำนวนนักเรียน (คน)</td>'+
+      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 6px;text-align:center;">'+dist[g]+'</td>';}).join('')+'</tr>'+
+      '<tr><td style="border:1px solid '+BORD+';padding:4px 6px;text-align:left;">ร้อยละ</td>'+
+      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 6px;text-align:center;">'+(n?(dist[g]/n*100).toFixed(1):'0.0')+'</td>';}).join('')+'</tr>'+
       '</table>';
     var stats1='<div style="margin-top:8px;font-size:12px;"><b>สรุป:</b> นักเรียน '+n+' คน · คะแนนเฉลี่ย '+(sumTotal/n).toFixed(1)+'/'+maxTotal+' · GPA เฉลี่ย <b>'+(sumGradeTotal/n).toFixed(2)+'</b></div>'+distTable;
     var sumPages='<div class="pg1"><div id="pg1i">'+hdr('สรุปผลการเรียน (รวมทั้งภาคเรียน)','l')+'<table style="width:100%;border-collapse:collapse;">'+sumThead+'<tbody>'+rows1+'</tbody></table>'+stats1+sign+'</div></div>';
