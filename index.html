@@ -9660,7 +9660,9 @@ document.addEventListener('click',function(e){
 });
 function buildSarSummary(){
   var total=SAR.sessions.length;
-  var h='<table><thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ครั้งเรียน</th><th>มา</th><th>มา%</th><th>สาย</th><th>สาย%</th><th>ลา</th><th>ลา%</th><th>ขาด</th><th>ขาด%</th><th>เข้าเรียน%</th></tr></thead><tbody>';
+  var h='<table style="table-layout:fixed;font-size:12px;">'+
+    '<colgroup><col style="width:24px;"><col style="width:48px;"><col><col style="width:44px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:26px;"><col style="width:48px;"><col style="width:28px;"><col style="width:48px;"><col style="width:64px;"></colgroup>'+
+    '<thead><tr><th>ที่</th><th>รหัส นร.</th><th class="l">ชื่อ-สกุล</th><th>ครั้งเรียน</th><th>มา</th><th>มา%</th><th>สาย</th><th>สาย%</th><th>ลา</th><th>ลา%</th><th>ขาด</th><th>ขาด%</th><th>เข้าเรียน%</th></tr></thead><tbody>';
   var pc=function(n){return total?((n/total)*100).toFixed(2):'0.00';};
   SAR.students.forEach(function(s,i){
     var c={present:0,late:0,leave:0,absent:0};
