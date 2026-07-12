@@ -10277,16 +10277,22 @@ async function generatePapo5PDF(mode){
     var sc=a.subjects?a.subjects.subject_code+' '+a.subjects.subject_name+(credStr?' ('+credStr+')':''):'-';
     var rn=a.classrooms?a.classrooms.room_name:'-';
     var phaseColors=['#1565c0','#00695c','#283593','#6a1b9a'];
+    var crestUrl=new URL('logo.png',location.href).href;
     var hdr=function(title,sz){
       var f1=sz==='l'?'18px':'22px',f2=sz==='l'?'13px':'15px',f3=sz==='l'?'12px':'13px';
-      return '<div style="text-align:center;margin-bottom:10px;">'+
-        '<div style="font-size:'+f1+';font-weight:800;color:#00695c;">แบบบันทึกผลการเรียน (ปพ.5)</div>'+
-        '<div style="font-size:'+f3+';margin-top:3px;">รายวิชา '+sc+' · ชั้น '+rn+' · ภาคเรียน '+(a.semester||1)+'/'+(a.year||2569)+'</div>'+
-        '<div style="font-size:'+f2+';font-weight:700;color:#00695c;margin-top:3px;">'+title+'</div>'+
-        '<div style="border-bottom:2px solid #00695c;margin-top:5px;"></div></div>';
+      return '<div style="text-align:center;border-top:4px solid #1565c0;padding-top:8px;margin-bottom:8px;">'+
+        '<img src="'+crestUrl+'" alt="ตราโรงเรียน" style="width:56px;height:56px;object-fit:contain;margin-bottom:2px;">'+
+        '<div style="font-size:'+f1+';font-weight:800;color:#1565c0;">แบบบันทึกผลการเรียน (ปพ.5)</div>'+
+        '<div style="font-size:'+f3+';margin-top:1px;">โรงเรียนนายางกลักพิทยาคม · สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>'+
+        '<div style="font-size:'+f3+';margin-top:1px;">รายวิชา '+sc+' · ชั้น '+rn+' · ภาคเรียน '+(a.semester||1)+'/'+(a.year||2569)+'</div>'+
+        '<div style="font-size:'+f2+';font-weight:700;color:#1565c0;margin-top:1px;">'+title+'</div>'+
+        '<div style="border-bottom:2px solid #1565c0;margin-top:4px;"></div></div>';
     };
-    var sign='<div style="margin-top:20px;text-align:right;font-size:13px;">'+
-      'ลงชื่อ...........................<br>('+(G.user?G.user.fullname:'')+')<br>ครูผู้สอน</div>';
+    var sign='<div style="margin-top:20px;display:flex;justify-content:space-between;gap:14px;font-size:12px;text-align:center;">'+
+      '<div style="flex:1;">......................................<br>('+(G.user?G.user.fullname:'')+')<br>ครูผู้สอน</div>'+
+      '<div style="flex:1;">......................................<br>&nbsp;<br>หัวหน้ากลุ่มสาระการเรียนรู้</div>'+
+      '<div style="flex:1;">......................................<br>&nbsp;<br>รองผู้อำนวยการฝ่ายวิชาการ</div>'+
+      '<div style="flex:1;">......................................<br>&nbsp;<br>ผู้อำนวยการโรงเรียน</div></div>';
 
     // ===== หน้า 1: สรุปผลการเรียน (แนวตั้ง) — max 30 คน/หน้า =====
     var pBuck={before_mid:[],midterm:[],after_mid:[],final:[],other:[]};
@@ -10304,7 +10310,7 @@ async function generatePapo5PDF(mode){
     });
     var n=stus.length;
     var distRow=[4,3.5,3,2.5,2,1.5,1,0].map(function(g){return 'เกรด '+g+'='+dist[g];}).join(' · ');
-    var sumThead='<thead><tr style="background:#00695c;color:#fff;font-weight:700;font-size:12px;">'+
+    var sumThead='<thead><tr style="background:#1565c0;color:#fff;font-weight:700;font-size:12px;">'+
       '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);width:36px;">เลขที่</th>'+
       '<th rowspan="2" style="text-align:left;padding:5px 5px;border:1px solid rgba(255,255,255,.3);">ชื่อ-สกุล</th>'+
       '<th colspan="3" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">ระหว่างเรียน ('+mDuring+')</th>'+
@@ -10312,7 +10318,7 @@ async function generatePapo5PDF(mode){
       '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">รวม ('+maxTotal+')</th>'+
       '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">ระดับ</th>'+
       '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">แก้ไข</th>'+
-      '</tr><tr style="background:#00897b;color:#fff;font-size:11px;">'+
+      '</tr><tr style="background:#1976d2;color:#fff;font-size:11px;">'+
       '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">ก่อนกลางภาค ('+mBefore+')</th>'+
       '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">กลางภาค ('+mMid+')</th>'+
       '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">หลังกลางภาค ('+mAfter+')</th>'+
@@ -10326,7 +10332,7 @@ async function generatePapo5PDF(mode){
         '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.mi.toFixed(1)+'</td>'+
         '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.af.toFixed(1)+'</td>'+
         '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.fi.toFixed(1)+'</td>'+
-        '<td style="text-align:center;font-weight:700;color:#00695c;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.tot.toFixed(1)+'</td>'+
+        '<td style="text-align:center;font-weight:700;color:#1565c0;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.tot.toFixed(1)+'</td>'+
         '<td style="text-align:center;font-weight:800;color:'+(d.g>=1?'#2e7d32':'#c62828')+';padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.g.toFixed(1)+'</td>'+
         '<td style="padding:3px 3px;border:1px solid #ccc;"></td></tr>';
     }).join('');
@@ -10377,15 +10383,15 @@ async function generatePapo5PDF(mode){
     for(var dpi=0;dpi<totalDetPages;dpi++){
       var dchunk=detRows.slice(dpi*DPG,(dpi+1)*DPG);
       var dpLabel=totalDetPages>1?' (หน้า '+(dpi+1)+'/'+totalDetPages+')':'';
-      var dz=+(Math.min(710/Math.max(185+dchunk.length*26,1),1)).toFixed(3);
+      var dz=+(Math.min(710/Math.max(215+dchunk.length*26,1),1)).toFixed(3);
       detPages+='<div class="pg2"><div style="zoom:'+dz+';">'+
         hdr('รายละเอียดคะแนนรายวิชา (แยกตามช่วงการประเมิน)'+dpLabel,'l')+
         '<table style="width:100%;border-collapse:collapse;table-layout:auto;">'+
         detThead+'<tbody>'+dchunk.join('')+'</tbody></table>'+sign+'</div></div>';
     }
 
-    // pg1 landscape: usable height ~710px; header+stats+sign~200 + rows×24 (safety margin so up to 30 students fits one page)
-    var z1=+(Math.min(710/Math.max(200+n*24,1),1)).toFixed(3);
+    // pg1 landscape: usable height ~710px; header (crest+ตรา)+stats+4-signature block~230 + rows×24
+    var z1=+(Math.min(710/Math.max(230+n*24,1),1)).toFixed(3);
     var win=window.open('','_blank');
     var pgCss=
       '@page pg1{size:A4 landscape;margin:10mm 12mm;}'+
