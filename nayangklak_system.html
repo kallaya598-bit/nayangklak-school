@@ -10309,40 +10309,41 @@ async function generatePapo5PDF(mode){
       stuData.push({s:s,b:b,mi:mi,af:af,fi:fi,tot:tot,g:g,i:i});
     });
     var n=stus.length;
+    var BORD='#b0c4de',WASH='#eef3fb',BLUEINK='#0d3f73';
     var sumThead='<thead><tr style="background:#1565c0;color:#fff;font-weight:700;font-size:12px;">'+
-      '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);width:36px;">เลขที่</th>'+
-      '<th rowspan="2" style="text-align:left;padding:5px 5px;border:1px solid rgba(255,255,255,.3);">ชื่อ-สกุล</th>'+
-      '<th colspan="3" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">ระหว่างเรียน ('+mDuring+')</th>'+
-      '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">ปลายภาค ('+mFinal+')</th>'+
-      '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">รวม ('+maxTotal+')</th>'+
-      '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">ระดับ</th>'+
-      '<th rowspan="2" style="text-align:center;padding:5px 3px;border:1px solid rgba(255,255,255,.3);">แก้ไข</th>'+
-      '</tr><tr style="background:#1976d2;color:#fff;font-size:11px;">'+
-      '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">ก่อนกลางภาค ('+mBefore+')</th>'+
-      '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">กลางภาค ('+mMid+')</th>'+
-      '<th style="text-align:center;padding:4px 3px;border:1px solid rgba(255,255,255,.3);">หลังกลางภาค ('+mAfter+')</th>'+
+      '<th rowspan="2" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';width:36px;">เลขที่</th>'+
+      '<th rowspan="2" style="text-align:left;padding:6px 5px;border:1px solid '+BORD+';">ชื่อ-สกุล</th>'+
+      '<th colspan="3" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';">ระหว่างเรียน ('+mDuring+')</th>'+
+      '<th rowspan="2" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';">ปลายภาค ('+mFinal+')</th>'+
+      '<th rowspan="2" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';">รวม ('+maxTotal+')</th>'+
+      '<th rowspan="2" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';">ระดับ</th>'+
+      '<th rowspan="2" style="text-align:center;padding:6px 4px;border:1px solid '+BORD+';">แก้ไข</th>'+
+      '</tr><tr style="background:'+WASH+';color:'+BLUEINK+';font-size:11px;">'+
+      '<th style="text-align:center;padding:4px 3px;border:1px solid '+BORD+';">ก่อนกลางภาค ('+mBefore+')</th>'+
+      '<th style="text-align:center;padding:4px 3px;border:1px solid '+BORD+';">กลางภาค ('+mMid+')</th>'+
+      '<th style="text-align:center;padding:4px 3px;border:1px solid '+BORD+';">หลังกลางภาค ('+mAfter+')</th>'+
       '</tr></thead>';
     // หน้าสรุปแนวนอน หน้าเดียว — zoom ให้พอดี
     var rows1=stuData.map(function(d){
-      return '<tr style="background:'+(d.i%2?'#f5f5f5':'#fff')+';">'+
-        '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+(d.s.order_no||(d.i+1))+'</td>'+
-        '<td style="padding:3px 5px;border:1px solid #ccc;font-size:12px;">'+d.s.fullname+'</td>'+
-        '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.b.toFixed(1)+'</td>'+
-        '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.mi.toFixed(1)+'</td>'+
-        '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.af.toFixed(1)+'</td>'+
-        '<td style="text-align:center;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.fi.toFixed(1)+'</td>'+
-        '<td style="text-align:center;font-weight:700;color:#1565c0;padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.tot.toFixed(1)+'</td>'+
-        '<td style="text-align:center;font-weight:800;color:'+(d.g>=1?'#2e7d32':'#c62828')+';padding:3px 3px;border:1px solid #ccc;font-size:12px;">'+d.g.toFixed(1)+'</td>'+
-        '<td style="padding:3px 3px;border:1px solid #ccc;"></td></tr>';
+      return '<tr style="background:'+(d.i%2?WASH:'#fff')+';">'+
+        '<td style="text-align:center;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+(d.s.order_no||(d.i+1))+'</td>'+
+        '<td style="padding:5px 6px;border:1px solid '+BORD+';font-size:12px;">'+d.s.fullname+'</td>'+
+        '<td style="text-align:center;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.b.toFixed(1)+'</td>'+
+        '<td style="text-align:center;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.mi.toFixed(1)+'</td>'+
+        '<td style="text-align:center;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.af.toFixed(1)+'</td>'+
+        '<td style="text-align:center;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.fi.toFixed(1)+'</td>'+
+        '<td style="text-align:center;font-weight:700;color:#1565c0;padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.tot.toFixed(1)+'</td>'+
+        '<td style="text-align:center;font-weight:800;color:'+(d.g>=1?'#2e7d32':'#c62828')+';padding:5px 4px;border:1px solid '+BORD+';font-size:12px;">'+d.g.toFixed(1)+'</td>'+
+        '<td style="padding:5px 4px;border:1px solid '+BORD+';"></td></tr>';
     }).join('');
     var gradeSteps=[4,3.5,3,2.5,2,1.5,1,0];
     var distTable='<table style="border-collapse:collapse;margin-top:4px;font-size:11px;">'+
-      '<tr><th style="border:1px solid #999;padding:2px 6px;background:#f0f4ff;">ระดับผลการเรียน</th>'+
-      gradeSteps.map(function(g){return '<th style="border:1px solid #999;padding:2px 8px;background:#f0f4ff;">'+g+'</th>';}).join('')+'</tr>'+
-      '<tr><td style="border:1px solid #999;padding:2px 6px;text-align:left;">จำนวนนักเรียน (คน)</td>'+
-      gradeSteps.map(function(g){return '<td style="border:1px solid #999;padding:2px 8px;text-align:center;">'+dist[g]+'</td>';}).join('')+'</tr>'+
-      '<tr><td style="border:1px solid #999;padding:2px 6px;text-align:left;">ร้อยละ</td>'+
-      gradeSteps.map(function(g){return '<td style="border:1px solid #999;padding:2px 8px;text-align:center;">'+(n?(dist[g]/n*100).toFixed(1):'0.0')+'</td>';}).join('')+'</tr>'+
+      '<tr><th style="border:1px solid '+BORD+';padding:4px 8px;background:'+WASH+';color:'+BLUEINK+';">ระดับผลการเรียน</th>'+
+      gradeSteps.map(function(g){return '<th style="border:1px solid '+BORD+';padding:4px 8px;background:'+WASH+';color:'+BLUEINK+';">'+g+'</th>';}).join('')+'</tr>'+
+      '<tr><td style="border:1px solid '+BORD+';padding:4px 8px;text-align:left;">จำนวนนักเรียน (คน)</td>'+
+      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 8px;text-align:center;">'+dist[g]+'</td>';}).join('')+'</tr>'+
+      '<tr><td style="border:1px solid '+BORD+';padding:4px 8px;text-align:left;">ร้อยละ</td>'+
+      gradeSteps.map(function(g){return '<td style="border:1px solid '+BORD+';padding:4px 8px;text-align:center;">'+(n?(dist[g]/n*100).toFixed(1):'0.0')+'</td>';}).join('')+'</tr>'+
       '</table>';
     var stats1='<div style="margin-top:8px;font-size:12px;"><b>สรุป:</b> นักเรียน '+n+' คน · คะแนนเฉลี่ย '+(sumTotal/n).toFixed(1)+'/'+maxTotal+' · GPA เฉลี่ย <b>'+(sumGradeTotal/n).toFixed(2)+'</b></div>'+distTable;
     var sumPages='<div class="pg1"><div id="pg1i">'+hdr('สรุปผลการเรียน (รวมทั้งภาคเรียน)','l')+'<table style="width:100%;border-collapse:collapse;">'+sumThead+'<tbody>'+rows1+'</tbody></table>'+stats1+sign+'</div></div>';
@@ -10371,7 +10372,7 @@ async function generatePapo5PDF(mode){
         cells+='<td style="text-align:center;font-weight:700;color:'+bg+';background:#e8f4ff;padding:5px 3px;border-left:2px solid '+bg+';font-size:12px;">'+psub.toFixed(1)+'</td>';
       });
       var gr=calcGrade(total,maxTotal),pct=maxTotal?(total/maxTotal*100):0;
-      detRows.push('<tr style="background:'+(i%2?'#f7f9fc':'#fff')+';">'+
+      detRows.push('<tr style="background:'+(i%2?'#eef3fb':'#fff')+';">'+
         '<td style="text-align:center;font-weight:600;padding:5px 3px;border:1px solid #dde3ee;font-size:12px;">'+(s.order_no||(i+1))+'</td>'+
         '<td style="padding:5px 6px;border:1px solid #dde3ee;font-size:12px;white-space:nowrap;">'+s.fullname+'</td>'+
         cells+
@@ -10399,7 +10400,7 @@ async function generatePapo5PDF(mode){
     }
 
     // pg1 landscape: usable height ~710px; header (crest+ตรา)+stats+dist-table+4-signature block~260 + rows×24
-    var z1=+(Math.min(710/Math.max(260+n*24,1),1)).toFixed(3);
+    var z1=+(Math.min(710/Math.max(260+n*26,1),1)).toFixed(3);
     var win=window.open('','_blank');
     var pgCss=
       '@page pg1{size:A4 landscape;margin:10mm 12mm;}'+
