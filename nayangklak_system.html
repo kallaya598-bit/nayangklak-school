@@ -1496,7 +1496,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="nav-item" data-page="pgAttReport"><span class="ni ms-blue">assignment</span> <span>รายงานเข้าแถว</span></div>
           <div class="nav-item" data-page="pgAbsentRep"><span class="ni ms-red">person_off</span> <span>สรุปขาดเรียน</span></div>
           <div class="nav-item" data-page="pgSubjAbsentRep"><span class="ni ms-orange">event_busy</span> <span>ขาดเรียนรายวิชา</span></div>
-          <div class="nav-item" data-page="pgSkipRep"><span class="ni ms-red">directions_run</span> <span>รายงานหนีเรียน</span></div>
+          <div class="nav-item" data-page="pgSkipRep"><span class="ni ms-red">directions_run</span> <span>ขาดเรียนรายคาบ</span></div>
           <div class="nav-item" data-page="pgReport"><span class="ni ms-blue">picture_as_pdf</span> <span>ออกรายงาน PDF</span></div>
         </div>
       </div>
@@ -1593,7 +1593,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <div class="dico" onclick="openPage('pgRoomAttReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/17-classroom-time.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เวลาเรียนรายห้อง</div></div>
             <div class="dico" onclick="openPage('pgTimetable')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/18-student-timetable.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgSubjAbsentRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/19-subject-absence.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ขาดเรียนรายวิชา</div></div>
-            <div class="dico" onclick="openPage('pgSkipRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/20-truancy.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">รายงานหนีเรียน</div></div>
+            <div class="dico" onclick="openPage('pgSkipRep')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/20-truancy.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ขาดเรียนรายคาบ</div></div>
             <div class="dico" onclick="openPage('pgReport')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/21-pdf-report.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ออกรายงาน PDF</div></div>
             <div class="dico" id="iappAdminSection" style="display:none;" onclick="openPage('pgAdmin')"><div class="dico-ico iapp-gray"><span class="ms">settings</span></div><div class="dico-lbl">จัดการระบบ</div></div>
             <div id="adminDashBtn" style="display:none;"></div>
@@ -1866,11 +1866,11 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         <div id="subjAbsentRepBody" style="padding:0 0 80px;"></div>
       </div>
 
-      <!-- ===== รายชื่อนักเรียนหนีเรียน (รายวิชา) ===== -->
+      <!-- ===== รายชื่อนักเรียนขาดเรียนรายคาบ (รายวิชา) ===== -->
       <div class="page" id="pgSkipRep">
         <div class="page-topbar">
           <button class="back-btn" onclick="goBack()">← กลับ</button><button class="back-btn" onclick="goHome()" style="margin-left:6px;">🏠 หน้าหลัก</button>
-          <div class="pt1"><span class="pt-ic ms-red">directions_run</span> นักเรียนหนีเรียน</div>
+          <div class="pt1"><span class="pt-ic ms-red">directions_run</span> นักเรียนขาดเรียนรายคาบ</div>
         </div>
         <div id="skipRepBody" style="padding:0 0 80px;"></div>
       </div>
@@ -6618,7 +6618,7 @@ async function actStudentWithdraw(eid){if(!confirm('ยกเลิกการ�
    ============================================================ */
 var AR_CFG={
   absent:{table:'morning_attendance',status:'absent',label:'นักเรียนขาดเรียน (เสาธงเช้า)',body:'absentRepBody',unit:'วัน',color:'#c62828',hasPeriod:false},
-  skip:{table:'subject_attendance',status:'skip',label:'นักเรียนหนีเรียน (รายวิชา)',body:'skipRepBody',unit:'ครั้ง',color:'#6a1b9a',hasPeriod:true},
+  skip:{table:'subject_attendance',status:'skip',label:'นักเรียนขาดเรียนรายคาบ',body:'skipRepBody',unit:'ครั้ง',color:'#6a1b9a',hasPeriod:true},
   subjabsent:{table:'subject_attendance',status:'absent',label:'นักเรียนขาดเรียน (รายวิชา)',body:'subjAbsentRepBody',unit:'ครั้ง',color:'#e65100',hasPeriod:true}
 };
 var arState={absent:{mode:'month',rows:null,printHTML:''},skip:{mode:'month',rows:null,printHTML:''},subjabsent:{mode:'month',rows:null,printHTML:''}};
@@ -6716,7 +6716,7 @@ async function arRun(kind){
     var subjDetail=function(rs){return rs.map(function(r){var a=amap[r.assignment_id]||{};return (a.name||'-')+(r.period!=null?' (ค.'+r.period+')':'');}).join(', ');};
     var subjList=function(rs){var u={};rs.forEach(function(r){var a=amap[r.assignment_id]||{};if(a.name&&a.name!=='-')u[a.name]=1;});var k=Object.keys(u);return k.length?k.join(', '):'-';};
     if(m==='day'){
-      rowsCsv.push(hp?['ที่','ห้อง','รหัส','ชื่อ-สกุล','จำนวนคาบ','วิชา/คาบที่หนี']:['ที่','ห้อง','รหัส','ชื่อ-สกุล']);
+      rowsCsv.push(hp?['ที่','ห้อง','รหัส','ชื่อ-สกุล','จำนวนคาบ','วิชา/คาบที่ขาด']:['ที่','ห้อง','รหัส','ชื่อ-สกุล']);
       list.forEach(function(a){n++;var s=a.stu;
         if(hp){var sd=subjDetail(a.recs);
           bodyRows+='<tr><td>'+n+'</td><td>'+s.room+'</td><td>'+s.code+'</td><td class="l">'+s.fullname+'</td><td>'+a.recs.length+'</td><td class="l" style="font-size:13.2px;">'+sd+'</td></tr>';
@@ -6724,7 +6724,7 @@ async function arRun(kind){
         }else{bodyRows+='<tr><td>'+n+'</td><td>'+s.room+'</td><td>'+s.code+'</td><td class="l">'+s.fullname+'</td></tr>';rowsCsv.push([n,s.room,s.code,s.fullname]);}
       });
     }else{
-      rowsCsv.push(hp?['ที่','ห้อง','รหัส','ชื่อ-สกุล','วิชาที่หนี','จำนวนครั้ง','จำนวนวัน','รายละเอียดวันที่']:['ที่','ห้อง','รหัส','ชื่อ-สกุล','จำนวนวันขาด','รายละเอียดวันที่']);
+      rowsCsv.push(hp?['ที่','ห้อง','รหัส','ชื่อ-สกุล','วิชาที่ขาด','จำนวนครั้ง','จำนวนวัน','รายละเอียดวันที่']:['ที่','ห้อง','รหัส','ชื่อ-สกุล','จำนวนวันขาด','รายละเอียดวันที่']);
       list.forEach(function(a){n++;var s=a.stu;var dnum=Object.keys(a.dates).length,cnt=hp?a.recs.length:dnum;
         var dlist=Object.keys(a.dates).sort().map(function(d){return thaiDate(d).replace('ที่ ',' ');}).join(', ');
         if(hp){var sl=subjList(a.recs);bodyRows+='<tr><td>'+n+'</td><td>'+s.room+'</td><td>'+s.code+'</td><td class="l">'+s.fullname+'</td><td class="l" style="font-size:13.2px;">'+sl+'</td><td style="font-weight:800;color:'+cfg.color+';">'+cnt+'</td><td>'+dnum+'</td><td class="l" style="font-size:13.2px;">'+dlist+'</td></tr>';rowsCsv.push([n,s.room,s.code,s.fullname,sl,cnt,dnum,dlist]);}
@@ -6732,7 +6732,7 @@ async function arRun(kind){
       });
     }
     var thead=rowsCsv[0].map(function(h,i){return '<th'+(i===3?' class="l"':'')+'>'+h+'</th>';}).join('');
-    var tableHTML='<table class="mh-table">'+'<tr>'+thead+'</tr>'+(bodyRows||'<tr><td colspan="'+rowsCsv[0].length+'" style="padding:16px;color:#888;">ไม่มีนักเรียน'+(cfg.status==='skip'?'หนีเรียน':'ขาดเรียน')+'ในช่วงนี้ 🎉</td></tr>')+'</table>';
+    var tableHTML='<table class="mh-table">'+'<tr>'+thead+'</tr>'+(bodyRows||'<tr><td colspan="'+rowsCsv[0].length+'" style="padding:16px;color:#888;">ไม่มีนักเรียนขาดเรียนในช่วงนี้ 🎉</td></tr>')+'</table>';
     res.innerHTML='<div style="font-weight:700;color:'+cfg.color+';margin-bottom:6px;">'+cfg.label+' — '+rg.label+' · '+roomLabel+'</div>'
       +'<div style="font-size:15.6px;margin-bottom:8px;">พบ <b style="color:'+cfg.color+';">'+n+'</b> คน</div>'
       +'<div style="overflow-x:auto;">'+tableHTML+'</div>';
