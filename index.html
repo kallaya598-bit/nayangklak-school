@@ -9389,17 +9389,17 @@ function attSym(status){
 }
 
 // เปิดหน้าต่างพิมพ์ (ภาษาไทยคมชัด ใช้ฟอนต์จริง)
-function printReportHTML(title,bodyHTML,landscape){
+function printReportHTML(title,bodyHTML,dense){
   var w=window.open('','_blank');
   if(!w){toast('เปิดหน้าต่างพิมพ์ไม่ได้ (popup ถูกบล็อก)','err');return;}
   w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+title+'</title>'+
     '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">'+
     '<style>body{font-family:Sarabun,sans-serif;padding:14px;color:#222;}table{border-collapse:collapse;width:100%;}'+
-    (landscape?
+    (dense?
       'th,td{border:1px solid #888;padding:1px 2px;font-size:10.2px;text-align:center;}th{background:#00695c;color:#fff;white-space:nowrap;}':
       'th,td{border:1px solid #888;padding:3px 5px;font-size:13.8px;text-align:center;}th{background:#00695c;color:#fff;white-space:nowrap;}')+
     'td.l,th.l{text-align:left;}h2{font-size:20.4px;text-align:center;margin:2px 0;}.sub{font-size:15.6px;text-align:center;margin:2px 0;}'+
-    '@page{size:'+(landscape?'landscape':'portrait')+';margin:8mm;}</style></head><body>'+bodyHTML+
+    '@page{size:portrait;margin:8mm;}</style></head><body>'+bodyHTML+
     '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr'+'ipt></body></html>');
   w.document.close();
 }
@@ -9561,6 +9561,66 @@ function buildSarDetail(){
   h+='<div style="font-size:12.5px;color:var(--text3);margin-top:8px;padding:0 2px;">คลิกช่องเพื่อแก้สถานะ &nbsp;·&nbsp; <b style="color:#2e7d32;">/ มา</b> &nbsp;·&nbsp; <b style="color:#e65100;">(ส) สาย</b> &nbsp;·&nbsp; <b style="color:#00695c;">(ล) ลา</b> &nbsp;·&nbsp; <b style="color:#c62828;">(ข) ขาด</b>·&nbsp; <span style="color:#bbb;">– ยังไม่เช็ค</span>'+(more>0?'&nbsp;·&nbsp; <span style="color:#e65100;">ซ่อน '+more+' คาบ — เพิ่มคอลัมน์เพื่อดู</span>':'')+'</div>';
   return h;
 }
+// เวอร์ชันสำหรับพิมพ์: ไม่ตัดคาบทิ้ง แต่แบ่งหน้ากระดาษทุก sarMaxCol คาบ พร้อมหัวตารางซ้ำทุกหน้า
+function buildSarDetailPrint(){
+  var maxCol=parseInt(document.getElementById('sarMaxCol').value)||15;
+  var sessions=SAR.sessions;
+  var weeks=[],wmap={};
+  sessions.forEach(function(k){var mon=sarWeekMonday(k.split('#')[0]);if(!wmap[mon]){wmap[mon]={items:[]};weeks.push(wmap[mon]);}wmap[mon].items.push(k);});
+  var weekStart=new Set();weeks.forEach(function(w){if(w.items.length)weekStart.add(w.items[0]);});
+  var weekIdxOf={},monthOf={};
+  weeks.forEach(function(w,wi){var lbl=thaiMonthYear(w.items[0].split('#')[0]);w.items.forEach(function(k){weekIdxOf[k]=wi;monthOf[k]=lbl;});});
+  var cols=[],hourNo=0;
+  sessions.forEach(function(k){
+    var p=k.split('#'),ds=p[0],per=p[1],d=new Date(ds+'T00:00:00');
+    hourNo++;
+    cols.push({key:k,weekIdx:weekIdxOf[k],month:monthOf[k],dow:TH_DOW_SHORT[d.getDay()],date:d.getDate(),hourNo:hourNo,period:per,ws:weekStart.has(k)});
+  });
+  var scMap={present:'sc-p',late:'sc-l',absent:'sc-a',leave:'sc-la',skip:'sc-sk',special_leave:'sc-sp'};
+  var pages=[];
+  for(var i=0;i<cols.length;i+=maxCol)pages.push(cols.slice(i,i+maxCol));
+  if(!pages.length)pages.push([]);
+  var out='';
+  pages.forEach(function(pcols,pi){
+    var rW='<tr class="sar-r1"><th rowspan="5" style="min-width:24px;">ที่</th><th rowspan="5">รหัส นร.</th><th rowspan="5" class="l" style="min-width:120px;">ชื่อ-สกุล</th><th class="sar-lbl" style="background:#1565c0;color:#fff;">สัปดาห์</th>';
+    var rM='<tr class="sar-sub"><th class="sar-lbl">เดือน</th>';
+    var rD='<tr class="sar-sub"><th class="sar-lbl">วัน</th>';
+    var rN='<tr class="sar-sub"><th class="sar-lbl">วันที่</th>';
+    var rH='<tr class="sar-sub"><th class="sar-lbl">ช.ม.</th>';
+    var wi=0;
+    while(wi<pcols.length){
+      var wIdx=pcols[wi].weekIdx,cs=1;
+      while(wi+cs<pcols.length&&pcols[wi+cs].weekIdx===wIdx)cs++;
+      rW+='<th colspan="'+cs+'">'+(wIdx+1)+'</th>';
+      rM+='<th colspan="'+cs+'">'+pcols[wi].month+'</th>';
+      for(var j=wi;j<wi+cs;j++){
+        var c=pcols[j];
+        rD+='<th>'+c.dow+'</th>';
+        rN+='<th>'+c.date+'</th>';
+        rH+='<th title="คาบ '+c.period+'">'+c.hourNo+'</th>';
+      }
+      wi+=cs;
+    }
+    rW+='</tr>';rM+='</tr>';rD+='</tr>';rN+='</tr>';rH+='</tr>';
+    var h='<table class="sar-tbl"><thead>'+rW+rM+rD+rN+rH+'</thead><tbody>';
+    SAR.students.forEach(function(s,i){
+      h+='<tr><td style="text-align:center;color:#546e7a;font-weight:600;">'+(i+1)+'</td>'+
+        '<td style="color:#546e7a;font-size:11px;">'+(s.student_code||'')+'</td>'+
+        '<td class="l" style="font-weight:600;">'+s.fullname+'</td>'+
+        '<td style="background:#f0f5ff;"></td>'+
+        pcols.map(function(c){
+          var st=SAR.att[s.id+'_'+c.key];
+          var cls='sarCell'+(scMap[st]?' '+scMap[st]:'');
+          return '<td class="'+cls+'">'+attSym(st)+'</td>';
+        }).join('')+'</tr>';
+    });
+    h+='</tbody></table>';
+    out+='<div'+(pi>0?' style="page-break-before:always;"':'')+'><h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML()+
+      '<div style="font-size:12px;color:#888;text-align:right;margin-bottom:4px;">หน้า '+(pi+1)+'/'+pages.length+'</div>'+h+
+      '<div style="font-size:12.5px;color:#666;margin-top:6px;">/ มา &nbsp;·&nbsp; (ส) สาย &nbsp;·&nbsp; (ล) ลา &nbsp;·&nbsp; (ข) ขาด &nbsp;·&nbsp; – ยังไม่เช็ค</div></div>';
+  });
+  return out;
+}
 
 // แก้สถานะเช็คชื่อจากรายงาน (คลิกช่อง → popup → บันทึกทันที)
 var SAREDIT={sid:null,key:null};
@@ -9621,8 +9681,12 @@ function buildSarSummary(){
 }
 function printSubjAttReport(){
   if(!SAR.assignId||!SAR.sessions.length){toast('ยังไม่มีข้อมูล','err');return;}
-  var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+(SAR.tab==='detail'?buildSarDetail():buildSarSummary());
-  printReportHTML('รายงานเวลาเรียนรายวิชา',body,true);
+  if(SAR.tab==='detail'){
+    printReportHTML('รายงานเวลาเรียนรายวิชา',buildSarDetailPrint(),true);
+  }else{
+    var body='<h2>โรงเรียนนายางกลักพิทยาคม</h2>'+sarHeaderHTML().replace(/class="loading"[^>]*>/g,'>')+buildSarSummary();
+    printReportHTML('รายงานเวลาเรียนรายวิชา',body,false);
+  }
 }
 function excelSubjAttReport(){
   if(!SAR.assignId||!SAR.sessions.length){toast('ยังไม่มีข้อมูล','err');return;}
