@@ -2136,7 +2136,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           </div>
           <div id="sarColWrap" style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:14.4px;color:var(--text2);">คอลัมน์</span>
-            <input type="number" id="sarMaxCol" value="15" min="1" style="width:56px;" class="filter-select" onchange="renderSubjAttReport()">
+            <input type="number" id="sarMaxCol" value="15" min="1" style="width:56px;" class="filter-select">
           </div>
           <button class="btn btn-outline btn-sm" onclick="printSubjAttReport()">🖨️ พิมพ์</button>
           <button class="btn btn-green btn-sm" onclick="excelSubjAttReport()">📊 Excel</button>
@@ -9501,9 +9501,7 @@ function buildSarMissing(){
   return h;
 }
 function buildSarDetail(){
-  var maxCol=parseInt(document.getElementById('sarMaxCol').value)||15;
-  var sessions=SAR.sessions.slice(0,maxCol);
-  var more=SAR.sessions.length-sessions.length;
+  var sessions=SAR.sessions;
   var weeks=[],wmap={};
   sessions.forEach(function(k){var mon=sarWeekMonday(k.split('#')[0]);if(!wmap[mon]){wmap[mon]={items:[]};weeks.push(wmap[mon]);}wmap[mon].items.push(k);});
   // track first session of each week for visual separator
@@ -9558,7 +9556,7 @@ function buildSarDetail(){
   });
   fAtt+='</tr>';fPct+='</tr>';
   h+='</tbody><tfoot>'+fAtt+fPct+'</tfoot></table></div>';
-  h+='<div style="font-size:12.5px;color:var(--text3);margin-top:8px;padding:0 2px;">คลิกช่องเพื่อแก้สถานะ &nbsp;·&nbsp; <b style="color:#2e7d32;">/ มา</b> &nbsp;·&nbsp; <b style="color:#e65100;">(ส) สาย</b> &nbsp;·&nbsp; <b style="color:#00695c;">(ล) ลา</b> &nbsp;·&nbsp; <b style="color:#c62828;">(ข) ขาด</b>·&nbsp; <span style="color:#bbb;">– ยังไม่เช็ค</span>'+(more>0?'&nbsp;·&nbsp; <span style="color:#e65100;">ซ่อน '+more+' คาบ — เพิ่มคอลัมน์เพื่อดู</span>':'')+'</div>';
+  h+='<div style="font-size:12.5px;color:var(--text3);margin-top:8px;padding:0 2px;">คลิกช่องเพื่อแก้สถานะ &nbsp;·&nbsp; <b style="color:#2e7d32;">/ มา</b> &nbsp;·&nbsp; <b style="color:#e65100;">(ส) สาย</b> &nbsp;·&nbsp; <b style="color:#00695c;">(ล) ลา</b> &nbsp;·&nbsp; <b style="color:#c62828;">(ข) ขาด</b>·&nbsp; <span style="color:#bbb;">– ยังไม่เช็ค</span></div>';
   return h;
 }
 // เวอร์ชันสำหรับพิมพ์: ไม่ตัดคาบทิ้ง แต่แบ่งหน้ากระดาษทุก sarMaxCol คาบ พร้อมหัวตารางซ้ำทุกหน้า
