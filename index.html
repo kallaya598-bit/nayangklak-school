@@ -1889,6 +1889,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <button class="btn btn-sm" id="grPublishBtn" onclick="toggleGradePublish()" style="display:none;">👁️ เผยแพร่</button>
           <button class="btn btn-primary btn-sm" id="grBtnSave">💾 บันทึก</button>
           <button class="btn btn-green btn-sm" onclick="exportGradesExcel()">📊 Excel</button>
+          <button class="btn btn-sm" style="background:#ede7f6;color:#4527a0;border-color:#b39ddb;" onclick="sgsOpenExport()">🚀 SGS</button>
           <div class="p5-drop" id="p5DropWrap">
             <button class="btn btn-sm" style="background:var(--goldl);color:#e65100;border-color:var(--gold);" onclick="p5ToggleDrop()">📄 ปพ.5 ▾</button>
             <div class="p5-drop-menu" id="p5DropMenu">
@@ -3044,6 +3045,34 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalGradeStruct')">ยกเลิก</button>
       <button class="btn btn-green" onclick="saveGradeStruct()">💾 บันทึกโครงสร้าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ส่งออกคะแนนเข้า SGS -->
+<div class="modal-bg" id="modalSGS">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">🚀 ส่งคะแนนเข้า SGS <button class="modal-close" onclick="closeModal('modalSGS')">✕</button></div>
+    <div id="sgsInfo" style="font-size:14.4px;color:var(--text2);margin-bottom:10px;"></div>
+    <div style="background:#ede7f6;border:1px solid #b39ddb;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14px;color:#311b92;line-height:1.7;">
+      <b>ขั้นตอน (ทำบนคอมพิวเตอร์):</b><br>
+      1️⃣ กดปุ่ม <b>"คัดลอกข้อมูล SGS"</b> ด้านล่าง<br>
+      2️⃣ เปิดหน้า <b>กรอกคะแนน</b> ของวิชานี้ใน SGS (แสดงนักเรียนครบทุกคนในหน้าเดียว)<br>
+      3️⃣ กด bookmarklet <b>"SGS Helper"</b> บนแถบ bookmark → วางข้อมูล → จับคู่ช่อง → เติมคะแนน<br>
+      4️⃣ ตรวจความถูกต้อง แล้วกดปุ่ม<b>บันทึกของ SGS เอง</b> (ระบบไม่กดให้)
+    </div>
+    <div id="sgsPreview" style="max-height:220px;overflow:auto;border:1px solid var(--border2);border-radius:8px;margin-bottom:10px;"></div>
+    <details style="margin-bottom:10px;">
+      <summary style="cursor:pointer;font-size:13.5px;color:var(--blue);font-weight:700;">🔖 ติดตั้ง bookmarklet "SGS Helper" (ครั้งแรกครั้งเดียว)</summary>
+      <div style="font-size:13.5px;color:var(--text2);padding:8px 2px;line-height:1.7;">
+        ลากปุ่มม่วงด้านล่างนี้ไปวางบน<b>แถบ Bookmark</b> ของ Chrome/Edge (กด Ctrl+Shift+B ถ้าแถบยังไม่แสดง)<br>
+        <a id="sgsBmLink" href="#" onclick="return false;" style="display:inline-block;margin-top:6px;padding:8px 16px;background:#4527a0;color:#fff;border-radius:8px;font-weight:700;text-decoration:none;cursor:grab;">🚀 SGS Helper</a>
+        <div style="margin-top:6px;font-size:12.5px;color:var(--text3);">ถ้าลากไม่ได้: คลิกขวาแถบ bookmark → Add page → ตั้งชื่อ "SGS Helper" → วางโค้ดจากปุ่ม <button class="btn btn-outline btn-xs" onclick="sgsCopyBookmarklet()">คัดลอกโค้ด bookmarklet</button></div>
+      </div>
+    </details>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalSGS')">ปิด</button>
+      <button class="btn btn-primary" id="sgsCopyBtn" onclick="sgsCopyData()">📋 คัดลอกข้อมูล SGS</button>
     </div>
   </div>
 </div>
@@ -9038,6 +9067,72 @@ function downloadCSV(rows,filename){
   var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
   toast('✅ ดาวน์โหลด Excel แล้ว');
 }
+
+// ---------- ส่งออกคะแนนเข้า SGS (จับคู่ผ่าน bookmarklet sgs-helper.js) ----------
+var SGS_HELPER_URL='https://kallaya598-bit.github.io/nayangklak-school/sgs-helper.js';
+function sgsBookmarkletCode(){
+  return "javascript:(function(){var s=document.createElement('script');s.src='"+SGS_HELPER_URL+"?v='+Date.now();s.onerror=function(){alert('โหลด SGS Helper ไม่ได้ — เว็บนี้อาจบล็อกสคริปต์ภายนอก');};(document.body||document.documentElement).appendChild(s);})();";
+}
+// สร้าง package ข้อมูลจากตารางคะแนนที่เปิดอยู่ (อ่านค่าจาก input = รวมค่าที่ยังไม่กดบันทึกด้วย)
+function sgsBuildPackage(){
+  var a=G.myAssigns.filter(function(x){return x.id==curGradeAssignId();})[0]||{};
+  var slots=GR.structs.map(function(s){return {id:''+s.id,name:s.name,max:parseFloat(s.max_score||0),phase:GRADE_PHASE_ORDER.indexOf(s.grade_type)>=0?s.grade_type:'other'};});
+  var maxTotal=slots.reduce(function(x,s){return x+s.max;},0);
+  // ช่องเสมือน: รวมรายช่วง + รวมทั้งหมด (ให้ฝั่ง SGS เลือก map ก้อนรวมได้)
+  (GR.groups||[]).forEach(function(g){
+    if(g.items.length>1)slots.push({id:'phase:'+g.key,name:'รวม'+g.label,max:g.items.reduce(function(x,it){return x+parseFloat(it.max_score||0);},0),phase:g.key,virtual:true});
+  });
+  slots.push({id:'total',name:'รวมทั้งหมด',max:maxTotal,phase:'total',virtual:true});
+  var students=GR.stus.map(function(st){
+    var scores={},phaseSum={},total=0,filled=0;
+    GR.structs.forEach(function(s){
+      var inp=document.querySelector('#grContent input[data-sid="'+st.id+'"][data-stid="'+s.id+'"]');
+      var v=inp&&inp.value!==''?parseFloat(inp.value):null;
+      scores[''+s.id]=v;
+      if(v!==null){filled++;var ph=GRADE_PHASE_ORDER.indexOf(s.grade_type)>=0?s.grade_type:'other';phaseSum[ph]=(phaseSum[ph]||0)+v;total+=v;}
+    });
+    Object.keys(phaseSum).forEach(function(ph){scores['phase:'+ph]=Math.round(phaseSum[ph]*100)/100;});
+    scores['total']=Math.round(total*100)/100;
+    return {code:''+(st.student_code||''),no:st.order_no||'',name:st.fullname,scores:scores,filled:filled};
+  });
+  return {
+    v:1,app:'nayangklak-school',at:new Date().toISOString(),
+    subject:{code:a.subjects?a.subjects.subject_code:'',name:a.subjects?a.subjects.subject_name:''},
+    room:a.classrooms?a.classrooms.room_name:'',teacher:G.user?G.user.fullname:'',
+    slots:slots,students:students
+  };
+}
+function sgsOpenExport(){
+  if(!GR.structs.length||!GR.stus.length){toast('เลือกกลุ่มเรียนให้ตารางคะแนนขึ้นก่อน','err');return;}
+  var pkg=sgsBuildPackage();
+  var noCode=pkg.students.filter(function(s){return !s.code;}).length;
+  var noneFilled=pkg.students.filter(function(s){return !s.filled;}).length;
+  document.getElementById('sgsInfo').innerHTML='<b>'+pkg.subject.code+' '+pkg.subject.name+'</b> · '+pkg.room+
+    ' · นักเรียน '+pkg.students.length+' คน · ช่องคะแนน '+GR.structs.length+' ช่อง'+
+    (noCode?'<br><span style="color:var(--red);font-weight:700;">⚠️ '+noCode+' คนไม่มีเลขประจำตัว — จะจับคู่ใน SGS ไม่ได้</span>':'')+
+    (noneFilled?'<br><span style="color:#e65100;">⚠️ '+noneFilled+' คนยังไม่มีคะแนนเลย (จะถูกข้าม)</span>':'');
+  // พรีวิวย่อ
+  var pv='<table style="width:100%;border-collapse:collapse;font-size:12.5px;"><tr><th style="padding:4px 6px;background:var(--bluel);position:sticky;top:0;">เลขประจำตัว</th><th style="padding:4px 6px;background:var(--bluel);position:sticky;top:0;text-align:left;">ชื่อ</th>'+
+    GR.structs.map(function(s){return '<th style="padding:4px 6px;background:var(--bluel);position:sticky;top:0;">'+s.name+'</th>';}).join('')+'</tr>';
+  pkg.students.forEach(function(s){
+    pv+='<tr><td style="padding:3px 6px;border-top:1px solid var(--border2);text-align:center;'+(s.code?'':'color:var(--red);font-weight:700;')+'">'+(s.code||'ไม่มี!')+'</td><td style="padding:3px 6px;border-top:1px solid var(--border2);">'+s.name+'</td>'+
+      GR.structs.map(function(sl){var v=s.scores[''+sl.id];return '<td style="padding:3px 6px;border-top:1px solid var(--border2);text-align:center;'+(v===null?'color:#bbb;':'')+'">'+(v===null?'—':v)+'</td>';}).join('')+'</tr>';
+  });
+  pv+='</table>';
+  document.getElementById('sgsPreview').innerHTML=pv;
+  var bm=document.getElementById('sgsBmLink');bm.setAttribute('href',sgsBookmarkletCode());
+  showModal('modalSGS');
+}
+function sgsCopyToClipboard(text,okMsg){
+  function fallback(){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(okMsg);}catch(e){toast('❌ คัดลอกไม่สำเร็จ','err');}document.body.removeChild(ta);}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){toast(okMsg);},fallback);
+  else fallback();
+}
+function sgsCopyData(){
+  var pkg=sgsBuildPackage();
+  sgsCopyToClipboard('SGSPKG1:'+JSON.stringify(pkg),'✅ คัดลอกข้อมูล SGS แล้ว — ไปเปิดหน้า SGS แล้วกด bookmarklet ได้เลย');
+}
+function sgsCopyBookmarklet(){sgsCopyToClipboard(sgsBookmarkletCode(),'✅ คัดลอกโค้ด bookmarklet แล้ว — วางในช่อง URL ของ bookmark');}
 
 // ===== TIMETABLE =====
 async function loadTimetable(){
