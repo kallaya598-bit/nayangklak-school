@@ -155,10 +155,17 @@ enrollments, assignment_teachers + ALTER timetable/subject_attendance/grade_stru
 - **การ์ดผลตรวจในพอร์ทัลนักเรียน/ผู้ปกครอง (stuDressCard):** แสดงในแท็บ "ภาพรวม" — แบนเนอร์ผลตรวจครั้งล่าสุด (✅ ผ่าน / ❌ ไม่ผ่าน + รายการที่ผิด) พร้อมประวัติการตรวจครั้งก่อน จัดกลุ่มตาม ครั้งที่+วันที่
 - **⚠️ ต้องรัน `sql/dress_code_round.sql` ก่อน** (ALTER behavior_records ADD round_no) — ถ้ายังไม่รัน การบันทึก round_no จะ error
 
+## ส่งคะแนนเข้า SGS (SGS Helper — เพิ่มใหม่)
+- **ปุ่ม "🚀 SGS"** ในหน้าคะแนนรายวิชา (pgGrades) → modal `modalSGS`: พรีวิวคะแนน + ปุ่ม "คัดลอกข้อมูล SGS" (JSON `SGSPKG1:{...}` ลง clipboard) + วิธีติดตั้ง bookmarklet ในตัว (ฟังก์ชัน `sgsOpenExport/sgsBuildPackage/sgsCopyData`)
+- **`sgs-helper.js`** (root repo, โฮสต์บน GitHub Pages) — โหลดผ่าน bookmarklet บนหน้า SGS: วางข้อมูล → สแกนตาราง (จับคู่ด้วย **student_code เท่านั้น** รองรับเลขศูนย์นำหน้า, อ่านหัวตารางแบบกาง colspan/rowspan, รองรับ iframe same-origin) → mapping UI จับคู่ช่องเรา↔SGS (จำใน localStorage, มีช่องเสมือน "รวมรายช่วง/รวมทั้งหมด" ◆ และโหมด **"🧩 กำหนดเอง (รวมหลายช่อง)"** ให้ติ๊กเลือกหลายช่องย่อยจากระบบเรามารวมเป็น 1 ช่อง SGS เอง — ถ้าช่วงประกอบขาดแม้ช่องเดียวจะไม่รวม/ข้าม ป้องกันรวมผิด) → พรีวิว diff → **เติมเฉพาะช่องว่าง ไม่ทับค่า ไม่กดปุ่มบันทึกของ SGS เอง**
+  - **ยืนยันจากหน้า SGS จริง (Edit-TblTranscripts1-Table.aspx):** ช่องคะแนนทุกคอลัมน์ (S1-S9/กลางภาค/Remark) เป็น `disabled` ไว้ก่อน ต้องติ๊ก checkbox หัวคอลัมน์ก่อนถึงพิมพ์ได้ — สคริปต์กด checkbox ให้อัตโนมัติก่อนเติม (`ensureColumnEnabled`) · ช่อง "ก่อนกลางภาค" คำนวณอัตโนมัติไม่มี onchange ห้ามเติม (ตรวจด้วย `isFillable`) · **หน้านี้ auto-save ทันทีที่ onchange (ไม่มีปุ่ม Save แยก)** จึงมี `confirm()` ยืนยันก่อนเติมทุกครั้ง
+- **โหมด "🧪 วิเคราะห์หน้า"** ใน panel: คัดลอกโครงหน้า SGS (headers/inputs/sample row) ส่งให้ผู้พัฒนาปรับจูน — ใช้ตอนเจอหน้า SGS จริงครั้งแรก
+- **หน้าทดสอบ:** `tmp/sgs-mock.html` (SGS จำลอง WebForms + ข้อมูลตัวอย่าง) — ทดสอบผ่านแล้วทุกเคส (เติม/ขัดแย้ง/ตรงแล้ว/หาไม่เจอ)
+- ✅ bookmarklet ชี้ `https://kallaya598-bit.github.io/nayangklak-school/sgs-helper.js` — deploy แล้ว (2026-07-14) และ **ทดสอบกับ SGS จริงผ่านแล้ว ใช้งานได้ดี**
+
 ## สิ่งที่ยังค้างอยู่ ⏳
 - [ ] รัน sql/dress_code_round.sql บน Supabase (เพิ่มคอลัมน์ round_no)
 - [ ] รัน sql/teaching_module.sql + sql/admin_rpc.sql บน Supabase + ทดสอบ end-to-end
-- [ ] Deploy index.html เวอร์ชันใหม่ขึ้น GitHub Pages
 - [ ] Admin Panel เต็มรูปแบบ
 - [ ] รายงานเช็คชื่อรายวิชา รายเดือน/% (ตอนนี้มีเฉพาะเสาธง/เย็น)
 

@@ -3,7 +3,8 @@
    โหลดผ่าน bookmarklet บนหน้ากรอกคะแนนของ SGS
    กติกาความปลอดภัย:
    - จับคู่นักเรียนด้วย "เลขประจำตัว" เท่านั้น ไม่ใช้ลำดับแถว
-   - เติมเฉพาะช่องที่ว่างใน SGS ไม่ทับค่าที่มีอยู่
+   - เติมเฉพาะช่องที่ว่างใน SGS ไม่ทับค่าที่มีอยู่ (ยกเว้นติ๊กเปิด "โหมดแก้ไข
+     คะแนน" เอง — ปิดเป็นค่าเริ่มต้นเสมอทุกครั้งที่เปิดหน้าใหม่ ไม่จำค่าไว้)
    - ไม่กดปุ่มบันทึกของ SGS ให้เอง (ถ้ามี) — แต่บางหน้า SGS เป็น auto-save
      ทุกครั้งที่ onchange จึงต้องยืนยัน (confirm) ก่อนเติมเสมอ
    หมายเหตุจากหน้า SGS จริง (Edit-TblTranscripts1-Table.aspx):
@@ -22,7 +23,7 @@ if(window.__SGS_HELPER__){window.__SGS_HELPER__.show();return;}
 
 var VERSION='1.0.0';
 var PURPLE='#4527a0',PURPLE_L='#ede7f6',GREEN='#2e7d32',RED='#c62828',AMBER='#e65100';
-var H={pkg:null,scan:null,map:{},panel:null,round:false,partial:true};
+var H={pkg:null,scan:null,map:{},panel:null,round:false,partial:true,overwrite:false};
 window.__SGS_HELPER__=H;
 
 /* ---------- utils ---------- */
@@ -186,6 +187,28 @@ function analyzePage(){
 }
 
 /* ---------- mapping: จำค่าไว้ใน localStorage ---------- */
+/* ---------- ขนาด/ตำแหน่งพาเนล: จำไว้ใน localStorage (ลากขยายมุม/ปุ่มขยายเต็มจอ) ---------- */
+var SIZE_KEY='sgshelper:size';
+function loadSize(){try{return JSON.parse(localStorage.getItem(SIZE_KEY)||'null');}catch(e){return null;}}
+function saveSize(){
+  try{
+    var p=H.panel;if(!p)return;
+    localStorage.setItem(SIZE_KEY,JSON.stringify({w:p.style.width,h:p.style.height,maximized:!!H.maximized,prevW:H.prevRect&&H.prevRect.w,prevH:H.prevRect&&H.prevRect.h}));
+  }catch(e){}
+}
+function toggleMaximize(){
+  var p=H.panel,btn=p.querySelector('#sgshMax');
+  if(!H.maximized){
+    H.prevRect={w:p.style.width,h:p.style.height};
+    p.style.width='96vw';p.style.height='94vh';
+    H.maximized=true;btn.textContent='🗗';btn.title='ย่อกลับ';
+  }else{
+    var r=H.prevRect||{};
+    p.style.width=r.w||'400px';p.style.height=r.h||'';
+    H.maximized=false;btn.textContent='⛶';btn.title='ขยายเต็มจอ';
+  }
+  saveSize();
+}
 function mapKey(){
   var sig=H.scan.cols.map(function(c){return c.header;}).join('|');
   return 'sgsmap:'+(H.pkg.subject.code||'')+':'+H.scan.cols.length+':'+sig.length;
@@ -225,7 +248,7 @@ function comboSum(stu,ids,partial){
 
 /* ---------- คำนวณแผนการเติม ---------- */
 function buildPlan(){
-  var plan={fills:[],conflicts:[],already:[],missingInSgs:[],extraInSgs:0};
+  var plan={fills:[],overwrites:[],conflicts:[],already:[],missingInSgs:[],extraInSgs:0};
   var seen={};
   H.scan.rows.forEach(function(rw){
     if(!rw.stu){plan.extraInSgs++;return;}
@@ -247,6 +270,7 @@ function buildPlan(){
       var cur=txt(inp.value);
       if(cur===''){plan.fills.push({row:rw,col:col,inp:inp,val:oursTxt,partial:isPartial});}
       else if(parseFloat(cur)===parseFloat(oursTxt)){plan.already.push({row:rw,col:col});}
+      else if(H.overwrite){plan.overwrites.push({row:rw,col:col,inp:inp,val:oursTxt,cur:cur,partial:isPartial});}
       else{plan.conflicts.push({row:rw,col:col,cur:cur,val:oursTxt});}
     });
   });
@@ -255,9 +279,9 @@ function buildPlan(){
   });
   return plan;
 }
-function doFill(plan){
+function doFill(items,color){
   var n=0,enabledCols={};
-  plan.fills.forEach(function(f){
+  items.forEach(function(f){
     if(f.inp.disabled){
       var key=colSuffix(f.inp);
       if(!enabledCols[key]){ensureColumnEnabled(f.inp);enabledCols[key]=true;}
@@ -269,7 +293,7 @@ function doFill(plan){
       f.inp.dispatchEvent(new Event('input',{bubbles:true}));
       f.inp.dispatchEvent(new Event('change',{bubbles:true}));
     }catch(e){}
-    f.inp.style.background='#c8e6c9';
+    f.inp.style.background=color||'#c8e6c9';
     n++;
   });
   return n;
@@ -281,13 +305,17 @@ function btn(label,style){return '<button style="'+S+'cursor:pointer;border-radi
 function btnO(label,style){return '<button style="'+S+'cursor:pointer;border-radius:8px;padding:6px 12px;font-weight:700;font-size:13px;border:1px solid #b39ddb;background:#fff;color:'+PURPLE+';'+(style||'')+'">'+label+'</button>';}
 
 function buildPanel(){
-  var p=el('div','position:fixed;top:10px;right:10px;width:400px;max-width:96vw;max-height:92vh;overflow:auto;z-index:2147483646;background:#fff;border:2px solid '+PURPLE+';border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.35);'+S+'font-size:14px;color:#263238;');
+  var p=el('div','position:fixed;top:10px;right:10px;width:400px;min-width:340px;min-height:260px;max-width:96vw;max-height:96vh;display:flex;flex-direction:column;resize:both;overflow:auto;z-index:2147483646;background:#fff;border:2px solid '+PURPLE+';border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.35);'+S+'font-size:14px;color:#263238;');
   p.id='sgsHelperPanel';
   p.innerHTML=
-    '<div style="position:sticky;top:0;background:'+PURPLE+';color:#fff;padding:10px 14px;font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center;z-index:2;">'+
+    '<div style="flex-shrink:0;background:'+PURPLE+';color:#fff;padding:10px 14px;font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center;">'+
       '<span>🚀 SGS Helper <small style="font-weight:400;opacity:.8;">v'+VERSION+'</small></span>'+
-      '<span id="sgshClose" style="cursor:pointer;font-size:18px;padding:0 4px;">✕</span></div>'+
-    '<div style="padding:12px 14px;">'+
+      '<span style="display:flex;align-items:center;gap:10px;">'+
+        '<span id="sgshMax" title="ขยายเต็มจอ" style="cursor:pointer;font-size:16px;padding:0 2px;">⛶</span>'+
+        '<span id="sgshClose" style="cursor:pointer;font-size:18px;padding:0 4px;">✕</span>'+
+      '</span></div>'+
+    '<div id="sgshBody" style="padding:12px 14px;flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;">'+
+      '<div id="sgshStepsTop" style="flex-shrink:0;max-height:260px;overflow-y:auto;">'+
       '<div id="sgshStep1">'+
         '<div style="font-weight:800;color:'+PURPLE+';margin-bottom:6px;">1️⃣ วางข้อมูลคะแนน</div>'+
         '<div style="font-size:12.5px;color:#607d8b;margin-bottom:6px;">กดปุ่ม "คัดลอกข้อมูล SGS" ในระบบดูแลนักเรียนก่อน แล้วกดวางที่นี่</div>'+
@@ -306,20 +334,45 @@ function buildPanel(){
         '<div id="sgshMapRows"></div>'+
         '<label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;"><input type="checkbox" id="sgshRound"> ปัดคะแนนเป็นจำนวนเต็ม</label>'+
         '<label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;"><input type="checkbox" id="sgshPartial" checked> ช่อง "กำหนดเอง (รวมหลายช่อง)" ถ้ายังไม่ครบ ให้เติมเท่าที่มีคะแนน</label>'+
+        '<label style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;font-size:13px;color:'+AMBER+';font-weight:700;"><input type="checkbox" id="sgshOverwrite"> ⚠️ โหมดแก้ไขคะแนน (ทับค่าเดิมที่มีอยู่แล้วได้)</label>'+
         '<div style="margin-top:8px;">'+btn('👁️ พรีวิวการเติม','width:100%;background:#00695c;border-color:#00695c;')+'</div>'+
       '</div>'+
-      '<div id="sgshStep4" style="display:none;margin-top:10px;">'+
-        '<div style="font-weight:800;color:'+PURPLE+';margin-bottom:6px;">4️⃣ ตรวจสอบ + เติมคะแนน</div>'+
-        '<div id="sgshPlanInfo" style="font-size:13px;"></div>'+
-        '<div id="sgshFillWrap" style="margin-top:8px;"></div>'+
       '</div>'+
-      '<div style="margin-top:14px;border-top:1px solid #e0e0e0;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">'+
+      '<div id="sgshStep4" style="display:none;flex-direction:column;flex:1;min-height:120px;margin-top:10px;">'+
+        '<div style="flex-shrink:0;font-weight:800;color:'+PURPLE+';margin-bottom:6px;">4️⃣ ตรวจสอบ + เติมคะแนน</div>'+
+        '<div id="sgshPlanInfo" style="flex:1;min-height:0;display:flex;flex-direction:column;font-size:13px;"></div>'+
+        '<div id="sgshFillWrap" style="flex-shrink:0;margin-top:8px;"></div>'+
+      '</div>'+
+      '<div style="flex-shrink:0;margin-top:14px;border-top:1px solid #e0e0e0;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">'+
         '<span style="font-size:11.5px;color:#90a4ae;">ไม่กดปุ่มบันทึกของ SGS ให้ — แต่บางหน้า SGS auto-save ทันทีที่กรอก</span>'+
         btnO('🧪 วิเคราะห์หน้า','font-size:11.5px;padding:4px 8px;')+
       '</div>'+
     '</div>';
   document.body.appendChild(p);
   H.panel=p;
+  // จำขนาด/สถานะขยายเต็มจอไว้ครั้งก่อน (ถ้ามี)
+  var sz=loadSize();
+  if(sz){
+    if(sz.prevW)H.prevRect={w:sz.prevW,h:sz.prevH};
+    if(sz.maximized){
+      p.style.width='96vw';p.style.height='94vh';
+      H.maximized=true;
+      if(!H.prevRect)H.prevRect={w:sz.w,h:sz.h};
+    }else{
+      if(sz.w)p.style.width=sz.w;
+      if(sz.h)p.style.height=sz.h;
+    }
+  }
+  p.querySelector('#sgshMax').textContent=H.maximized?'🗗':'⛶';
+  p.querySelector('#sgshMax').onclick=toggleMaximize;
+  // ลากมุมขวาล่างขยายเอง (resize:both ของ CSS) — จำขนาดที่ลากไว้ด้วย
+  // ใช้ทั้ง ResizeObserver (เผื่อเบราว์เซอร์ทริกเกอร์เร็ว) และ mouseup ที่ตัวพาเนล
+  // (จับตอนปล่อยเมาส์หลังลากขอบ กันไว้อีกชั้นเผื่อ ResizeObserver มาช้า)
+  if(window.ResizeObserver){
+    var ro=new ResizeObserver(function(){saveSize();});
+    ro.observe(p);
+  }
+  p.addEventListener('mouseup',function(){saveSize();});
   p.querySelector('#sgshClose').onclick=function(){p.style.display='none';};
   // ปุ่มวางจากคลิปบอร์ด
   p.querySelector('#sgshStep1 button').onclick=function(){
@@ -332,6 +385,7 @@ function buildPanel(){
   p.querySelector('#sgshStep3 button:last-of-type').onclick=showPlan;
   p.querySelector('#sgshRound').onchange=function(){H.round=this.checked;};
   p.querySelector('#sgshPartial').onchange=function(){H.partial=this.checked;};
+  p.querySelector('#sgshOverwrite').onchange=function(){H.overwrite=this.checked;H.panel.querySelector('#sgshStep4').style.display='none';};
   // ปุ่มวิเคราะห์หน้า = ปุ่มสุดท้ายใน panel (ตอน build ยังไม่มีปุ่มเติมของ step4)
   var allB=p.querySelectorAll('button');allB[allB.length-1].onclick=analyzePage;
 }
@@ -430,13 +484,14 @@ function showPlan(){
   var partialCount=plan.fills.filter(function(f){return f.partial;}).length;
   var html='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+
     '<span style="background:#e8f5e9;color:'+GREEN+';border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">จะเติม '+plan.fills.length+'</span>'+
+    (plan.overwrites.length?'<span style="background:#ffe0b2;color:#e65100;border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">🔁 จะทับของเดิม '+plan.overwrites.length+'</span>':'')+
     '<span style="background:#eceff1;color:#607d8b;border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">ตรงอยู่แล้ว '+plan.already.length+'</span>'+
     (plan.conflicts.length?'<span style="background:#fff3e0;color:'+AMBER+';border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">ค่าขัดแย้ง '+plan.conflicts.length+' (ข้าม)</span>':'')+
     (plan.missingInSgs.length?'<span style="background:#ffebee;color:'+RED+';border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">ไม่เจอใน SGS '+plan.missingInSgs.length+' คน</span>':'')+
     (partialCount?'<span style="background:#fff3e0;color:'+AMBER+';border-radius:6px;padding:3px 8px;font-weight:700;font-size:12.5px;">🧩 รวมไม่ครบ '+partialCount+' ช่อง</span>':'')+
     '</div>';
   if(plan.conflicts.length){
-    html+='<div style="font-size:12px;color:'+AMBER+';margin-bottom:6px;"><b>⚠️ ค่าขัดแย้ง (SGS มีค่าอยู่แล้ว ไม่ทับให้ — แก้เองถ้าต้องการ):</b><br>'+
+    html+='<div style="font-size:12px;color:'+AMBER+';margin-bottom:6px;"><b>⚠️ ค่าขัดแย้ง (SGS มีค่าอยู่แล้ว ไม่ทับให้ — แก้เองถ้าต้องการ หรือติ๊ก "โหมดแก้ไขคะแนน" ด้านบนแล้วกดพรีวิวใหม่):</b><br>'+
       plan.conflicts.slice(0,15).map(function(c){return esc(c.row.stu.name)+' · '+esc(c.col.header)+': SGS='+esc(c.cur)+' เรา='+esc(c.val);}).join('<br>')+
       (plan.conflicts.length>15?'<br>…และอีก '+(plan.conflicts.length-15)+' รายการ':'')+'</div>';
   }
@@ -444,24 +499,33 @@ function showPlan(){
     html+='<div style="font-size:12px;color:'+RED+';margin-bottom:6px;"><b>❌ อยู่ในข้อมูลเรา แต่หาไม่เจอในหน้า SGS:</b><br>'+
       plan.missingInSgs.map(function(s){return esc(s.code+' '+s.name);}).join('<br>')+'</div>';
   }
-  if(plan.fills.length){
-    html+='<div style="max-height:170px;overflow:auto;border:1px solid #e0e0e0;border-radius:8px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+  var rows=plan.fills.map(function(f){return {f:f,ow:false};}).concat(plan.overwrites.map(function(f){return {f:f,ow:true};}));
+  if(rows.length){
+    html+='<div style="flex:1;min-height:60px;overflow:auto;border:1px solid #e0e0e0;border-radius:8px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'+
       '<tr><th style="padding:3px 6px;background:'+PURPLE_L+';position:sticky;top:0;">นักเรียน</th><th style="padding:3px 6px;background:'+PURPLE_L+';position:sticky;top:0;">ช่อง SGS</th><th style="padding:3px 6px;background:'+PURPLE_L+';position:sticky;top:0;">คะแนน</th></tr>'+
-      plan.fills.map(function(f){return '<tr><td style="padding:2px 6px;border-top:1px solid #eee;">'+esc(f.row.stu.name)+(f.partial?' <span title="รวมจากช่องที่มีคะแนนเท่านั้น ยังไม่ครบทุกช่อง" style="color:'+AMBER+';font-weight:700;">🧩ไม่ครบ</span>':'')+'</td><td style="padding:2px 6px;border-top:1px solid #eee;">'+esc(f.col.header)+'</td><td style="padding:2px 6px;border-top:1px solid #eee;text-align:center;font-weight:700;color:'+(f.partial?AMBER:GREEN)+';">'+esc(f.val)+'</td></tr>';}).join('')+
+      rows.map(function(r){var f=r.f;
+        var valCell=r.ow?('<span style="text-decoration:line-through;color:#90a4ae;">'+esc(f.cur)+'</span> → <b>'+esc(f.val)+'</b>'):esc(f.val);
+        return '<tr><td style="padding:2px 6px;border-top:1px solid #eee;">'+esc(f.row.stu.name)+(f.partial?' <span title="รวมจากช่องที่มีคะแนนเท่านั้น ยังไม่ครบทุกช่อง" style="color:'+AMBER+';font-weight:700;">🧩ไม่ครบ</span>':'')+(r.ow?' <span style="color:#e65100;font-weight:700;">🔁ทับ</span>':'')+'</td><td style="padding:2px 6px;border-top:1px solid #eee;">'+esc(f.col.header)+'</td><td style="padding:2px 6px;border-top:1px solid #eee;text-align:center;font-weight:700;color:'+(r.ow?'#e65100':(f.partial?AMBER:GREEN))+';">'+valCell+'</td></tr>';}).join('')+
       '</table></div>';
   }
   info.innerHTML=html;
   var fw=H.panel.querySelector('#sgshFillWrap');
-  fw.innerHTML=plan.fills.length?btn('✍️ เติมคะแนน '+plan.fills.length+' ช่อง (เฉพาะช่องว่าง)','width:100%;background:'+GREEN+';border-color:'+GREEN+';'):'<div style="color:#607d8b;font-size:13px;">ไม่มีช่องว่างที่ต้องเติม</div>';
-  if(plan.fills.length){
+  var total=plan.fills.length+plan.overwrites.length;
+  var label=plan.overwrites.length?('✍️ เติมคะแนน '+total+' ช่อง (ทับของเดิม '+plan.overwrites.length+' ช่อง)'):('✍️ เติมคะแนน '+plan.fills.length+' ช่อง (เฉพาะช่องว่าง)');
+  fw.innerHTML=total?btn(label,'width:100%;background:'+(plan.overwrites.length?'#e65100':GREEN)+';border-color:'+(plan.overwrites.length?'#e65100':GREEN)+';'):'<div style="color:#607d8b;font-size:13px;">ไม่มีช่องว่างที่ต้องเติม</div>';
+  if(total){
     fw.querySelector('button').onclick=function(){
-      if(!confirm('ยืนยันเติมคะแนน '+plan.fills.length+' ช่อง?\n\nบางหน้าของ SGS บันทึกลงฐานข้อมูลทันทีที่กรอกแต่ละช่อง (auto-save) โดยไม่มีปุ่ม Undo — กรุณาตรวจพรีวิวด้านบนให้ถี่ถ้วนก่อนกดตกลง'))return;
-      var n=doFill(plan);
+      var msg='ยืนยันเติมคะแนน '+total+' ช่อง?';
+      if(plan.overwrites.length)msg+='\n\n⚠️ รวมถึง '+plan.overwrites.length+' ช่องที่ "ทับค่าเดิม" ที่มีอยู่แล้วใน SGS — ตรวจคอลัมน์คะแนนในตารางด้านบน (เดิม → ใหม่) ให้ถี่ถ้วนก่อน';
+      msg+='\n\nบางหน้าของ SGS บันทึกลงฐานข้อมูลทันทีที่กรอกแต่ละช่อง (auto-save) โดยไม่มีปุ่ม Undo — กรุณาตรวจพรีวิวด้านบนให้ถี่ถ้วนก่อนกดตกลง';
+      if(!confirm(msg))return;
+      var n=doFill(plan.fills,'#c8e6c9');
+      if(plan.overwrites.length)n+=doFill(plan.overwrites,'#ffe0b2');
       this.disabled=true;this.style.opacity='.6';this.textContent='✅ เติมแล้ว '+n+' ช่อง';
       flash('เติมคะแนนแล้ว '+n+' ช่อง — ถ้าหน้านี้มีปุ่มบันทึกแยก ให้ตรวจแล้วกดบันทึกเองด้วย');
     };
   }
-  H.panel.querySelector('#sgshStep4').style.display='';
+  H.panel.querySelector('#sgshStep4').style.display='flex';
   H.panel.querySelector('#sgshStep4').scrollIntoView({block:'nearest'});
 }
 
