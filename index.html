@@ -703,6 +703,37 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .ex-smeta-box textarea{resize:vertical;min-height:54px;}
 .ex-smeta-full{margin-bottom:12px;}
 .ex-smeta-hint{font-size:11px;color:#aaa;margin-top:2px;}
+/* ===== Review/แก้คำตอบรายคน modal ===== */
+.ex-rev-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3250;display:none;align-items:center;justify-content:center;padding:16px;}
+.ex-rev-modal.show{display:flex;}
+.ex-rev-box{background:#fff;border-radius:14px;width:470px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-family:Sarabun,sans-serif;}
+.ex-rev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid #eee;}
+.ex-rev-head .nm{font-size:15px;font-weight:700;color:#1565c0;}
+.ex-rev-x{border:none;background:#f0f0f0;width:30px;height:30px;flex:none;border-radius:8px;cursor:pointer;font-size:14px;color:#555;}
+.ex-rev-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px 16px;background:#f5f9ff;}
+.ex-rev-stats .c{text-align:center;}
+.ex-rev-stats .v{font-size:20px;font-weight:700;color:#1565c0;}
+.ex-rev-stats .v.g{color:#2e7d32;}.ex-rev-stats .v.r{color:#c62828;}
+.ex-rev-stats .l{font-size:11px;color:#777;}
+.ex-rev-sub{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+.ex-rev-sub label{font-size:13px;color:#555;font-weight:700;}
+.ex-rev-sub input{width:74px;border:1px solid #ccc;border-radius:6px;padding:5px 8px;font-size:14px;font-family:Sarabun,sans-serif;outline:none;}
+.ex-rev-sub input:focus{border-color:#1976d2;}
+.ex-rev-final{margin-left:auto;font-size:13px;color:#666;}
+.ex-rev-final b{color:#1565c0;font-size:17px;}
+.ex-rev-hint{font-size:11.5px;color:#888;padding:9px 16px 4px;}
+.ex-rev-gridwrap{position:relative;overflow-y:auto;padding:4px 16px 14px;}
+#exRevGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ex-rev-cell{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;border:1px solid #e0e0e0;}
+.ex-rev-cell:active{transform:scale(.98);}
+.ex-rev-slot{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#fff;font-weight:700;font-size:14px;}
+.ex-rev-qmeta{font-size:12px;color:#666;line-height:1.3;}
+.ex-rev-pop{position:absolute;z-index:5;background:#fff;border:1px solid #ccc;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:8px;display:none;}
+.ex-rev-pop.on{display:block;}
+.ex-rev-pop .ttl{font-size:11px;color:#777;margin:0 2px 5px;}
+.ex-rev-opt{min-width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #ccc;cursor:pointer;font-weight:700;font-size:15px;margin:2px;background:#fff;color:#333;}
+.ex-rev-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #eee;}
+@media(max-width:520px){#exRevGrid{grid-template-columns:1fr;}.ex-rev-box{max-height:94vh;}}
 .ex-sa-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3200;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto;}
 .ex-sa-box{background:#fff;border-radius:12px;width:480px;max-width:100%;padding:20px 22px 18px;}
 .ex-sa-box h3{margin:0 0 14px;font-size:15px;font-weight:700;color:#6a1b9a;}
@@ -2582,6 +2613,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <canvas id="exCamCanvas"></canvas>
     </div>
     <div class="exam-camera-foot" id="exCamStatus">กำลังเปิดกล้อง...</div>
+    <div id="exCamShutterBar" style="display:none;padding:10px 14px;background:#111c26;border-top:1px solid #2a3846;">
+      <button onclick="examCamShutter()" style="width:100%;background:#2e7d32;color:#fff;border:none;padding:14px;border-radius:10px;font-size:16px;font-weight:700;font-family:Sarabun,sans-serif;cursor:pointer;">📸 ถ่ายเลย</button>
+      <div style="text-align:center;color:#8fa3b3;font-size:11px;margin-top:6px;">จัดกระดาษให้เห็นครบทั้งใบ แล้วกดถ่าย — ไม่ต้องรอให้จับเอง</div>
+    </div>
     <div id="exCamConfirm" style="display:none;padding:12px 14px;background:#182430;border-top:1px solid #2a3846;">
       <div id="exCamConfirmInfo" style="font-weight:700;margin-bottom:8px;color:#fff;font-size:14px;"></div>
       <div id="exCamConfirmScore" style="display:none;font-weight:700;color:#69f0ae;font-size:22px;margin-bottom:8px;"></div>
@@ -2613,6 +2648,36 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <button class="btn btn-sm" onclick="examSheetMetaCancel()">ยกเลิก</button>
       <button class="btn btn-sm" onclick="examSheetMetaPrint(false)">พิมพ์เลย</button>
       <button class="btn btn-primary btn-sm" onclick="examSheetMetaPrint(true)">💾 บันทึกและพิมพ์</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review/แก้คำตอบรายคน modal -->
+<div class="ex-rev-modal" id="exReviewModal" onclick="if(event.target===this)examCloseReview()">
+  <div class="ex-rev-box" id="exRevBox" onclick="examReviewClosePop()">
+    <div class="ex-rev-head">
+      <div class="nm" id="exRevName">—</div>
+      <button class="ex-rev-x" onclick="examCloseReview()">✕</button>
+    </div>
+    <div class="ex-rev-stats">
+      <div class="c"><div class="v" id="exRevObj">—</div><div class="l">ปรนัย</div></div>
+      <div class="c"><div class="v g" id="exRevCor">—</div><div class="l">ถูก</div></div>
+      <div class="c"><div class="v r" id="exRevWrg">—</div><div class="l">ผิด</div></div>
+      <div class="c"><div class="v" id="exRevPct">—</div><div class="l">คิดเป็น</div></div>
+    </div>
+    <div class="ex-rev-sub" id="exRevSub">
+      <label>คะแนนอัตนัย</label>
+      <input type="number" id="exRevSubInput" min="0" step="1" onchange="examReviewSetSub(this.value)"><span style="color:#999;">/ <span id="exRevSubFull">0</span></span>
+      <div class="ex-rev-final">คะแนนลงช่อง <b id="exRevFinal">—</b><span style="color:#999;"> / <span id="exRevTarget">—</span></span></div>
+    </div>
+    <div class="ex-rev-hint">แตะที่ข้อ แล้วเลือกคำตอบจากป๊อปอัป · 🟩 ตรงเฉลย 🟥 ผิด ⬜ ไม่ตอบ/ไม่ชัด</div>
+    <div class="ex-rev-gridwrap">
+      <div id="exRevGrid"></div>
+      <div class="ex-rev-pop" id="exRevPop"></div>
+    </div>
+    <div class="ex-rev-foot">
+      <button class="btn btn-sm" onclick="examCloseReview()">ปิด</button>
+      <button class="btn btn-primary btn-sm" id="exRevSaveBtn" onclick="examReviewSaveOne()">💾 บันทึกคะแนนคนนี้</button>
     </div>
   </div>
 </div>
@@ -3404,12 +3469,12 @@ function examOmrToGray(img){
   var d=ctx.getImageData(0,0,w,h).data,gray=new Uint8Array(w*h);for(var i=0,j=0;i<d.length;i+=4,j++)gray[j]=(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114)|0;return {gray:gray,w:w,h:h};
 }
 function examOtsu(gray){var hist=new Array(256).fill(0);for(var i=0;i<gray.length;i++)hist[gray[i]]++;var total=gray.length,sum=0;for(var t=0;t<256;t++)sum+=t*hist[t];var sumB=0,wB=0,max=0,thr=127;for(t=0;t<256;t++){wB+=hist[t];if(!wB)continue;var wF=total-wB;if(!wF)break;sumB+=t*hist[t];var bw=wB*wF*Math.pow(sumB/wB-(sum-sumB)/wF,2);if(bw>max){max=bw;thr=t;}}return thr;}
-function examDetectMarkers(gray,w,h,thr){var tries=[Math.min(thr*0.6,62),Math.min(thr*0.8,85),Math.min(thr,108)],best=null;for(var i=0;i<tries.length;i++){var r=examDetectMarkersAt(gray,w,h,tries[i]);if(r){if(!r.extrapolated)return r;if(!best)best=r;}}return best;}
+function examDetectMarkers(gray,w,h,thr){var tries=[Math.min(thr*0.6,62),Math.min(thr*0.85,90),60,95,130],best=null;for(var i=0;i<tries.length;i++){var r=examDetectMarkersAt(gray,w,h,tries[i]);if(r){if(!r.extrapolated)return r;if(!best)best=r;}}return best;}
 function examDetectMarkersAt(gray,w,h,markerThr){
   var dark=new Uint8Array(w*h);for(var i=0;i<gray.length;i++)dark[i]=gray[i]<markerThr?1:0;
   var label=new Int32Array(w*h),blobs=[],stack=[],cur=0;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++){var idx=y*w+x;if(dark[idx]&&!label[idx]){cur++;var area=0,sx=0,sy=0,minx=x,maxx=x,miny=y,maxy=y;stack.length=0;stack.push(idx);label[idx]=cur;while(stack.length){var p=stack.pop(),py=(p/w)|0,px=p-py*w;area++;sx+=px;sy+=py;if(px<minx)minx=px;if(px>maxx)maxx=px;if(py<miny)miny=py;if(py>maxy)maxy=py;if(px>0){var q=p-1;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(px<w-1){q=p+1;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(py>0){q=p-w;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}if(py<h-1){q=p+w;if(dark[q]&&!label[q]){label[q]=cur;stack.push(q);}}}blobs.push({area:area,cx:sx/area,cy:sy/area,minx:minx,maxx:maxx,miny:miny,maxy:maxy});}}
-  var imgArea=w*h,cand=blobs.filter(function(b){var bw=b.maxx-b.minx+1,bh=b.maxy-b.miny+1,ar=bw/bh,fill=b.area/(bw*bh);return b.area>imgArea*0.0004&&b.area<imgArea*0.016&&ar>0.78&&ar<1.28&&fill>0.86;});
+  var imgArea=w*h,cand=blobs.filter(function(b){var bw=b.maxx-b.minx+1,bh=b.maxy-b.miny+1,ar=bw/bh,fill=b.area/(bw*bh);return b.area>imgArea*0.0003&&b.area<imgArea*0.02&&ar>0.72&&ar<1.38&&fill>0.80;});
   if(cand.length<2)return null;
   if(cand.length>4){var areas=cand.map(function(b){return b.area;}).sort(function(a,b){return a-b;}),med=areas[areas.length>>1],sized=cand.filter(function(b){return b.area>=med*0.45&&b.area<=med*2.3;});if(sized.length>=2)cand=sized;}
   var corners=[[0,0],[w,0],[w,h],[0,h]],picked=[];
@@ -3797,9 +3862,13 @@ function examStudentFromQr(qr){
 }
 
 async function examDecodeQrFromCanvas(cv){
-  var jsQR=await examLoadQrReader(),ctx=cv.getContext('2d'),img=ctx.getImageData(0,0,cv.width,cv.height),code=jsQR(img.data,cv.width,cv.height);
-  if(!code||!code.data)return null;
-  try{return JSON.parse(code.data);}catch(e){return null;}
+  var jsQR=await examLoadQrReader();
+  function tryDecode(c){try{var x=c.getContext('2d'),im=x.getImageData(0,0,c.width,c.height),code=jsQR(im.data,c.width,c.height,{inversionAttempts:'attemptBoth'});if(code&&code.data){try{return JSON.parse(code.data);}catch(e){}}}catch(e){}return null;}
+  var r=tryDecode(cv);if(r)return r;
+  // ภาพใหญ่: jsQR อ่านแม่นขึ้นที่ความละเอียดปานกลาง → ลองย่อ
+  var big=Math.max(cv.width,cv.height);
+  if(big>1100){var sc=1100/big,c2=document.createElement('canvas');c2.width=Math.round(cv.width*sc);c2.height=Math.round(cv.height*sc);c2.getContext('2d').drawImage(cv,0,0,c2.width,c2.height);r=tryDecode(c2);if(r)return r;}
+  return null;
 }
 function examLoadQrReader(){
   if(window.jsQR)return Promise.resolve(window.jsQR);
@@ -3878,13 +3947,15 @@ function examRenderResults(){
   var dup=examDuplicateStudentMap();
   body.innerHTML=EX.results.map(function(r,i){
     var reasons=examReviewReasons(r,dup),isDup=!!(r.student&&dup[String(r.student.id)]);
-    var status=r.saved?'<span class="exam-badge ok">บันทึกแล้ว</span>':!r.ok?'<span class="exam-badge err">อ่านไม่ได้</span>':reasons.length?'<span class="exam-badge warn">ตรวจทาน</span>':'<span class="exam-badge ok">พร้อม</span>';
-    var cls=r.saved?'ready':isDup?'duplicate':reasons.length?'needs-review':'ready';
+    var status=r._needResave?'<span class="exam-badge warn">แก้แล้ว</span>':r.saved?'<span class="exam-badge ok">บันทึกแล้ว</span>':!r.ok?'<span class="exam-badge err">อ่านไม่ได้</span>':reasons.length?'<span class="exam-badge warn">ตรวจทาน</span>':'<span class="exam-badge ok">พร้อม</span>';
+    var cls=r._needResave?'needs-review':r.saved?'ready':isDup?'duplicate':reasons.length?'needs-review':'ready';
     var select='<select class="exam-mini-select" onchange="examAssignStudent('+i+',this.value)">'+stuOpts+'</select>';
     var omr='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.objective_total)+'" value="'+examFmt(r.objective_score)+'" onchange="examRecalcFromInput('+i+',\'obj\',this.value)"> / '+examFmt(r.objective_total);
     var sub='<input class="exam-score-input" type="number" min="0" max="'+examFmt(r.subjective_total)+'" value="'+examFmt(r.subjective_score||0)+'" onchange="examRecalcFromInput('+i+',\'sub\',this.value)"> / '+examFmt(r.subjective_total);
+    var revBtn=r.ok?'<button class="btn btn-sm" style="color:#1565c0;padding:2px 8px;font-size:11px;margin-top:4px;margin-right:4px;" onclick="examOpenReview('+i+')">🔍 ดู/แก้</button>':'';
     var delBtn=r.saved?'':'<button class="btn btn-sm" style="color:#c62828;padding:2px 8px;font-size:11px;margin-top:4px;" onclick="examDeleteResultRow('+i+')">🗑️ ลบ</button>';
-    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.mapMethod||'')+(r.qr?' · QR':' · ใช้ลำดับหน้า')+(r.capturedAt?' · '+examFmtTime(r.capturedAt):'')+'</div></td><td>'+omr+'</td><td>'+sub+'</td><td><b>'+examFmt(r.final_score)+'</b><span class="exam-muted"> / '+examFmt(r.target_total)+' ('+r.percent+'%)</span></td><td>'+status+(reasons.length?'<div class="exam-muted" style="color:'+(isDup?'var(--red)':'var(--text3)')+';">'+examEsc(reasons.join(' · '))+'</div>':'')+delBtn+'</td></tr>';
+    var resaveNote=r._needResave?'<div class="exam-muted" style="color:#e65100;">✎ แก้แล้ว กด 🔍 เพื่อบันทึกใหม่</div>':'';
+    return '<tr class="'+cls+'"><td>'+(r.page||i+1)+'</td><td>'+select+'<div class="exam-muted">'+examEsc(r.mapMethod||'')+(r.qr?' · QR':' · ใช้ลำดับหน้า')+(r.capturedAt?' · '+examFmtTime(r.capturedAt):'')+'</div></td><td>'+omr+'</td><td>'+sub+'</td><td><b>'+examFmt(r.final_score)+'</b><span class="exam-muted"> / '+examFmt(r.target_total)+' ('+r.percent+'%)</span></td><td>'+status+(reasons.length?'<div class="exam-muted" style="color:'+(isDup?'var(--red)':'var(--text3)')+';">'+examEsc(reasons.join(' · '))+'</div>':'')+resaveNote+revBtn+delBtn+'</td></tr>';
   }).join('');
   EX.results.forEach(function(r,i){var sel=body.querySelectorAll('select')[i];if(sel&&r.student)sel.value=r.student.id;});
   examRenderStats();
@@ -3894,6 +3965,136 @@ function examDeleteResultRow(i){
   var r=EX.results[i];if(!r||r.saved)return;
   if(!confirm('ลบรายการนี้ออกจากรายการตรวจ (หน้า/รูป '+(r.page||i+1)+') เพื่อสแกนใหม่?'))return;
   EX.results.splice(i,1);examRenderResults();toast('ลบรายการแล้ว โปรดสแกนใหม่');
+}
+// ===== พรีวิว/แก้คำตอบรายคน =====
+function examRevCellColors(a,k){
+  if(a==='-'||a==='?'||a==null)return {bg:'#f5f5f5',bd:'#e0e0e0',tx:'#9e9e9e'};
+  if(k==null)return {bg:'#eceff1',bd:'#cfd8dc',tx:'#546e7a'};
+  return a===k?{bg:'#e8f5e9',bd:'#a5d6a7',tx:'#2e7d32'}:{bg:'#ffebee',bd:'#ef9a9a',tx:'#c62828'};
+}
+function examOpenReview(i){
+  var r=EX.results[i];if(!r)return;
+  if(!r.ok){toast('รายการนี้อ่านกระดาษไม่ได้ ('+(r.error||'')+') แก้ไม่ได้','err');return;}
+  EX._revIdx=i;
+  examReviewClosePop();
+  document.getElementById('exReviewModal').classList.add('show');
+  examReviewRender();
+}
+function examCloseReview(){examReviewClosePop();document.getElementById('exReviewModal').classList.remove('show');EX._revIdx=null;}
+function examReviewName(r){
+  var nm=r.student?((r.student.order_no||'-')+' · '+examEsc(r.student.fullname)):'(ยังไม่ระบุนักเรียน)';
+  return nm+(r._needResave?' <span style="font-size:11px;color:#e65100;font-weight:400;">· แก้แล้ว ยังไม่บันทึก</span>':'');
+}
+function examReviewRender(){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  document.getElementById('exRevName').innerHTML=examReviewName(r);
+  var subFull=Number(r.subjective_total||0);
+  document.getElementById('exRevSub').style.display=subFull>0?'flex':'none';
+  if(subFull>0){
+    var inp=document.getElementById('exRevSubInput');
+    inp.value=examFmt(r.subjective_score||0);inp.max=subFull;
+    document.getElementById('exRevSubFull').textContent=examFmt(subFull);
+  }
+  var sb=document.getElementById('exRevSaveBtn');if(sb)sb.style.display=r.student?'inline-flex':'none';
+  examReviewGrid();examReviewStats();
+}
+function examReviewGrid(){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  var key=EX.subject.answer_key||{},numQ=Number(EX.subject.num_questions||20);
+  var grid=document.getElementById('exRevGrid');grid.innerHTML='';
+  for(var q=1;q<=numQ;q++){(function(q){
+    var a=r.answers[q]||'-',k=key[q],c=examRevCellColors(a,k);
+    var cell=document.createElement('div');cell.className='ex-rev-cell';
+    cell.style.background=c.bg;cell.style.borderColor=c.bd;
+    cell.innerHTML='<div class="ex-rev-slot" style="color:'+c.tx+';">'+(a==='-'?'–':examEsc(a))+'</div><div class="ex-rev-qmeta">ข้อ '+q+'<br>เฉลย '+(k?examEsc(k):'—')+'</div>';
+    cell.onclick=function(e){e.stopPropagation();examReviewOpenPop(q,cell);};
+    grid.appendChild(cell);
+  })(q);}
+}
+function examReviewOpenPop(q,cell){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  var key=EX.subject.answer_key||{},choices=examChoices(EX.subject.choices),k=key[q],cv=r.answers[q]||'-';
+  var pop=document.getElementById('exRevPop');
+  pop.innerHTML='<div class="ttl">ข้อ '+q+(k?' · เฉลย '+examEsc(k):'')+'</div>'+
+    choices.concat(['-']).map(function(o){
+      var isK=o===k,isC=o===cv,lab=(o==='-'?'✕':examEsc(o));
+      var st='';
+      if(isC)st='background:#e3f2fd;border-color:#1976d2;color:#1565c0;';
+      else if(isK)st='border-color:#2e7d32;color:#2e7d32;';
+      return '<span class="ex-rev-opt" data-o="'+examEsc(o)+'" style="'+st+'">'+lab+(isK?' ✓':'')+'</span>';
+    }).join('');
+  pop.classList.add('on');
+  var wrap=cell.offsetParent,cr=cell.getBoundingClientRect(),wr=wrap.getBoundingClientRect();
+  var top=cr.bottom-wr.top+wrap.scrollTop+4,left=cr.left-wr.left;
+  var maxL=wrap.clientWidth-pop.offsetWidth-4;if(left>maxL)left=maxL;if(left<2)left=2;
+  if(top+pop.offsetHeight-wrap.scrollTop>wrap.clientHeight)top=cr.top-wr.top+wrap.scrollTop-pop.offsetHeight-4;
+  pop.style.top=top+'px';pop.style.left=left+'px';
+  [].forEach.call(pop.querySelectorAll('.ex-rev-opt'),function(op){op.onclick=function(e){e.stopPropagation();examReviewSetAnswer(q,op.dataset.o);};});
+}
+function examReviewClosePop(){var p=document.getElementById('exRevPop');if(p){p.classList.remove('on');p.innerHTML='';}}
+function examReviewSetAnswer(q,val){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  r.answers[q]=val;
+  examReviewRecalc(r);examReviewMarkDirty(r);
+  examReviewClosePop();examReviewGrid();examReviewStats();examRenderResults();
+}
+function examReviewSetSub(val){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  var full=Number(r.subjective_total||0);
+  r.subjective_score=Math.max(0,Math.min(full,Number(val)||0));
+  examRecalcResult(r);examReviewMarkDirty(r);examReviewStats();examRenderResults();
+  var inp=document.getElementById('exRevSubInput');if(inp)inp.value=examFmt(r.subjective_score);
+}
+function examReviewRecalc(r){
+  var key=EX.subject.answer_key||{},g=examScoreResult(r.answers,key);
+  var objTotal=Number(r.objective_total||EX.subject.objective_full||EX.subject.num_questions||0);
+  r.objective_score=g.keyCount?g.correct/g.keyCount*objTotal:0;
+  r.blank=g.blank;
+  var unc=0,numQ=Number(EX.subject.num_questions||20);for(var q=1;q<=numQ;q++)if(r.answers[q]==='?')unc++;r.uncertain=unc;
+  examRecalcResult(r);
+}
+function examReviewMarkDirty(r){
+  r._edited=true;
+  if(r._persisted)r._needResave=true;
+  var el=document.getElementById('exRevName');if(el)el.innerHTML=examReviewName(r);
+}
+function examReviewStats(){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  var key=EX.subject.answer_key||{},g=examScoreResult(r.answers,key);
+  document.getElementById('exRevObj').textContent=examFmt(r.objective_score)+'/'+examFmt(r.objective_total);
+  document.getElementById('exRevCor').textContent=g.correct;
+  document.getElementById('exRevWrg').textContent=g.wrong;
+  document.getElementById('exRevPct').textContent=(r.percent||0)+'%';
+  var fEl=document.getElementById('exRevFinal');if(fEl)fEl.textContent=examFmt(r.final_score);
+  var tEl=document.getElementById('exRevTarget');if(tEl)tEl.textContent=examFmt(r.target_total);
+}
+function examBuildResultPayload(r){
+  var base={subject_id:EX.subject.id,student_id:r.student.id,student_name:r.student.fullname,student_no:String(r.student.order_no||r.student.student_code||''),room:r.student._room_name||'',objective_score:r.objective_score,objective_total:r.objective_total,subjective_score:r.subjective_score||0,subjective_total:r.subjective_total||0,raw_score:r.raw_score,raw_total:r.raw_total,score:r.final_score,total:r.target_total,percent:r.percent,answers:r.answers,qr_data:r.qr||null,map_method:r.mapMethod||'',issue:examReviewReasons(r,{}).join(' · ')};
+  if(EX.standalone){base.assignment_id=null;base.structure_id=null;}
+  else{base.assignment_id=r.student._assignment_id||EX.assign.id;base.structure_id=EX.structure.id;}
+  return base;
+}
+async function examReviewSaveOne(){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  if(!r.student){toast('ยังไม่ได้ระบุนักเรียน เลือกชื่อในตารางก่อน','err');return;}
+  var dup=examDuplicateStudentMap();
+  if(dup[String(r.student.id)]){toast('นักเรียนซ้ำกับรายการอื่น แก้ก่อนบันทึก','err');return;}
+  var btn=document.getElementById('exRevSaveBtn'),old=btn.innerHTML;btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    var payload=examBuildResultPayload(r);
+    if(r._persisted){
+      await api('/rest/v1/exam_results?subject_id=eq.'+EX.subject.id+'&student_id=eq.'+r.student.id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    }else{
+      await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify([payload])});
+    }
+    if(!EX.standalone&&EX.structure&&EX.structure.id){
+      await api('/rest/v1/grades?on_conflict=structure_id,student_id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{structure_id:EX.structure.id,student_id:r.student.id,teacher_id:G.user.id,score:r.final_score,note:'ตรวจข้อสอบ: '+(EX.subject.exam_title||'')}])});
+    }
+    r.saved=true;r._persisted=true;r._needResave=false;
+    toast('บันทึกคะแนนของ '+examEsc(r.student.fullname)+' แล้ว');
+    examRenderResults();examReviewRender();
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+  finally{btn.disabled=false;btn.innerHTML=old;}
 }
 function examFmtTime(iso){
   try{var d=new Date(iso);return d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return '';}
@@ -3909,7 +4110,7 @@ async function examSaveAll(){
     var saBtn=document.getElementById('exSaveBtn');saBtn.disabled=true;saBtn.textContent='กำลังบันทึก...';
     try{
       await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(saPayload)});
-      saRows.forEach(function(r){r.saved=true;});toast('บันทึกผลสอบแล้ว '+saRows.length+' คน');examRenderResults();
+      saRows.forEach(function(r){r.saved=true;r._persisted=true;});toast('บันทึกผลสอบแล้ว '+saRows.length+' คน');examRenderResults();
     }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
     finally{saBtn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
     return;
@@ -3932,7 +4133,7 @@ async function examSaveAll(){
   try{
     await api('/rest/v1/grades?on_conflict=structure_id,student_id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(gradePayload)});
     await api('/rest/v1/exam_results',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(resultPayload)});
-    rows.forEach(function(r){r.saved=true;});toast('บันทึกคะแนนเข้าตารางรายวิชาแล้ว '+rows.length+' คน');examRenderResults();
+    rows.forEach(function(r){r.saved=true;r._persisted=true;});toast('บันทึกคะแนนเข้าตารางรายวิชาแล้ว '+rows.length+' คน');examRenderResults();
   }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
   finally{btn.textContent='💾 บันทึกคะแนนทั้งหมด';examRenderStats();}
 }
@@ -4199,17 +4400,25 @@ async function examOpenCamera(){
   try{
     EX.cam=await examGetCameraStream();
     var video=document.getElementById('exCamVideo');video.srcObject=EX.cam;await video.play();
-    EX.camTimer=setInterval(function(){examDetectLive(video);},450);
+    document.getElementById('exCamShutterBar').style.display='block';
+    EX.camTimer=setInterval(function(){examDetectLive(video);},350);
   }catch(e){examCloseCamera();toast('เปิดกล้องไม่ได้: '+examCameraErrorText(e),'err');examSetTab('scan');}
 }
 function examDetectLive(video){
   if(!video.videoWidth||EX.camDone||EX.camPaused)return;
-  var maxDim=640,sc=Math.min(1,maxDim/Math.max(video.videoWidth,video.videoHeight)),w=Math.round(video.videoWidth*sc),h=Math.round(video.videoHeight*sc),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(video,0,0,w,h);
-  var img=new Image();img.onload=function(){try{var g=examOmrToGray(img),det=examDetectMarkers(g.gray,g.w,g.h,examOtsu(g.gray)),status=document.getElementById('exCamStatus'),camCv=document.getElementById('exCamCanvas');if(det&&!det.extrapolated){examUpdateCamStability(det.pts,g.w,g.h);status.textContent=EX.camStable>=4?'ตรงและนิ่งแล้ว กำลังจับภาพ...':'พบจุดมุมครบ ถือให้นิ่ง';examDrawLiveQuad(camCv,video,det.pts,g.w,g.h);if(EX.camStable>=4){EX.camDone=true;setTimeout(examCaptureFrame,250);}}else{EX.camLastPts=null;EX.camStable=0;status.textContent='กำลังหาจุดดำ 4 มุม...';examClearCamCanvas(camCv);}}catch(e){}};img.src=cv.toDataURL('image/jpeg',0.72);
+  var maxDim=800,sc=Math.min(1,maxDim/Math.max(video.videoWidth,video.videoHeight)),w=Math.round(video.videoWidth*sc),h=Math.round(video.videoHeight*sc),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(video,0,0,w,h);
+  var img=new Image();img.onload=function(){try{var g=examOmrToGray(img),det=examDetectMarkers(g.gray,g.w,g.h,examOtsu(g.gray)),status=document.getElementById('exCamStatus'),camCv=document.getElementById('exCamCanvas');if(det&&!det.extrapolated){examUpdateCamStability(det.pts,g.w,g.h);status.textContent=EX.camStable>=2?'ตรงแล้ว กำลังจับภาพ...':'พบกรอบครบ · กด 📸 ถ่ายเลย หรือถือนิ่งอีกนิด';examDrawLiveQuad(camCv,video,det.pts,g.w,g.h);if(EX.camStable>=2){EX.camDone=true;setTimeout(examCaptureFrame,180);}}else{EX.camLastPts=null;EX.camStable=0;status.textContent='จัดกระดาษให้อยู่ในจอ แล้วกด 📸 ถ่ายเลย';examClearCamCanvas(camCv);}}catch(e){}};img.src=cv.toDataURL('image/jpeg',0.72);
 }
-function examUpdateCamStability(pts,gw,gh){var diag=Math.hypot(gw,gh);if(!EX.camLastPts){EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});EX.camStable=1;return;}var move=pts.reduce(function(s,p,i){return s+Math.hypot(p[0]-EX.camLastPts[i][0],p[1]-EX.camLastPts[i][1]);},0)/(pts.length*diag);EX.camStable=move<0.012?EX.camStable+1:1;EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});}
+function examUpdateCamStability(pts,gw,gh){var diag=Math.hypot(gw,gh);if(!EX.camLastPts){EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});EX.camStable=1;return;}var move=pts.reduce(function(s,p,i){return s+Math.hypot(p[0]-EX.camLastPts[i][0],p[1]-EX.camLastPts[i][1]);},0)/(pts.length*diag);EX.camStable=move<0.022?EX.camStable+1:1;EX.camLastPts=pts.map(function(p){return [p[0],p[1]];});}
 function examDrawLiveQuad(canvas,video,pts,gw,gh){var vw=video.clientWidth,vh=video.clientHeight,va=video.videoWidth/video.videoHeight,ca=vw/vh,rw,rh,ox,oy;if(va>ca){rh=vh;rw=vh*va;ox=(vw-rw)/2;oy=0;}else{rw=vw;rh=vw/va;oy=(vh-rh)/2;ox=0;}canvas.width=vw;canvas.height=vh;var ctx=canvas.getContext('2d');ctx.clearRect(0,0,vw,vh);var D=pts.map(function(p){return [ox+p[0]/gw*rw,oy+p[1]/gh*rh];});ctx.strokeStyle='rgba(25,195,125,.95)';ctx.lineWidth=3;ctx.setLineDash([8,5]);ctx.beginPath();ctx.moveTo(D[0][0],D[0][1]);for(var i=1;i<4;i++)ctx.lineTo(D[i][0],D[i][1]);ctx.closePath();ctx.stroke();ctx.setLineDash([]);D.forEach(function(d){ctx.beginPath();ctx.arc(d[0],d[1],11,0,7);ctx.fillStyle='rgba(25,195,125,.9)';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();});}
 function examClearCamCanvas(canvas){if(canvas&&canvas.width)canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);}
+function examCamShutter(){
+  if(EX.camPaused||EX.camDone)return;
+  var video=document.getElementById('exCamVideo');if(!video||!video.videoWidth){toast('กล้องยังไม่พร้อม รอสักครู่','err');return;}
+  EX.camDone=true;
+  var status=document.getElementById('exCamStatus');if(status)status.textContent='กำลังจับภาพ...';
+  examCaptureFrame();
+}
 async function examCaptureFrame(){
   var video=document.getElementById('exCamVideo');if(!video.videoWidth)return;
   EX.camPaused=true;
@@ -4250,6 +4459,7 @@ function examShowCamConfirm(r){
     gridEl.style.display='flex';legendEl.style.display='flex';
   }
   box.style.display='block';status.style.display='none';
+  document.getElementById('exCamShutterBar').style.display='none';
 }
 function examCamSelectChange(v){
   if(!EX.camPending)return;
@@ -4271,10 +4481,11 @@ function examCamRetake(){
 }
 function examCamResume(){
   document.getElementById('exCamConfirm').style.display='none';
-  var status=document.getElementById('exCamStatus');status.style.display='block';status.textContent='กำลังหาจุดดำ 4 มุม...';
+  var status=document.getElementById('exCamStatus');status.style.display='block';status.textContent='จัดกระดาษให้อยู่ในจอ แล้วกด 📸 ถ่ายเลย';
+  document.getElementById('exCamShutterBar').style.display='block';
   EX.camDone=false;EX.camPaused=false;EX.camStable=0;EX.camLastPts=null;
 }
-function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}EX.camPending=null;EX.camPaused=false;document.getElementById('exCameraModal').style.display='none';document.getElementById('exCamConfirm').style.display='none';document.getElementById('exCamStatus').style.display='block';examClearCamCanvas(document.getElementById('exCamCanvas'));}
+function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}EX.camPending=null;EX.camPaused=false;document.getElementById('exCameraModal').style.display='none';document.getElementById('exCamConfirm').style.display='none';document.getElementById('exCamShutterBar').style.display='none';document.getElementById('exCamStatus').style.display='block';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
 // สแตกหน้าที่เปิดเอง (ไม่พึ่ง history.state) — กันปัญหา iOS PWA แบบ standalone
 // ที่ history API ไม่เสถียร (state หายเป็นระยะ) ทำให้ปุ่มกลับเด้งไปหน้าหลักเสมอ
