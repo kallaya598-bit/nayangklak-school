@@ -734,6 +734,17 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .ex-rev-opt{min-width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #ccc;cursor:pointer;font-weight:700;font-size:15px;margin:2px;background:#fff;color:#333;}
 .ex-rev-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #eee;}
 @media(max-width:520px){#exRevGrid{grid-template-columns:1fr;}.ex-rev-box{max-height:94vh;}}
+.ex-rev-sheet{position:relative;padding:8px 16px 0;cursor:zoom-in;}
+.ex-rev-sheet canvas{width:100%;max-height:150px;object-fit:contain;display:block;border:1px solid #e0e0e0;border-radius:8px;background:#fafafa;}
+.ex-rev-sheet-tag{position:absolute;left:22px;top:12px;background:rgba(21,101,192,.88);color:#fff;font-size:10.5px;padding:2px 7px;border-radius:6px;pointer-events:none;}
+.ex-sheet-zoom{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:3400;display:none;flex-direction:column;}
+.ex-sheet-zoom.on{display:flex;}
+.ex-sheet-zbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;color:#fff;font-family:Sarabun,sans-serif;}
+.ex-sheet-zlbl{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ex-sheet-zbtns{display:flex;gap:6px;flex:none;}
+.ex-sheet-zbtns button{border:none;background:rgba(255,255,255,.16);color:#fff;font-size:15px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Sarabun,sans-serif;}
+.ex-sheet-zscroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 10px 16px;text-align:center;}
+.ex-sheet-zscroll canvas{width:100%;height:auto;display:inline-block;background:#fff;border-radius:6px;}
 .ex-sa-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3200;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto;}
 .ex-sa-box{background:#fff;border-radius:12px;width:480px;max-width:100%;padding:20px 22px 18px;}
 .ex-sa-box h3{margin:0 0 14px;font-size:15px;font-weight:700;color:#6a1b9a;}
@@ -2659,6 +2670,10 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <div class="nm" id="exRevName">—</div>
       <button class="ex-rev-x" onclick="examCloseReview()">✕</button>
     </div>
+    <div class="ex-rev-sheet" id="exRevSheet" style="display:none;" onclick="examSheetZoom()">
+      <canvas id="exRevThumb"></canvas>
+      <span class="ex-rev-sheet-tag">📄 กระดาษจริง · แตะเพื่อขยาย · ⬤ = จุดที่เครื่องอ่าน</span>
+    </div>
     <div class="ex-rev-stats">
       <div class="c"><div class="v" id="exRevObj">—</div><div class="l">ปรนัย</div></div>
       <div class="c"><div class="v g" id="exRevCor">—</div><div class="l">ถูก</div></div>
@@ -2680,6 +2695,19 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <button class="btn btn-primary btn-sm" id="exRevSaveBtn" onclick="examReviewSaveOne()">💾 บันทึกคะแนนคนนี้</button>
     </div>
   </div>
+</div>
+
+<!-- ภาพกระดาษคำตอบเต็มจอ (ซูม/แพน) -->
+<div class="ex-sheet-zoom" id="exSheetZoom" onclick="if(event.target===this)examSheetZoomClose()">
+  <div class="ex-sheet-zbar">
+    <span class="ex-sheet-zlbl" id="exSheetZlbl">ภาพกระดาษคำตอบ</span>
+    <span class="ex-sheet-zbtns">
+      <button onclick="examSheetZoomBy(-1)">➖</button>
+      <button onclick="examSheetZoomBy(1)">➕</button>
+      <button onclick="examSheetZoomClose()">✕ ปิด</button>
+    </span>
+  </div>
+  <div class="ex-sheet-zscroll" id="exSheetZscroll"><canvas id="exSheetZcanvas"></canvas></div>
 </div>
 
 <!-- Standalone exam creation modal -->
@@ -3829,6 +3857,8 @@ async function examGradeCanvas(page,index,key,numQ,choices,noGuess){
   var g=examScoreResult(omr.answers,key);
   var objTotal=Number(EX.subject.objective_full||numQ),objScore=g.keyCount?g.correct/g.keyCount*objTotal:0,subTotal=Number(EX.subject.subjective_full||0);
   var res={page:index+1,file:page.name,pdfPage:page.page,ok:true,student:student,qr:qr,mapMethod:qr?'QR':'ลำดับหน้า',capturedAt:capturedAt,uncertain:omr.uncertain,blank:g.blank,answers:omr.answers,objective_score:objScore,objective_total:objTotal,subjective_score:0,subjective_total:subTotal,target_total:Number(EX.structure.max_score||EX.subject.target_full||0)};
+  // เก็บภาพกระดาษ + ตำแหน่งมาร์กเกอร์ไว้ในหน่วยความจำ (เฉพาะรอบสแกนนี้) สำหรับหน้า review เทียบภาพจริง
+  if(omr.markers){res.sheetImg=page.canvas.toDataURL('image/jpeg',0.8);res.omrMarkers=omr.markers;res.omrDims={w:omr.gw,h:omr.gh};res.omrChoices=omr.choicesCount;}
   examRecalcResult(res);
   return res;
 }
@@ -3972,6 +4002,57 @@ function examRevCellColors(a,k){
   if(k==null)return {bg:'#eceff1',bd:'#cfd8dc',tx:'#546e7a'};
   return a===k?{bg:'#e8f5e9',bd:'#a5d6a7',tx:'#2e7d32'}:{bg:'#ffebee',bd:'#ef9a9a',tx:'#c62828'};
 }
+// ===== หน้า review: ภาพกระดาษจริง + overlay จุดที่เครื่องอ่าน =====
+function examSheetEnsureImg(r,cb){
+  if(!r.sheetImg){cb(null);return;}
+  if(r._imgEl){cb(r._imgEl);return;}
+  var im=new Image();im.onload=function(){r._imgEl=im;cb(im);};im.onerror=function(){cb(null);};im.src=r.sheetImg;
+}
+// วาดภาพลง canvas ตาม targetW แล้ววงจุดที่ OMR อ่าน (เขียว=ถูก แดง=ผิด เหลืองประ=กำกวม)
+function examDrawSheet(r,canvas,targetW){
+  if(!canvas)return;
+  examSheetEnsureImg(r,function(im){
+    if(!im||!r.omrMarkers||!r.omrDims)return;
+    var iw=r.omrDims.w,ih=r.omrDims.h,scale=targetW/iw;
+    canvas.width=Math.round(iw*scale);canvas.height=Math.round(ih*scale);
+    var ctx=canvas.getContext('2d');ctx.drawImage(im,0,0,canvas.width,canvas.height);
+    var key=EX.subject.answer_key||{},numQ=Number(EX.subject.num_questions||20),choices=examChoices(r.omrChoices||EX.subject.choices);
+    var L=examOmrLayout(numQ,choices.length),Hm=examSolveHomography(L.srcQuad,r.omrMarkers);if(!Hm)return;
+    var dP=Math.hypot(r.omrMarkers[1][0]-r.omrMarkers[0][0],r.omrMarkers[1][1]-r.omrMarkers[0][1]);
+    var dC=Math.hypot(L.srcQuad[1][0]-L.srcQuad[0][0],L.srcQuad[1][1]-L.srcQuad[0][1]);
+    var rad=Math.max(5,L.R*dP/dC)*scale;
+    for(var q=1;q<=numQ;q++){
+      var a=r.answers[q]||'-',k=key[q],cell=L.cells[q-1];if(!cell)continue;
+      if(a!=='-'&&a!=='?'){
+        var ki=choices.indexOf(a);if(ki<0)continue;
+        var o=cell.opts[ki],pt=examApplyH(Hm,o.x,o.y);
+        ctx.beginPath();ctx.arc(pt[0]*scale,pt[1]*scale,rad*1.3,0,7);
+        ctx.lineWidth=Math.max(2,rad*0.4);ctx.strokeStyle=(k==null)?'#546e7a':(a===k?'#2e7d32':'#c62828');ctx.stroke();
+      }else if(a==='?'){
+        var p2=examApplyH(Hm,cell.numX,cell.numY);
+        ctx.beginPath();ctx.arc(p2[0]*scale,p2[1]*scale,rad*1.15,0,7);
+        ctx.lineWidth=Math.max(2,rad*0.35);ctx.strokeStyle='#f9a825';ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+      }
+    }
+  });
+}
+function examRevThumbUpdate(){
+  var r=EX.results[EX._revIdx];if(!r)return;
+  var sheet=document.getElementById('exRevSheet');
+  if(r&&r.sheetImg&&r.omrMarkers){sheet.style.display='block';examDrawSheet(r,document.getElementById('exRevThumb'),430);}
+  else sheet.style.display='none';
+}
+var EXZ={scale:1};
+function examSheetZoom(){
+  var r=EX.results[EX._revIdx];if(!r||!r.sheetImg)return;
+  document.getElementById('exSheetZoom').classList.add('on');
+  var lbl=document.getElementById('exSheetZlbl');if(lbl)lbl.textContent=r.student?examEsc(r.student.fullname):'ภาพกระดาษคำตอบ';
+  EXZ.scale=1;examSheetApplyZoom();
+  examDrawSheet(r,document.getElementById('exSheetZcanvas'),Math.min(r.omrDims?r.omrDims.w:1200,1400));
+}
+function examSheetZoomBy(d){EXZ.scale=Math.max(1,Math.min(4,EXZ.scale+d*0.4));examSheetApplyZoom();}
+function examSheetApplyZoom(){var c=document.getElementById('exSheetZcanvas');if(c)c.style.width=(EXZ.scale*100)+'%';}
+function examSheetZoomClose(){document.getElementById('exSheetZoom').classList.remove('on');}
 function examOpenReview(i){
   var r=EX.results[i];if(!r)return;
   if(!r.ok){toast('รายการนี้อ่านกระดาษไม่ได้ ('+(r.error||'')+') แก้ไม่ได้','err');return;}
@@ -3980,7 +4061,7 @@ function examOpenReview(i){
   document.getElementById('exReviewModal').classList.add('show');
   examReviewRender();
 }
-function examCloseReview(){examReviewClosePop();document.getElementById('exReviewModal').classList.remove('show');EX._revIdx=null;}
+function examCloseReview(){examReviewClosePop();examSheetZoomClose();document.getElementById('exReviewModal').classList.remove('show');EX._revIdx=null;}
 function examReviewName(r){
   var nm=r.student?((r.student.order_no||'-')+' · '+examEsc(r.student.fullname)):'(ยังไม่ระบุนักเรียน)';
   return nm+(r._needResave?' <span style="font-size:11px;color:#e65100;font-weight:400;">· แก้แล้ว ยังไม่บันทึก</span>':'');
@@ -3996,7 +4077,7 @@ function examReviewRender(){
     document.getElementById('exRevSubFull').textContent=examFmt(subFull);
   }
   var sb=document.getElementById('exRevSaveBtn');if(sb)sb.style.display=r.student?'inline-flex':'none';
-  examReviewGrid();examReviewStats();
+  examReviewGrid();examReviewStats();examRevThumbUpdate();
 }
 function examReviewGrid(){
   var r=EX.results[EX._revIdx];if(!r)return;
@@ -4036,7 +4117,7 @@ function examReviewSetAnswer(q,val){
   var r=EX.results[EX._revIdx];if(!r)return;
   r.answers[q]=val;
   examReviewRecalc(r);examReviewMarkDirty(r);
-  examReviewClosePop();examReviewGrid();examReviewStats();examRenderResults();
+  examReviewClosePop();examReviewGrid();examReviewStats();examRevThumbUpdate();examRenderResults();
 }
 function examReviewSetSub(val){
   var r=EX.results[EX._revIdx];if(!r)return;
