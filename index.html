@@ -671,6 +671,35 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .exam-table tr.needs-review{background:#fff8e1;}
 .exam-table tr.duplicate{background:#ffebee;}
 .exam-table tr.ready{background:#f7fff8;}
+
+/* ===== สอบออนไลน์ — หน้าทำข้อสอบของนักเรียน (เต็มจอ ไม่ใช้ .page เดิม) ===== */
+#oeTakePage{position:fixed;inset:0;z-index:9999;background:#f4f7fb;overflow:auto;font-family:'Sarabun',sans-serif;}
+.oe-take-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.oe-take-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(13,45,94,.15);padding:28px 24px;max-width:420px;width:100%;text-align:center;}
+.oe-take-logo img{width:56px;height:56px;border-radius:12px;margin-bottom:10px;}
+.oe-run-top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(100deg,#0d2d5e,#1a3a6b);color:#fff;}
+.oe-run-title{font-weight:700;font-size:14.5px;}
+.oe-run-timer{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.15);}
+.oe-run-timer.oe-timer-low{background:#c62828;animation:oePulse 1s infinite;}
+@keyframes oePulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.oe-run-warn{background:#fff3e0;color:#e65100;font-size:13px;padding:8px 16px;text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+.oe-run-body{max-width:780px;margin:0 auto;padding:16px;display:flex;gap:16px;align-items:flex-start;}
+.oe-run-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:190px;flex-shrink:0;}
+.oe-run-nav button{height:34px;border-radius:8px;border:1.5px solid var(--border2);background:#fff;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;}
+.oe-run-nav button.oe-nav-answered{background:var(--bluel);border-color:var(--blue);color:var(--blue);}
+.oe-run-nav button.oe-nav-current{background:var(--blue);border-color:var(--blue);color:#fff;}
+.oe-run-nav button.oe-nav-flag{box-shadow:inset 0 0 0 2px #f9a825;}
+.oe-run-q{flex:1;background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:18px;user-select:none;-webkit-user-select:none;min-width:0;}
+.oe-run-q .qtext{font-size:15.6px;font-weight:600;margin-bottom:14px;line-height:1.6;white-space:pre-wrap;}
+.oe-run-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border:1.5px solid var(--border2);border-radius:10px;margin-bottom:8px;cursor:pointer;font-size:14.5px;line-height:1.5;}
+.oe-run-opt.oe-opt-selected{border-color:var(--blue);background:var(--bluel);font-weight:700;}
+.oe-run-bottom{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.oe-watermark{position:fixed;bottom:6px;right:10px;font-size:11px;color:rgba(0,0,0,.28);pointer-events:none;z-index:6;}
+.oe-review-q{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;}
+.oe-review-opt{padding:4px 0;}
+.oe-review-opt.correct{color:var(--green);font-weight:700;}
+.oe-review-opt.wrong-picked{color:var(--red);font-weight:700;text-decoration:line-through;}
+@media (max-width:720px){.oe-run-body{flex-direction:column;}.oe-run-nav{width:100%;grid-template-columns:repeat(8,1fr);}}
 .exam-ans{font-family:ui-monospace,Consolas,monospace;font-size:12px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#455a64;}
 .exam-mini-select{min-width:150px;max-width:260px;height:38px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-family:Sarabun,sans-serif;}
 .exam-badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700;}
@@ -1269,6 +1298,75 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   <div class="cb-sub" id="cbSub"></div>
 </div>
 
+<!-- ===== สอบออนไลน์ (นักเรียนเข้าทางลิงก์ ?exam=CODE ไม่ต้องล็อกอิน) ===== -->
+<div id="oeTakePage" style="display:none;">
+  <div id="oeVerifyBox" class="oe-take-wrap">
+    <div class="oe-take-card">
+      <div class="oe-take-logo"><img src="icon-192.png" alt="" onerror="this.style.display='none';"></div>
+      <h2 id="oeVTitle" style="margin:0 0 6px;color:var(--blue);">สอบออนไลน์</h2>
+      <p id="oeVDesc" style="color:var(--text3);font-size:13.5px;margin:0 0 14px;"></p>
+
+      <div id="oeVForm">
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">ชื่อ-นามสกุล</label>
+          <input class="form-control" id="oeVName" placeholder="เช่น เด็กชายสมชาย ใจดี">
+        </div>
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">ชั้น/ห้อง</label>
+          <input class="form-control" id="oeVRoom" placeholder="เช่น ม.5/1">
+        </div>
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">เลขประจำตัวนักเรียน</label>
+          <input class="form-control" id="oeVCode" inputmode="numeric" placeholder="เลขประจำตัว">
+        </div>
+        <div class="form-group" id="oeVAccessWrap" style="display:none;text-align:left;">
+          <label class="form-label">รหัสเข้าสอบ</label>
+          <input class="form-control" id="oeVAccess" placeholder="รหัสที่ครูให้">
+        </div>
+        <button class="btn btn-primary" style="width:100%;height:44px;" id="oeVBtn" onclick="oeVerifyStart()">➜ เข้าสอบ</button>
+      </div>
+
+      <div id="oeVErr" style="color:var(--red);font-size:13.5px;margin-top:12px;"></div>
+
+      <div id="oeVIntro" style="display:none;text-align:left;">
+        <div style="font-weight:700;font-size:16px;color:var(--blue);margin-bottom:4px;" id="oeVIntroTitle"></div>
+        <div style="font-size:13.5px;color:var(--text3);white-space:pre-wrap;margin-bottom:10px;" id="oeVIntroDesc"></div>
+        <div style="font-size:13.5px;background:#fff8e1;border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+          ⏱️ เวลาสอบ <b id="oeVIntroDur">-</b> นาที · ห้ามออกจากหน้าจอระหว่างสอบ ระบบจะบันทึกและอาจส่งข้อสอบอัตโนมัติหากสลับหน้าจอบ่อยเกินไป
+        </div>
+        <button class="btn btn-primary" style="width:100%;height:44px;" onclick="oeEnterRun()">🚀 เริ่มทำข้อสอบ</button>
+      </div>
+
+      <div id="oeVDone" style="display:none;text-align:center;">
+        <div style="font-size:44px;">✅</div>
+        <div style="font-weight:700;font-size:16px;margin-top:8px;" id="oeVDoneMsg">ส่งข้อสอบเรียบร้อยแล้ว</div>
+        <div id="oeVDoneScore" style="font-size:26px;font-weight:800;color:var(--blue);margin-top:6px;"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:14px;display:none;" id="oeVReviewBtn" onclick="oeShowReview()">📋 ดูเฉลย</button>
+        <div id="oeVReviewBox" style="display:none;text-align:left;margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="oeRunBox" style="display:none;">
+    <div class="oe-run-top">
+      <div class="oe-run-title" id="oeRunTitle">ชื่อข้อสอบ</div>
+      <div class="oe-run-timer" id="oeRunTimer">00:00</div>
+    </div>
+    <div class="oe-run-warn" id="oeRunWarnBar" style="display:none;"></div>
+    <div class="oe-run-body">
+      <div class="oe-run-nav" id="oeRunNav"></div>
+      <div class="oe-run-q" id="oeRunQBox" oncontextmenu="return false;"></div>
+    </div>
+    <div class="oe-run-bottom">
+      <button class="btn btn-outline btn-sm" id="oeRunPrev" onclick="oeGoQuestion(-1)">← ก่อนหน้า</button>
+      <span id="oeRunQNo" style="font-weight:700;font-size:13.5px;"></span>
+      <button class="btn btn-outline btn-sm" id="oeRunNext" onclick="oeGoQuestion(1)">ถัดไป →</button>
+      <button class="btn btn-primary btn-sm" onclick="oeConfirmSubmit()">✅ ส่งข้อสอบ</button>
+    </div>
+  </div>
+  <div class="oe-watermark" id="oeWatermark"></div>
+</div>
+
 <!-- ===== LOGIN ===== -->
 <div id="loginPage" style="display:none;">
   <img class="nyk-login-mascot wave" src="assets/mascots/nyk-mascot-wave-cutout.png" alt="" aria-hidden="true">
@@ -1521,6 +1619,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="nav-item" data-page="pgTeachSubjects"><span class="ni ms-blue">calendar_month</span> <span>ตารางสอน</span></div>
           <div class="nav-item" data-page="pgGrades"><span class="ni ms-orange">grade</span> <span>ผลการเรียน</span></div>
           <div class="nav-item" data-page="pgExam"><span class="ni ms-purple">fact_check</span> <span>ตรวจข้อสอบ</span></div>
+          <div class="nav-item" data-page="pgOnlineExam"><span class="ni ms-purple">quiz</span> <span>สอบออนไลน์</span></div>
           <div class="nav-item" data-page="pgSubjAttReport"><span class="ni ms-green">analytics</span> <span>เวลาเรียนรายวิชา</span></div>
           <div class="nav-item" data-page="pgRoomAttReport"><span class="ni ms-blue">school</span> <span>เวลาเรียนรายห้อง</span></div>
           <div class="nav-item" data-page="pgTimetable"><span class="ni ms-blue">event_note</span> <span>ตารางนักเรียน</span></div>
@@ -2079,6 +2178,186 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== ONLINE EXAM (สอบออนไลน์) ===== -->
+      <div class="page" id="pgOnlineExam">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="goBack()">← กลับ</button><button class="back-btn" onclick="goHome()" style="margin-left:6px;">🏠 หน้าหลัก</button>
+          <div class="pt1"><span class="pt-ic ms-purple">quiz</span> สอบออนไลน์</div>
+        </div>
+        <div class="exam-shell">
+
+          <!-- LIST VIEW -->
+          <div id="oeListView">
+            <div class="exam-panel" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <h3 style="margin:0;"><span class="ms ms-purple">list_alt</span> ชุดข้อสอบของฉัน</h3>
+              <button class="btn btn-primary btn-sm" onclick="oeNewExam()">➕ สร้างชุดสอบใหม่</button>
+            </div>
+            <div id="oeExamList"><div style="color:#aaa;font-size:13px;text-align:center;padding:30px;">กำลังโหลด...</div></div>
+          </div>
+
+          <!-- EDITOR VIEW -->
+          <div id="oeEditorView" style="display:none;">
+            <span class="ex-back" onclick="oeBackToList()">← รายการชุดข้อสอบ</span>
+            <div class="exam-panel" style="margin:10px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div>
+                <h3 style="margin:0;" id="oeEditorTitle">ชุดข้อสอบ</h3>
+                <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="oeEditorSub"></div>
+              </div>
+              <span class="badge badge-gray" id="oeStatusBadge">แบบร่าง</span>
+            </div>
+
+            <div class="exam-tabs" role="tablist" aria-label="เมนูสอบออนไลน์" style="grid-template-columns:repeat(3,minmax(120px,1fr));">
+              <button class="exam-tab active" type="button" data-oe-tab="setup" onclick="oeSetTab('setup')"><span class="ms">tune</span> ตั้งค่า</button>
+              <button class="exam-tab" type="button" data-oe-tab="questions" onclick="oeSetTab('questions')"><span class="ms">quiz</span> คำถาม <small id="oeTabQCount">0</small></button>
+              <button class="exam-tab" type="button" data-oe-tab="results" onclick="oeSetTab('results')"><span class="ms">bar_chart</span> ผลสอบ <small id="oeTabRCount">0</small></button>
+            </div>
+
+            <!-- SETUP PANE -->
+            <div class="exam-tab-pane active" data-oe-pane="setup">
+              <div class="exam-panel">
+                <div class="form-group">
+                  <label class="form-label">ชื่อชุดข้อสอบ</label>
+                  <input class="form-control" id="oeTitle" placeholder="เช่น สอบปลายภาค วิชาวิทยาศาสตร์">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">คำชี้แจง (ไม่บังคับ)</label>
+                  <textarea class="form-control" id="oeDesc" rows="2" placeholder="เช่น ห้ามใช้เครื่องคิดเลข"></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ห้องเรียนที่สอบได้</label>
+                  <div id="oeRoomChecks" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px solid var(--border2);border-radius:10px;">กำลังโหลด...</div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">เวลาสอบ (นาที)</label>
+                    <input class="form-control" type="number" id="oeDuration" min="1" value="60">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">จำนวนครั้งที่เข้าสอบได้</label>
+                    <input class="form-control" type="number" id="oeAttemptLimit" min="1" value="1">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">เปิดสอบตั้งแต่ (ไม่บังคับ)</label>
+                    <input class="form-control" type="datetime-local" id="oeStartAt">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">ปิดสอบ (ไม่บังคับ)</label>
+                    <input class="form-control" type="datetime-local" id="oeEndAt">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">สุ่มจำนวนข้อ (ไม่บังคับ)</label>
+                    <input class="form-control" type="number" id="oeRandomCount" min="1" placeholder="ว่าง = ใช้ทุกข้อ">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">รหัสเข้าสอบเพิ่มเติม (ไม่บังคับ)</label>
+                    <input class="form-control" id="oeAccessCode" placeholder="เช่น 1234">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:14.4px;"><input type="checkbox" id="oeShuffleQ" checked> สุ่มลำดับข้อ</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:14.4px;"><input type="checkbox" id="oeShuffleOpt" checked> สุ่มลำดับตัวเลือก</label>
+                </div>
+                <div class="form-row">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:14.4px;"><input type="checkbox" id="oeShowScore" checked> แสดงคะแนนให้นักเรียนเห็นหลังส่ง</label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">แสดงเฉลย</label>
+                  <select class="form-control" id="oeShowAnswers">
+                    <option value="never">ไม่แสดง</option>
+                    <option value="after_close" selected>แสดงหลังปิดสอบ</option>
+                    <option value="immediate">แสดงทันทีหลังส่ง</option>
+                  </select>
+                </div>
+
+                <div id="oeLinkBox" style="display:none;background:#f5f9ff;border:1px solid #e3f2fd;border-radius:10px;padding:12px;margin:14px 0;">
+                  <div style="font-size:13px;color:var(--text3);margin-bottom:4px;">🔗 ลิงก์เข้าสอบสำหรับนักเรียน</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input class="form-control" id="oeLinkInput" readonly style="flex:1;min-width:200px;font-size:13px;">
+                    <button class="btn btn-sm btn-outline" onclick="oeCopyLink()">📋 คัดลอกลิงก์</button>
+                  </div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:6px;">รหัสเข้าสอบ: <b id="oeCodeText">-</b></div>
+                </div>
+
+                <div class="exam-actions">
+                  <button class="btn btn-primary btn-sm" onclick="oeSaveExam()">💾 บันทึกการตั้งค่า</button>
+                  <button class="btn btn-green btn-sm" id="oePublishBtn" onclick="oeSetStatus('published')" style="display:none;">🚀 เผยแพร่ (เปิดสอบ)</button>
+                  <button class="btn btn-outline btn-sm" id="oeCloseBtn" onclick="oeSetStatus('closed')" style="display:none;">🔒 ปิดสอบ</button>
+                  <button class="btn btn-outline btn-sm" id="oeReopenBtn" onclick="oeSetStatus('published')" style="display:none;">▶️ เปิดสอบอีกครั้ง</button>
+                  <button class="btn btn-sm" style="color:#c62828;border-color:#ffcdd2;background:#fff;" onclick="oeDeleteExam()">🗑️ ลบชุดข้อสอบ</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- QUESTIONS PANE -->
+            <div class="exam-tab-pane" data-oe-pane="questions">
+              <div class="exam-panel">
+                <h3><span class="ms ms-blue">add_circle</span> <span id="oeQFormHead">เพิ่มคำถาม</span></h3>
+                <div class="form-group">
+                  <label class="form-label">คำถาม</label>
+                  <textarea class="form-control" id="oeQText" rows="2" placeholder="พิมพ์คำถาม..."></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">ชนิดคำถาม</label>
+                    <select class="form-control" id="oeQType" onchange="oeRenderOptionInputs()">
+                      <option value="mcq">ปรนัย 4 ตัวเลือก</option>
+                      <option value="tf">ถูก/ผิด</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">คะแนน</label>
+                    <input class="form-control" type="number" id="oeQScore" min="0" step="0.5" value="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ตัวเลือก (เลือกช่องหน้าคำตอบที่ถูก)</label>
+                  <div id="oeOptInputs"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">คำอธิบายเฉลย (ไม่บังคับ)</label>
+                  <input class="form-control" id="oeQExplain" placeholder="อธิบายเหตุผลของคำตอบ">
+                </div>
+                <div class="exam-actions">
+                  <button class="btn btn-primary btn-sm" id="oeQSaveBtn" onclick="oeSaveQuestion()">💾 บันทึกคำถาม</button>
+                  <button class="btn btn-outline btn-sm" id="oeQCancelBtn" onclick="oeCancelEditQuestion()" style="display:none;">ยกเลิกแก้ไข</button>
+                </div>
+              </div>
+              <div class="exam-panel" style="margin-top:12px;">
+                <h3><span class="ms ms-purple">format_list_numbered</span> รายการคำถาม (<span id="oeQListCount">0</span> ข้อ · <span id="oeQListScore">0</span> คะแนนรวม)</h3>
+                <div id="oeQuestionList"><div style="color:#aaa;font-size:13px;">ยังไม่มีคำถาม</div></div>
+              </div>
+            </div>
+
+            <!-- RESULTS PANE -->
+            <div class="exam-tab-pane" data-oe-pane="results">
+              <div class="exam-panel">
+                <div class="exam-summary">
+                  <div class="exam-stat"><div class="v" id="oeStAttempted">0</div><div class="l">เข้าสอบแล้ว</div></div>
+                  <div class="exam-stat"><div class="v" id="oeStSubmitted">0</div><div class="l">ส่งแล้ว</div></div>
+                  <div class="exam-stat"><div class="v" id="oeStAvg">-</div><div class="l">คะแนนเฉลี่ย</div></div>
+                  <div class="exam-stat"><div class="v" id="oeStEvents">0</div><div class="l">เหตุการณ์ผิดปกติ</div></div>
+                </div>
+                <div class="exam-actions" style="margin-bottom:10px;">
+                  <button class="btn btn-outline btn-sm" onclick="oeLoadResults()">🔄 รีเฟรช</button>
+                  <button class="btn btn-green btn-sm" onclick="oeExportCsv()">📊 Excel</button>
+                </div>
+                <div class="exam-table-wrap">
+                  <table class="exam-table">
+                    <thead><tr><th>นักเรียน</th><th>ห้อง</th><th>สถานะ</th><th>คะแนนอัตโนมัติ</th><th>ปรับคะแนน</th><th>คะแนนสุทธิ</th><th>เตือน</th><th>ส่งเมื่อ</th></tr></thead>
+                    <tbody id="oeResultBody"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลสอบ</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -4568,6 +4847,753 @@ function examCamResume(){
 }
 function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}EX.camPending=null;EX.camPaused=false;document.getElementById('exCameraModal').style.display='none';document.getElementById('exCamConfirm').style.display='none';document.getElementById('exCamShutterBar').style.display='none';document.getElementById('exCamStatus').style.display='block';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
+// ===== ONLINE EXAM (สอบออนไลน์) — ฝั่งครู =====
+var OE={exams:[],rooms:[],exam:null,questions:[],editQId:null,results:[]};
+var OE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ตัดตัวที่สับสน (0/O, 1/I)
+
+function oeFriendlyErr(e,prefix){
+  var m=(e&&e.message)||'';
+  if(/oe_exams|oe_questions|oe_options|oe_attempts|oe_answers|oe_events|oe_start_attempt|oe_save_answer|oe_submit_attempt|oe_log_event|oe_get_review|schema cache/i.test(m)){
+    return (prefix?prefix+': ':'')+'ยังไม่ได้ติดตั้งฐานข้อมูลสอบออนไลน์ — กรุณารันไฟล์ sql/online_exam_module.sql ใน Supabase SQL Editor ก่อนใช้งาน';
+  }
+  return (prefix?prefix+': ':'')+m;
+}
+
+function oeGenCode(len){
+  var s='';for(var i=0;i<(len||6);i++)s+=OE_CHARS[Math.floor(Math.random()*OE_CHARS.length)];return s;
+}
+function oeIsAdmin(){return G.user&&G.user.role==='admin';}
+
+async function oeInit(){
+  document.getElementById('oeEditorView').style.display='none';
+  document.getElementById('oeListView').style.display='';
+  if(!OE.rooms.length)await oeLoadRooms();
+  await oeLoadExamList();
+}
+
+async function oeLoadRooms(){
+  OE.rooms=await api('/rest/v1/classrooms?select=id,room_name&order=room_name').catch(function(){return[];});
+}
+
+function oeRoomName(id){
+  var r=OE.rooms.filter(function(x){return String(x.id)===String(id);})[0];
+  return r?r.room_name:('#'+id);
+}
+
+async function oeLoadExamList(){
+  var el=document.getElementById('oeExamList');
+  el.innerHTML='<div style="color:#aaa;font-size:13px;text-align:center;padding:30px;">กำลังโหลด...</div>';
+  var q='/rest/v1/oe_exams?select=*&order=created_at.desc';
+  if(!oeIsAdmin())q+='&created_by=eq.'+G.user.id;
+  var rows=null;
+  try{rows=await api(q);}catch(e){el.innerHTML='<div style="color:var(--red);font-size:13px;text-align:center;padding:30px;">'+oeFriendlyErr(e)+'</div>';return;}
+  OE.exams=rows||[];
+  if(!OE.exams.length){el.innerHTML='<div style="color:#aaa;font-size:13px;text-align:center;padding:30px;">ยังไม่มีชุดข้อสอบ กด "สร้างชุดสอบใหม่" เพื่อเริ่ม</div>';return;}
+  var ids=OE.exams.map(function(x){return x.id;});
+  var qc=await api('/rest/v1/oe_questions?exam_id=in.('+ids.join(',')+')&select=id,exam_id').catch(function(){return[];});
+  var ac=await api('/rest/v1/oe_attempts?exam_id=in.('+ids.join(',')+')&select=id,exam_id,status').catch(function(){return[];});
+  var qCount={},aCount={};
+  (qc||[]).forEach(function(x){qCount[x.exam_id]=(qCount[x.exam_id]||0)+1;});
+  (ac||[]).forEach(function(x){aCount[x.exam_id]=(aCount[x.exam_id]||0)+1;});
+  var statusMap={draft:['badge-gray','แบบร่าง'],published:['badge-green','เปิดสอบอยู่'],closed:['badge-red','ปิดสอบแล้ว']};
+  el.innerHTML=OE.exams.map(function(x){
+    var st=statusMap[x.status]||statusMap.draft;
+    var rooms=(x.room_ids||'').split(',').filter(Boolean).map(oeRoomName).join(', ')||'-';
+    return '<div class="exam-panel" style="margin-bottom:10px;cursor:pointer;" onclick="oeOpenExam('+x.id+')">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">'
+      +'<div><div style="font-weight:700;font-size:15.6px;color:var(--blue);">'+examEsc(x.title)+'</div>'
+      +'<div style="font-size:12.5px;color:var(--text3);margin-top:3px;">ห้อง: '+examEsc(rooms)+'</div></div>'
+      +'<span class="badge '+st[0]+'">'+st[1]+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:14px;margin-top:8px;font-size:12.5px;color:var(--text3);">'
+      +'<span>📝 '+(qCount[x.id]||0)+' ข้อ</span><span>👥 '+(aCount[x.id]||0)+' ครั้งที่เข้าสอบ</span>'
+      +'</div></div>';
+  }).join('');
+}
+
+function oeBackToList(){
+  document.getElementById('oeEditorView').style.display='none';
+  document.getElementById('oeListView').style.display='';
+  oeLoadExamList();
+}
+
+function oeSetTab(tab){
+  tab=tab||'setup';
+  document.querySelectorAll('#pgOnlineExam .exam-tab').forEach(function(btn){btn.classList.toggle('active',btn.dataset.oeTab===tab);});
+  document.querySelectorAll('#pgOnlineExam .exam-tab-pane').forEach(function(p){p.classList.toggle('active',p.dataset.oePane===tab);});
+  if(tab==='results')oeLoadResults();
+}
+
+function oeNewExam(){
+  OE.exam=null;OE.questions=[];OE.editQId=null;
+  document.getElementById('oeTitle').value='';
+  document.getElementById('oeDesc').value='';
+  document.getElementById('oeDuration').value=60;
+  document.getElementById('oeAttemptLimit').value=1;
+  document.getElementById('oeStartAt').value='';
+  document.getElementById('oeEndAt').value='';
+  document.getElementById('oeRandomCount').value='';
+  document.getElementById('oeAccessCode').value='';
+  document.getElementById('oeShuffleQ').checked=true;
+  document.getElementById('oeShuffleOpt').checked=true;
+  document.getElementById('oeShowScore').checked=true;
+  document.getElementById('oeShowAnswers').value='after_close';
+  document.getElementById('oeLinkBox').style.display='none';
+  document.getElementById('oeEditorTitle').textContent='ชุดข้อสอบใหม่';
+  document.getElementById('oeEditorSub').textContent='ยังไม่ได้บันทึก';
+  document.getElementById('oeStatusBadge').className='badge badge-gray';
+  document.getElementById('oeStatusBadge').textContent='แบบร่าง';
+  oeRenderRoomChecks([]);
+  oeRenderQuestionList();
+  oeCancelEditQuestion();
+  document.getElementById('oePublishBtn').style.display='none';
+  document.getElementById('oeCloseBtn').style.display='none';
+  document.getElementById('oeReopenBtn').style.display='none';
+  document.getElementById('oeListView').style.display='none';
+  document.getElementById('oeEditorView').style.display='';
+  oeSetTab('setup');
+}
+
+function oeToLocalInput(iso){
+  if(!iso)return'';
+  var d=new Date(iso);
+  var p=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+
+function oeRenderRoomChecks(checkedIds){
+  var el=document.getElementById('oeRoomChecks');
+  checkedIds=(checkedIds||[]).map(String);
+  if(!OE.rooms.length){el.innerHTML='<div style="color:#aaa;font-size:12px;">ไม่มีห้องเรียน</div>';return;}
+  el.innerHTML=OE.rooms.map(function(r){
+    var ck=checkedIds.indexOf(String(r.id))>=0?' checked':'';
+    return '<label style="display:flex;align-items:center;gap:5px;font-size:13.5px;"><input type="checkbox" class="oe-room-chk" value="'+r.id+'"'+ck+'> '+examEsc(r.room_name)+'</label>';
+  }).join('');
+}
+
+function oeGatherRoomIds(){
+  return Array.from(document.querySelectorAll('.oe-room-chk:checked')).map(function(c){return c.value;});
+}
+
+async function oeOpenExam(id){
+  var rows=await api('/rest/v1/oe_exams?id=eq.'+id+'&select=*').catch(function(){return[];});
+  if(!rows||!rows.length){toast('โหลดชุดข้อสอบไม่สำเร็จ','err');return;}
+  OE.exam=rows[0];OE.editQId=null;
+  document.getElementById('oeTitle').value=OE.exam.title||'';
+  document.getElementById('oeDesc').value=OE.exam.description||'';
+  document.getElementById('oeDuration').value=OE.exam.duration_minutes||60;
+  document.getElementById('oeAttemptLimit').value=OE.exam.attempt_limit||1;
+  document.getElementById('oeStartAt').value=oeToLocalInput(OE.exam.start_at);
+  document.getElementById('oeEndAt').value=oeToLocalInput(OE.exam.end_at);
+  document.getElementById('oeRandomCount').value=OE.exam.random_count||'';
+  document.getElementById('oeAccessCode').value=OE.exam.access_code||'';
+  document.getElementById('oeShuffleQ').checked=!!OE.exam.shuffle_questions;
+  document.getElementById('oeShuffleOpt').checked=!!OE.exam.shuffle_options;
+  document.getElementById('oeShowScore').checked=!!OE.exam.show_score;
+  document.getElementById('oeShowAnswers').value=OE.exam.show_answers_mode||'after_close';
+  oeRenderRoomChecks((OE.exam.room_ids||'').split(',').filter(Boolean));
+  document.getElementById('oeEditorTitle').textContent=OE.exam.title||'(ไม่มีชื่อ)';
+  var statusMap={draft:['badge-gray','แบบร่าง'],published:['badge-green','เปิดสอบอยู่'],closed:['badge-red','ปิดสอบแล้ว']};
+  var st=statusMap[OE.exam.status]||statusMap.draft;
+  document.getElementById('oeStatusBadge').className='badge '+st[0];
+  document.getElementById('oeStatusBadge').textContent=st[1];
+  document.getElementById('oePublishBtn').style.display=(OE.exam.status==='draft')?'':'none';
+  document.getElementById('oeCloseBtn').style.display=(OE.exam.status==='published')?'':'none';
+  document.getElementById('oeReopenBtn').style.display=(OE.exam.status==='closed')?'':'none';
+  oeShowLinkBox();
+  await oeLoadQuestions();
+  oeCancelEditQuestion();
+  document.getElementById('oeListView').style.display='none';
+  document.getElementById('oeEditorView').style.display='';
+  oeSetTab('setup');
+}
+
+function oeShowLinkBox(){
+  var box=document.getElementById('oeLinkBox');
+  if(!OE.exam||!OE.exam.exam_code){box.style.display='none';return;}
+  var url=location.origin+location.pathname+'?exam='+OE.exam.exam_code;
+  document.getElementById('oeLinkInput').value=url;
+  document.getElementById('oeCodeText').textContent=OE.exam.exam_code;
+  box.style.display='';
+}
+
+function oeCopyLink(){
+  var inp=document.getElementById('oeLinkInput');
+  inp.select();
+  navigator.clipboard&&navigator.clipboard.writeText(inp.value).then(function(){toast('📋 คัดลอกลิงก์แล้ว');}).catch(function(){
+    try{document.execCommand('copy');toast('📋 คัดลอกลิงก์แล้ว');}catch(e){toast('คัดลอกไม่สำเร็จ กรุณาคัดลอกเอง','err');}
+  });
+}
+
+async function oeSaveExam(){
+  var title=document.getElementById('oeTitle').value.trim();
+  if(!title){toast('กรอกชื่อชุดข้อสอบก่อน','err');return;}
+  var roomIds=oeGatherRoomIds();
+  if(!roomIds.length){toast('เลือกห้องเรียนอย่างน้อย 1 ห้อง','err');return;}
+  var payload={
+    title:title,
+    description:document.getElementById('oeDesc').value.trim()||null,
+    room_ids:roomIds.join(','),
+    duration_minutes:Math.max(1,parseInt(document.getElementById('oeDuration').value)||60),
+    attempt_limit:Math.max(1,parseInt(document.getElementById('oeAttemptLimit').value)||1),
+    start_at:document.getElementById('oeStartAt').value?new Date(document.getElementById('oeStartAt').value).toISOString():null,
+    end_at:document.getElementById('oeEndAt').value?new Date(document.getElementById('oeEndAt').value).toISOString():null,
+    random_count:document.getElementById('oeRandomCount').value?parseInt(document.getElementById('oeRandomCount').value):null,
+    access_code:document.getElementById('oeAccessCode').value.trim()||null,
+    shuffle_questions:document.getElementById('oeShuffleQ').checked,
+    shuffle_options:document.getElementById('oeShuffleOpt').checked,
+    show_score:document.getElementById('oeShowScore').checked,
+    show_answers_mode:document.getElementById('oeShowAnswers').value
+  };
+  try{
+    if(OE.exam&&OE.exam.id){
+      await api('/rest/v1/oe_exams?id=eq.'+OE.exam.id,{method:'PATCH',body:JSON.stringify(payload)});
+      OE.exam=Object.assign(OE.exam,payload);
+    }else{
+      payload.created_by=G.user.id;
+      var saved=null,tries=0;
+      while(!saved&&tries<6){
+        tries++;
+        payload.exam_code=oeGenCode(6);
+        try{
+          saved=(await api('/rest/v1/oe_exams',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
+        }catch(e){
+          if(!/duplicate|unique/i.test(e.message||'')||tries>=6)throw e;
+        }
+      }
+      OE.exam=saved;
+    }
+    document.getElementById('oeEditorTitle').textContent=OE.exam.title;
+    document.getElementById('oeEditorSub').textContent='บันทึกล่าสุด '+new Date().toLocaleString('th-TH');
+    document.getElementById('oePublishBtn').style.display=(OE.exam.status==='draft')?'':'none';
+    oeShowLinkBox();
+    toast('✅ บันทึกการตั้งค่าแล้ว');
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+}
+
+async function oeSetStatus(status){
+  if(!OE.exam||!OE.exam.id){toast('บันทึกการตั้งค่าก่อน','err');return;}
+  if(status==='published'){
+    if(!OE.questions.length){toast('ต้องมีคำถามอย่างน้อย 1 ข้อก่อนเผยแพร่','err');return;}
+    if(!(OE.exam.room_ids||'').length){toast('เลือกห้องเรียนก่อนเผยแพร่','err');return;}
+  }
+  try{
+    await api('/rest/v1/oe_exams?id=eq.'+OE.exam.id,{method:'PATCH',body:JSON.stringify({status:status})});
+    OE.exam.status=status;
+    var statusMap={draft:['badge-gray','แบบร่าง'],published:['badge-green','เปิดสอบอยู่'],closed:['badge-red','ปิดสอบแล้ว']};
+    var st=statusMap[status];
+    document.getElementById('oeStatusBadge').className='badge '+st[0];
+    document.getElementById('oeStatusBadge').textContent=st[1];
+    document.getElementById('oePublishBtn').style.display=(status==='draft')?'':'none';
+    document.getElementById('oeCloseBtn').style.display=(status==='published')?'':'none';
+    document.getElementById('oeReopenBtn').style.display=(status==='closed')?'':'none';
+    toast(status==='published'?'🚀 เผยแพร่ชุดข้อสอบแล้ว':(status==='closed'?'🔒 ปิดสอบแล้ว':'เปลี่ยนสถานะแล้ว'));
+  }catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+e.message,'err');}
+}
+
+async function oeDeleteExam(){
+  if(!OE.exam||!OE.exam.id)return;
+  if(!confirm('ลบชุดข้อสอบ "'+OE.exam.title+'" ทั้งหมด (รวมคำถามและผลสอบ) ใช่หรือไม่?'))return;
+  try{
+    await api('/rest/v1/oe_exams?id=eq.'+OE.exam.id,{method:'DELETE'});
+    toast('ลบชุดข้อสอบแล้ว');
+    oeBackToList();
+  }catch(e){toast('ลบไม่สำเร็จ: '+e.message,'err');}
+}
+
+// ---------- คำถาม ----------
+function oeRenderOptionInputs(){
+  var type=document.getElementById('oeQType').value;
+  var el=document.getElementById('oeOptInputs');
+  if(type==='tf'){
+    el.innerHTML=
+      '<label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><input type="radio" name="oeCorrect" value="0" checked> ถูก</label>'+
+      '<label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="oeCorrect" value="1"> ผิด</label>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<4;i++){
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+      +'<input type="radio" name="oeCorrect" value="'+i+'"'+(i===0?' checked':'')+'>'
+      +'<input class="form-control oe-opt-text" data-i="'+i+'" placeholder="ตัวเลือกที่ '+String.fromCharCode(65+i)+'" style="flex:1;">'
+      +'</div>';
+  }
+  el.innerHTML=html;
+}
+oeRenderOptionInputs(); // เรียกครั้งแรกตอนโหลดสคริปต์ (ค่า default = mcq)
+
+function oeCancelEditQuestion(){
+  OE.editQId=null;
+  document.getElementById('oeQFormHead').textContent='เพิ่มคำถาม';
+  document.getElementById('oeQText').value='';
+  document.getElementById('oeQType').value='mcq';
+  document.getElementById('oeQScore').value=1;
+  document.getElementById('oeQExplain').value='';
+  oeRenderOptionInputs();
+  document.getElementById('oeQSaveBtn').textContent='💾 บันทึกคำถาม';
+  document.getElementById('oeQCancelBtn').style.display='none';
+}
+
+async function oeLoadQuestions(){
+  if(!OE.exam||!OE.exam.id){OE.questions=[];oeRenderQuestionList();return;}
+  var qs=await api('/rest/v1/oe_questions?exam_id=eq.'+OE.exam.id+'&select=*&order=sort_order.asc,id.asc').catch(function(){return[];});
+  var ids=(qs||[]).map(function(q){return q.id;});
+  var opts=ids.length?await api('/rest/v1/oe_options?question_id=in.('+ids.join(',')+')&select=*&order=sort_order.asc,id.asc').catch(function(){return[];}):[];
+  (qs||[]).forEach(function(q){q.options=(opts||[]).filter(function(o){return o.question_id===q.id;});});
+  OE.questions=qs||[];
+  oeRenderQuestionList();
+}
+
+function oeRenderQuestionList(){
+  document.getElementById('oeTabQCount').textContent=OE.questions.length;
+  document.getElementById('oeQListCount').textContent=OE.questions.length;
+  var total=OE.questions.reduce(function(s,q){return s+Number(q.score||0);},0);
+  document.getElementById('oeQListScore').textContent=examFmt(total);
+  var el=document.getElementById('oeQuestionList');
+  if(!OE.questions.length){el.innerHTML='<div style="color:#aaa;font-size:13px;">ยังไม่มีคำถาม</div>';return;}
+  el.innerHTML=OE.questions.map(function(q,idx){
+    var opts=(q.options||[]).map(function(o){
+      return '<div style="font-size:13px;padding:2px 0;'+(o.is_correct?'color:var(--green);font-weight:700;':'color:var(--text3);')+'">'
+        +(o.is_correct?'✓ ':'· ')+examEsc(o.option_text)+'</div>';
+    }).join('');
+    return '<div class="exam-panel" style="margin-bottom:8px;">'
+      +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">'
+      +'<div style="flex:1;"><b>ข้อ '+(idx+1)+'.</b> '+examEsc(q.question_text)+' <span style="color:var(--text3);font-size:12px;">('+examFmt(q.score)+' คะแนน)</span></div>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0;">'
+      +'<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="oeMoveQuestion('+q.id+',-1)" title="เลื่อนขึ้น">↑</button>'
+      +'<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="oeMoveQuestion('+q.id+',1)" title="เลื่อนลง">↓</button>'
+      +'<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="oeEditQuestion('+q.id+')">✏️</button>'
+      +'<button class="btn btn-sm" style="padding:2px 8px;color:#c62828;border-color:#ffcdd2;background:#fff;" onclick="oeDeleteQuestion('+q.id+')">🗑️</button>'
+      +'</div></div>'
+      +'<div style="margin-top:6px;padding-left:8px;">'+opts+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function oeEditQuestion(id){
+  var q=OE.questions.filter(function(x){return x.id===id;})[0];
+  if(!q)return;
+  OE.editQId=id;
+  document.getElementById('oeQFormHead').textContent='แก้ไขคำถาม';
+  document.getElementById('oeQText').value=q.question_text;
+  document.getElementById('oeQType').value=q.question_type;
+  document.getElementById('oeQScore').value=q.score;
+  document.getElementById('oeQExplain').value=q.explanation||'';
+  oeRenderOptionInputs();
+  var opts=q.options||[];
+  if(q.question_type==='tf'){
+    var wrongIsSecond=opts[0]&&!opts[0].is_correct;
+    document.querySelector('input[name="oeCorrect"][value="'+(wrongIsSecond?1:0)+'"]').checked=true;
+  }else{
+    document.querySelectorAll('.oe-opt-text').forEach(function(inp,i){inp.value=opts[i]?opts[i].option_text:'';});
+    var ci=opts.findIndex(function(o){return o.is_correct;});
+    if(ci<0)ci=0;
+    var r=document.querySelector('input[name="oeCorrect"][value="'+ci+'"]');
+    if(r)r.checked=true;
+  }
+  document.getElementById('oeQSaveBtn').textContent='💾 บันทึกการแก้ไข';
+  document.getElementById('oeQCancelBtn').style.display='';
+  document.getElementById('oeQText').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+async function oeSaveQuestion(){
+  if(!OE.exam||!OE.exam.id){toast('บันทึกการตั้งค่าชุดข้อสอบก่อน (แท็บตั้งค่า)','err');return;}
+  var text=document.getElementById('oeQText').value.trim();
+  if(!text){toast('กรอกคำถามก่อน','err');return;}
+  var type=document.getElementById('oeQType').value;
+  var score=parseFloat(document.getElementById('oeQScore').value)||0;
+  var explain=document.getElementById('oeQExplain').value.trim()||null;
+  var correctIdx=parseInt((document.querySelector('input[name="oeCorrect"]:checked')||{}).value,10);
+  var optionTexts;
+  if(type==='tf'){optionTexts=['ถูก','ผิด'];}
+  else{
+    optionTexts=Array.from(document.querySelectorAll('.oe-opt-text')).map(function(i){return i.value.trim();});
+    if(optionTexts.some(function(t){return!t;})){toast('กรอกตัวเลือกให้ครบทั้ง 4 ช่อง','err');return;}
+  }
+  if(isNaN(correctIdx)){toast('เลือกคำตอบที่ถูกต้อง','err');return;}
+  try{
+    var qId=OE.editQId;
+    if(qId){
+      await api('/rest/v1/oe_questions?id=eq.'+qId,{method:'PATCH',body:JSON.stringify({question_text:text,question_type:type,score:score,explanation:explain})});
+      await api('/rest/v1/oe_options?question_id=eq.'+qId,{method:'DELETE'});
+    }else{
+      var maxOrder=OE.questions.reduce(function(m,q){return Math.max(m,q.sort_order||0);},0);
+      var newQ=(await api('/rest/v1/oe_questions',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify({exam_id:OE.exam.id,question_text:text,question_type:type,score:score,explanation:explain,sort_order:maxOrder+1})}))[0];
+      qId=newQ.id;
+    }
+    var optRows=optionTexts.map(function(t,i){return{question_id:qId,option_text:t,is_correct:i===correctIdx,sort_order:i};});
+    await api('/rest/v1/oe_options',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(optRows)});
+    toast('✅ บันทึกคำถามแล้ว');
+    oeCancelEditQuestion();
+    await oeLoadQuestions();
+  }catch(e){toast('บันทึกคำถามไม่สำเร็จ: '+e.message,'err');}
+}
+
+async function oeDeleteQuestion(id){
+  if(!confirm('ลบคำถามนี้?'))return;
+  try{
+    await api('/rest/v1/oe_questions?id=eq.'+id,{method:'DELETE'});
+    if(OE.editQId===id)oeCancelEditQuestion();
+    await oeLoadQuestions();
+    toast('ลบคำถามแล้ว');
+  }catch(e){toast('ลบไม่สำเร็จ: '+e.message,'err');}
+}
+
+async function oeMoveQuestion(id,dir){
+  var idx=OE.questions.findIndex(function(q){return q.id===id;});
+  var swapIdx=idx+dir;
+  if(idx<0||swapIdx<0||swapIdx>=OE.questions.length)return;
+  var a=OE.questions[idx],b=OE.questions[swapIdx];
+  var ao=a.sort_order,bo=b.sort_order;
+  try{
+    await api('/rest/v1/oe_questions?id=eq.'+a.id,{method:'PATCH',body:JSON.stringify({sort_order:bo})});
+    await api('/rest/v1/oe_questions?id=eq.'+b.id,{method:'PATCH',body:JSON.stringify({sort_order:ao})});
+    await oeLoadQuestions();
+  }catch(e){toast('เลื่อนลำดับไม่สำเร็จ: '+e.message,'err');}
+}
+
+// ---------- ผลสอบ ----------
+async function oeLoadResults(){
+  if(!OE.exam||!OE.exam.id)return;
+  var tbody=document.getElementById('oeResultBody');
+  tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">กำลังโหลด...</td></tr>';
+  var attempts=await api('/rest/v1/oe_attempts?exam_id=eq.'+OE.exam.id+'&select=*&order=id.asc').catch(function(){return[];});
+  attempts=attempts||[];
+  if(!attempts.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีผลสอบ</td></tr>';
+    document.getElementById('oeTabRCount').textContent='0';
+    document.getElementById('oeStAttempted').textContent='0';
+    document.getElementById('oeStSubmitted').textContent='0';
+    document.getElementById('oeStAvg').textContent='-';
+    document.getElementById('oeStEvents').textContent='0';
+    OE.results=[];
+    return;
+  }
+  var sids=Array.from(new Set(attempts.map(function(a){return a.student_id;})));
+  var students=await api('/rest/v1/students?id=in.('+sids.join(',')+')&select=id,fullname,student_code,order_no,classroom_id').catch(function(){return[];});
+  var stuMap={};(students||[]).forEach(function(s){stuMap[s.id]=s;});
+  var rids=Array.from(new Set((students||[]).map(function(s){return s.classroom_id;}).filter(Boolean)));
+  var rooms=rids.length?await api('/rest/v1/classrooms?id=in.('+rids.join(',')+')&select=id,room_name').catch(function(){return[];}):[];
+  var roomMap={};(rooms||[]).forEach(function(r){roomMap[r.id]=r.room_name;});
+
+  OE.results=attempts.map(function(a){
+    var s=stuMap[a.student_id]||{};
+    return Object.assign({},a,{_student:s,_room:roomMap[s.classroom_id]||''});
+  });
+
+  var statusTxt={in_progress:'กำลังสอบ',submitted:'ส่งแล้ว',expired:'หมดเวลา'};
+  tbody.innerHTML=OE.results.map(function(r){
+    var sc=r.auto_score==null?'-':examFmt(r.auto_score);
+    var fs=r.final_score==null?'-':examFmt(r.final_score);
+    var sub=r.submitted_at?new Date(r.submitted_at).toLocaleString('th-TH'):'-';
+    var warn=r.warn_count>0?('<span style="color:var(--red);font-weight:700;">'+r.warn_count+'</span>'):'0';
+    return '<tr>'
+      +'<td>'+(r._student.order_no||'-')+' · '+examEsc(r._student.fullname||('#'+r.student_id))+'</td>'
+      +'<td>'+examEsc(r._room)+'</td>'
+      +'<td>'+(statusTxt[r.status]||r.status)+(r.auto_submitted?' (อัตโนมัติ)':'')+'</td>'
+      +'<td>'+sc+'</td>'
+      +'<td><input type="number" step="0.5" class="form-control oe-adj-input" data-id="'+r.id+'" value="'+(r.adjusted_score==null?'':r.adjusted_score)+'" placeholder="-" style="width:80px;padding:4px 6px;height:28px;"></td>'
+      +'<td><b>'+fs+'</b></td>'
+      +'<td>'+warn+'</td>'
+      +'<td>'+sub+' <button class="btn btn-sm btn-outline" style="padding:2px 8px;margin-left:4px;" onclick="oeSaveAdjust('+r.id+')">บันทึก</button></td>'
+      +'</tr>';
+  }).join('');
+
+  var submitted=OE.results.filter(function(r){return r.status==='submitted';});
+  var avg=submitted.length?submitted.reduce(function(s,r){return s+Number(r.final_score||0);},0)/submitted.length:null;
+  document.getElementById('oeTabRCount').textContent=OE.results.length;
+  document.getElementById('oeStAttempted').textContent=OE.results.length;
+  document.getElementById('oeStSubmitted').textContent=submitted.length;
+  document.getElementById('oeStAvg').textContent=avg==null?'-':examFmt(avg);
+  document.getElementById('oeStEvents').textContent=OE.results.reduce(function(s,r){return s+(r.warn_count||0);},0);
+}
+
+async function oeSaveAdjust(attemptId){
+  var inp=document.querySelector('.oe-adj-input[data-id="'+attemptId+'"]');
+  var r=OE.results.filter(function(x){return x.id===attemptId;})[0];
+  if(!inp||!r)return;
+  var adj=inp.value===''?null:parseFloat(inp.value);
+  var finalScore=(adj===null||isNaN(adj))?r.auto_score:adj;
+  try{
+    await api('/rest/v1/oe_attempts?id=eq.'+attemptId,{method:'PATCH',body:JSON.stringify({adjusted_score:isNaN(adj)?null:adj,final_score:finalScore})});
+    toast('✅ ปรับคะแนนแล้ว');
+    await oeLoadResults();
+  }catch(e){toast('ปรับคะแนนไม่สำเร็จ: '+e.message,'err');}
+}
+
+function oeExportCsv(){
+  if(!OE.results.length){toast('ยังไม่มีผลสอบให้ส่งออก','err');return;}
+  var statusTxt={in_progress:'กำลังสอบ',submitted:'ส่งแล้ว',expired:'หมดเวลา'};
+  var rows=[['เลขที่','ชื่อ-สกุล','ห้อง','สถานะ','คะแนนอัตโนมัติ','ปรับคะแนน','คะแนนสุทธิ','จำนวนเตือน','ส่งเมื่อ']];
+  OE.results.forEach(function(r){
+    rows.push([
+      r._student.order_no||'',r._student.fullname||'',r._room||'',
+      statusTxt[r.status]||r.status,
+      r.auto_score==null?'':r.auto_score,
+      r.adjusted_score==null?'':r.adjusted_score,
+      r.final_score==null?'':r.final_score,
+      r.warn_count||0,
+      r.submitted_at?new Date(r.submitted_at).toLocaleString('th-TH'):''
+    ]);
+  });
+  downloadCSV(rows,'ผลสอบออนไลน์_'+(OE.exam?OE.exam.title:'exam')+'.csv');
+}
+
+// ===== ONLINE EXAM — ฝั่งนักเรียน (เข้าทางลิงก์ ?exam=CODE ไม่ต้องล็อกอิน ไม่พึ่ง G/session เดิม) =====
+var OET={code:null,attemptToken:null,exam:null,questions:[],cur:0,flags:{},timerInt:null,deadline:null,warnCount:0,fsEntered:false,submitting:false,student:null};
+
+// เรียกจาก bootstrap ตอนโหลดหน้า — คืน true ถ้าเป็นลิงก์เข้าสอบ (ต้องข้าม flow login ปกติทั้งหมด)
+function oeTakeCheckBoot(){
+  var code=null;
+  try{code=new URLSearchParams(location.search).get('exam');}catch(e){}
+  if(!code)return false;
+  var lp=document.getElementById('loginPage');if(lp)lp.style.display='none';
+  var ap=document.getElementById('app');if(ap)ap.style.display='none';
+  document.getElementById('oeTakePage').style.display='block';
+  OET.code=code.trim();
+  var saved=null;try{saved=JSON.parse(localStorage.getItem('oe_last_id')||'null');}catch(e){}
+  if(saved){
+    document.getElementById('oeVName').value=saved.name||'';
+    document.getElementById('oeVRoom').value=saved.room||'';
+    document.getElementById('oeVCode').value=saved.code||'';
+  }
+  return true;
+}
+
+var OE_ERR_MSG={
+  exam_not_found:'ไม่พบข้อสอบชุดนี้ — ตรวจสอบลิงก์อีกครั้ง',
+  exam_not_open:'ข้อสอบชุดนี้ยังไม่เปิดให้สอบในขณะนี้',
+  exam_not_started:'ยังไม่ถึงเวลาเปิดสอบ',
+  exam_closed:'หมดเวลาสอบแล้ว หรือครูปิดสอบแล้ว',
+  wrong_access_code:'รหัสเข้าสอบไม่ถูกต้อง',
+  student_not_found:'ไม่พบเลขประจำตัวนักเรียนนี้ในระบบ — ติดต่อครูผู้สอน',
+  student_mismatch:'ชื่อ-สกุล หรือ ชั้น/ห้อง ไม่ตรงกับเลขประจำตัวนักเรียนที่ครูลงทะเบียนไว้ กรุณาตรวจสอบการสะกด',
+  room_not_allowed:'ห้องเรียนของคุณไม่ได้อยู่ในรายชื่อที่อนุญาตให้สอบชุดนี้',
+  attempt_limit_reached:'คุณเข้าสอบครบจำนวนครั้งที่กำหนดแล้ว',
+  exam_has_no_questions:'ข้อสอบชุดนี้ยังไม่มีคำถาม — ติดต่อครูผู้สอน',
+  unauthorized:'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่'
+};
+
+async function oeVerifyStart(){
+  var name=document.getElementById('oeVName').value.trim();
+  var room=document.getElementById('oeVRoom').value.trim();
+  var code=document.getElementById('oeVCode').value.trim();
+  var access=document.getElementById('oeVAccess').value.trim();
+  var errEl=document.getElementById('oeVErr');errEl.textContent='';
+  if(!name||!room||!code){errEl.textContent='กรอกข้อมูลให้ครบทุกช่อง';return;}
+  var btn=document.getElementById('oeVBtn');btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';
+  try{
+    var data=await api('/rest/v1/rpc/oe_start_attempt',{method:'POST',body:JSON.stringify({
+      p_exam_code:OET.code,p_access_code:access,p_student_code:code,p_fullname:name,p_room:room
+    })});
+    try{localStorage.setItem('oe_last_id',JSON.stringify({name:name,room:room,code:code}));}catch(e){}
+
+    if(data.already_submitted){
+      oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
+      return;
+    }
+
+    OET.attemptToken=data.attempt_token;
+    OET.exam=data.exam;
+    OET.questions=data.questions||[];
+    OET.student=data.student;
+    OET.deadline=new Date(data.started_at).getTime()+OET.exam.duration_minutes*60000;
+
+    document.getElementById('oeVForm').style.display='none';
+    document.getElementById('oeVIntroTitle').textContent=OET.exam.title||'';
+    document.getElementById('oeVIntroDesc').textContent=OET.exam.description||'';
+    document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
+    document.getElementById('oeVIntro').style.display='block';
+    document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
+  }catch(e){
+    var key=(e.message||'').trim();
+    errEl.textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
+  }finally{
+    btn.disabled=false;btn.textContent='➜ เข้าสอบ';
+  }
+}
+
+function oeEnterRun(){
+  document.getElementById('oeVerifyBox').style.display='none';
+  document.getElementById('oeRunBox').style.display='block';
+  document.getElementById('oeRunTitle').textContent=OET.exam.title||'';
+  OET.cur=0;
+  oeRenderNav();
+  oeRenderQuestion();
+  oeStartTimer();
+  oeAttachAntiCheat();
+  try{
+    var p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();
+    if(p&&p.then)p.then(function(){OET.fsEntered=true;}).catch(function(){});
+  }catch(e){}
+}
+
+function oeRenderNav(){
+  var el=document.getElementById('oeRunNav');
+  el.innerHTML=OET.questions.map(function(q,i){
+    var cls=[];
+    if(i===OET.cur)cls.push('oe-nav-current');
+    if(q.selected_option_id!=null)cls.push('oe-nav-answered');
+    if(OET.flags[q.id])cls.push('oe-nav-flag');
+    return '<button type="button" class="'+cls.join(' ')+'" onclick="oeGoTo('+i+')">'+(i+1)+'</button>';
+  }).join('');
+}
+function oeGoTo(idx){
+  if(idx<0||idx>=OET.questions.length)return;
+  OET.cur=idx;
+  oeRenderNav();
+  oeRenderQuestion();
+}
+function oeGoQuestion(delta){oeGoTo(OET.cur+delta);}
+
+function oeRenderQuestion(){
+  var q=OET.questions[OET.cur];
+  if(!q)return;
+  document.getElementById('oeRunQNo').textContent='ข้อ '+(OET.cur+1)+' / '+OET.questions.length;
+  document.getElementById('oeRunPrev').disabled=(OET.cur===0);
+  document.getElementById('oeRunNext').disabled=(OET.cur===OET.questions.length-1);
+  var optsHtml=(q.options||[]).map(function(o){
+    var sel=(q.selected_option_id===o.id);
+    return '<div class="oe-run-opt'+(sel?' oe-opt-selected':'')+'" onclick="oeSelectOption('+o.id+')">'
+      +'<span>'+(sel?'●':'○')+'</span><span>'+examEsc(o.option_text)+'</span></div>';
+  }).join('');
+  var flagged=!!OET.flags[q.id];
+  document.getElementById('oeRunQBox').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+    +'<div class="qtext" style="flex:1;">'+examEsc(q.question_text)+'</div>'
+    +'<button type="button" class="btn btn-sm '+(flagged?'':'btn-outline')+'" style="'+(flagged?'background:#f9a825;color:#fff;border-color:#f9a825;':'')+'flex-shrink:0;" onclick="oeToggleFlag()">🚩</button>'
+    +'</div>'
+    +'<div style="margin-top:4px;">'+optsHtml+'</div>';
+}
+
+async function oeSelectOption(optId){
+  var q=OET.questions[OET.cur];
+  if(!q||OET.submitting)return;
+  var prev=q.selected_option_id;
+  q.selected_option_id=optId;
+  oeRenderQuestion();oeRenderNav();
+  try{
+    await api('/rest/v1/rpc/oe_save_answer',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken,p_question_id:q.id,p_option_id:optId})});
+  }catch(e){
+    if(/time_up/i.test(e.message||'')){oeForceTimeUp();return;}
+    q.selected_option_id=prev;oeRenderQuestion();oeRenderNav();
+    toast('บันทึกคำตอบไม่สำเร็จ ลองใหม่','err');
+  }
+}
+function oeToggleFlag(){
+  var q=OET.questions[OET.cur];if(!q)return;
+  OET.flags[q.id]=!OET.flags[q.id];
+  oeRenderQuestion();oeRenderNav();
+}
+
+function oeStartTimer(){
+  oeTickTimer();
+  OET.timerInt=setInterval(oeTickTimer,1000);
+}
+function oeTickTimer(){
+  var remain=Math.max(0,OET.deadline-Date.now());
+  var mm=Math.floor(remain/60000),ss=Math.floor((remain%60000)/1000);
+  var el=document.getElementById('oeRunTimer');
+  el.textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+  el.classList.toggle('oe-timer-low',remain<60000);
+  if(remain<=0)oeForceTimeUp();
+}
+function oeForceTimeUp(){
+  if(OET.submitting)return;
+  toast('⏰ หมดเวลาสอบ กำลังส่งข้อสอบอัตโนมัติ','err');
+  oeSubmit(true);
+}
+
+function oeAttachAntiCheat(){
+  document.addEventListener('visibilitychange',oeOnVisibilityChange);
+  document.addEventListener('fullscreenchange',oeOnFullscreenChange);
+  window.addEventListener('beforeunload',oeOnBeforeUnload);
+}
+function oeDetachAntiCheat(){
+  document.removeEventListener('visibilitychange',oeOnVisibilityChange);
+  document.removeEventListener('fullscreenchange',oeOnFullscreenChange);
+  window.removeEventListener('beforeunload',oeOnBeforeUnload);
+}
+function oeOnBeforeUnload(e){
+  if(OET.submitting)return;
+  e.preventDefault();e.returnValue='';return '';
+}
+function oeOnVisibilityChange(){
+  if(document.hidden&&!OET.submitting&&OET.attemptToken)oeLogEventAndWarn('tab_hidden','การสลับหน้าจอ/แท็บ');
+}
+function oeOnFullscreenChange(){
+  if(!document.fullscreenElement&&OET.fsEntered&&!OET.submitting&&OET.attemptToken)oeLogEventAndWarn('fullscreen_exit','การออกจากโหมดเต็มหน้าจอ');
+}
+async function oeLogEventAndWarn(type,label){
+  try{
+    var res=await api('/rest/v1/rpc/oe_log_event',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken,p_event_type:type,p_event_detail:label})});
+    OET.warnCount=res.warn_count||OET.warnCount;
+    var bar=document.getElementById('oeRunWarnBar');
+    bar.style.display='flex';
+    bar.innerHTML='⚠️ ตรวจพบ'+label+' (ครั้งที่ '+OET.warnCount+'/3)'+(type==='fullscreen_exit'?' <button class="btn btn-sm" style="padding:2px 10px;" onclick="oeReenterFullscreen()">กลับเข้าเต็มหน้าจอ</button>':'');
+    if(OET.warnCount>=3){
+      toast('⚠️ พบพฤติกรรมผิดปกติเกินกำหนด ระบบส่งข้อสอบอัตโนมัติ','err');
+      oeSubmit(true);
+    }
+  }catch(e){}
+}
+function oeReenterFullscreen(){
+  try{
+    var p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();
+    if(p&&p.then)p.then(function(){OET.fsEntered=true;}).catch(function(){});
+  }catch(e){}
+}
+
+function oeConfirmSubmit(){
+  var unanswered=OET.questions.filter(function(q){return q.selected_option_id==null;}).length;
+  var msg=unanswered>0?('ยังเหลือ '+unanswered+' ข้อที่ยังไม่ตอบ ยืนยันส่งข้อสอบหรือไม่?'):'ยืนยันส่งข้อสอบหรือไม่? (แก้ไขคำตอบเพิ่มเติมไม่ได้อีก)';
+  if(confirm(msg))oeSubmit(false);
+}
+async function oeSubmit(auto){
+  if(OET.submitting)return;
+  OET.submitting=true;
+  clearInterval(OET.timerInt);
+  oeDetachAntiCheat();
+  try{
+    var res=await api('/rest/v1/rpc/oe_submit_attempt',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken,p_auto:!!auto})});
+    oeShowDone(res.score,res.show_score,auto?'หมดเวลา — ส่งข้อสอบอัตโนมัติแล้ว':'ส่งข้อสอบเรียบร้อยแล้ว');
+  }catch(e){
+    toast('ส่งข้อสอบไม่สำเร็จ: '+(e.message||'')+' — กรุณาลองกดส่งอีกครั้ง','err');
+    OET.submitting=false;
+    oeAttachAntiCheat();
+    OET.timerInt=setInterval(oeTickTimer,1000);
+    return;
+  }
+  try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+}
+function oeShowDone(score,showScore,msg){
+  document.getElementById('oeRunBox').style.display='none';
+  document.getElementById('oeVerifyBox').style.display='flex';
+  document.getElementById('oeVForm').style.display='none';
+  document.getElementById('oeVIntro').style.display='none';
+  document.getElementById('oeVDone').style.display='block';
+  document.getElementById('oeVDoneMsg').textContent=msg||'ส่งข้อสอบเรียบร้อยแล้ว';
+  document.getElementById('oeVDoneScore').textContent=(showScore&&score!=null)?('คะแนน: '+examFmt(score)):'';
+  document.getElementById('oeVReviewBtn').style.display='';
+}
+async function oeShowReview(){
+  var box=document.getElementById('oeVReviewBox');
+  box.style.display='block';
+  box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">กำลังโหลด...</div>';
+  try{
+    var res=await api('/rest/v1/rpc/oe_get_review',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken})});
+    if(!res.allowed){box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">ยังไม่เปิดให้ดูเฉลยในขณะนี้</div>';return;}
+    box.innerHTML=(res.questions||[]).map(function(q,i){
+      var opts=(q.options||[]).map(function(o){
+        var cls=o.is_correct?'correct':(o.id===q.selected_option_id?'wrong-picked':'');
+        return '<div class="oe-review-opt '+cls+'">'+(o.is_correct?'✓ ':(o.id===q.selected_option_id?'✕ ':'· '))+examEsc(o.option_text)+'</div>';
+      }).join('');
+      return '<div class="oe-review-q"><b>ข้อ '+(i+1)+'.</b> '+examEsc(q.question_text)+opts
+        +(q.explanation?'<div style="color:var(--text3);margin-top:4px;">💡 '+examEsc(q.explanation)+'</div>':'')+'</div>';
+    }).join('');
+  }catch(e){box.innerHTML='<div style="color:var(--red);font-size:13px;">โหลดเฉลยไม่สำเร็จ</div>';}
+}
+
 // สแตกหน้าที่เปิดเอง (ไม่พึ่ง history.state) — กันปัญหา iOS PWA แบบ standalone
 // ที่ history API ไม่เสถียร (state หายเป็นระยะ) ทำให้ปุ่มกลับเด้งไปหน้าหลักเสมอ
 var NAV_STACK=['pgDash'];
@@ -4608,6 +5634,7 @@ function openPage(id,fromPop){
   if(id==='pgSkipRep')arOpen('skip');
   if(id==='pgGrades')loadSubjectsForGrade();
   if(id==='pgExam')initExamGrader();
+  if(id==='pgOnlineExam')oeInit();
   if(id==='pgTimetable')loadTimetable();
   if(id==='pgSubjectAtt')loadSubjectsForAtt();
   if(id==='pgStudents')loadStudentProfiles();
@@ -14276,7 +15303,9 @@ async function doChangePassword(){
 registerSW();
 
 // ===== คืนค่า session ตอนโหลดหน้า (รีเฟรชแล้วไม่หลุดออกหน้าล็อกอิน) =====
+// ลิงก์เข้าสอบออนไลน์ (?exam=CODE) ตัดผ่านทุกอย่างข้างบน ไม่แตะ session/login เดิมเลย
 (async function(){
+  if(oeTakeCheckBoot())return;
   var has=false;try{has=!!localStorage.getItem('nyk_session');}catch(e){}
   if(!has){var lp=document.getElementById('loginPage');if(lp)lp.style.display='flex';return;}
   var ok=false;try{ok=await resumeSession();}catch(e){}

@@ -84,7 +84,8 @@ begin
     'activity_teachers','afternoon_attendance','behavior_categories','assignment_teachers',
     'subjects','good_deed_categories','activity_attendance','parents','exam_results',
     'push_subscriptions','login_events','audit_log','user_permissions',
-    'grade_history','sdq_records'
+    'grade_history','sdq_records',
+    'oe_exams','oe_questions','oe_options','oe_attempts','oe_answers','oe_events'
   ]
   loop
     if to_regclass('public.'||t) is null then
