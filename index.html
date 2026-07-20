@@ -699,6 +699,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .oe-review-opt{padding:4px 0;}
 .oe-review-opt.correct{color:var(--green);font-weight:700;}
 .oe-review-opt.wrong-picked{color:var(--red);font-weight:700;text-decoration:line-through;}
+#oePasteBox:empty:before{content:attr(data-placeholder);color:#999;}
 @media (max-width:720px){.oe-run-body{flex-direction:column;}.oe-run-nav{width:100%;grid-template-columns:repeat(8,1fr);}}
 .exam-ans{font-family:ui-monospace,Consolas,monospace;font-size:12px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#455a64;}
 .exam-mini-select{min-width:150px;max-width:260px;height:38px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-family:Sarabun,sans-serif;}
@@ -2298,7 +2299,19 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
 
             <!-- QUESTIONS PANE -->
             <div class="exam-tab-pane" data-oe-pane="questions">
-              <div class="exam-panel">
+              <div class="exam-panel" style="margin-bottom:12px;">
+                <h3><span class="ms ms-blue">content_paste</span> วางคำถามจากข้อความ (Word/เอกสาร)</h3>
+                <div style="font-size:12.5px;color:var(--text3);margin-bottom:8px;">
+                  วางคำถามแบบมีเลขข้อ + ตัวเลือก ก./ข./ค./ง. ได้ทีเดียวหลายข้อ — ถ้าตัวเลือกที่ถูกทำ<b>ตัวหนา</b>หรือ<span style="color:#c62828;">สีแดง</span>ไว้ ระบบจะจับให้อัตโนมัติ (ตรวจสอบอีกครั้งก่อนนำเข้า)
+                </div>
+                <div id="oePasteBox" contenteditable="true" data-placeholder="วางคำถามจาก Word ที่นี่ (Ctrl+V)..." style="min-height:90px;max-height:260px;overflow:auto;border:1.5px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:14px;background:#fafcff;"></div>
+                <div class="exam-actions">
+                  <button class="btn btn-primary btn-sm" onclick="oeParsePaste()">🔍 แยกคำถาม</button>
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('oePasteBox').innerHTML='';document.getElementById('oePasteResult').innerHTML='';OE.pasteQs=[];">ล้าง</button>
+                </div>
+                <div id="oePasteResult" style="margin-top:10px;"></div>
+              </div>
+              <div class="exam-panel" style="margin-bottom:12px;">
                 <h3><span class="ms ms-blue">add_circle</span> <span id="oeQFormHead">เพิ่มคำถาม</span></h3>
                 <div class="form-group">
                   <label class="form-label">คำถาม</label>
@@ -4850,7 +4863,7 @@ function examCamResume(){
 function examCloseCamera(){clearInterval(EX.camTimer);EX.camTimer=null;if(EX.cam){EX.cam.getTracks().forEach(function(t){t.stop();});EX.cam=null;}EX.camPending=null;EX.camPaused=false;document.getElementById('exCameraModal').style.display='none';document.getElementById('exCamConfirm').style.display='none';document.getElementById('exCamShutterBar').style.display='none';document.getElementById('exCamStatus').style.display='block';examClearCamCanvas(document.getElementById('exCamCanvas'));}
 
 // ===== ONLINE EXAM (สอบออนไลน์) — ฝั่งครู =====
-var OE={exams:[],rooms:[],exam:null,questions:[],editQId:null,results:[]};
+var OE={exams:[],rooms:[],exam:null,questions:[],editQId:null,results:[],pasteQs:[]};
 var OE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ตัดตัวที่สับสน (0/O, 1/I)
 
 function oeFriendlyErr(e,prefix){
@@ -5134,6 +5147,140 @@ function oeCancelEditQuestion(){
   oeRenderOptionInputs();
   document.getElementById('oeQSaveBtn').textContent='💾 บันทึกคำถาม';
   document.getElementById('oeQCancelBtn').style.display='none';
+}
+
+// ---------- วางคำถามจากข้อความ (Word/เอกสาร) — แยกอัตโนมัติ + ตรวจจับคำตอบจากสีแดง/ตัวหนา ----------
+var OE_Q_RE=/^\s*(?:ข้อ(?:ที่)?\s*)?(\d{1,3})[.\)．、]\s*(.*)$/;
+var OE_OPT_RE=/^\s*([ก-ฉ])[.\)．、:]\s*(.*)$/;
+
+function oeIsReddish(colorStr){
+  var m=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(colorStr||'');
+  if(!m)return false;
+  var r=+m[1],g=+m[2],b=+m[3];
+  return r>110&&r>g+35&&r>b+35;
+}
+function oeLineHighlighted(nodes){
+  var found=false;
+  function walk(n){
+    if(found)return;
+    if(n.nodeType===3){
+      if(!n.textContent.trim())return;
+      var el=n.parentElement;if(!el)return;
+      var cs=getComputedStyle(el);
+      var w=parseInt(cs.fontWeight,10)||400;
+      if(w>=600||oeIsReddish(cs.color))found=true;
+    }else if(n.nodeType===1){
+      Array.from(n.childNodes).forEach(walk);
+    }
+  }
+  nodes.forEach(walk);
+  return found;
+}
+// แยกเนื้อหาที่วาง (rich HTML จาก paste) เป็น "บรรทัด" ตาม block element (P/DIV/LI) หรือ <br>
+function oeGetLines(root){
+  var lines=[];
+  function pushLine(nodes){
+    if(!nodes.length)return;
+    var text=nodes.map(function(n){return n.textContent;}).join('').replace(/\s+/g,' ').trim();
+    if(!text)return;
+    lines.push({text:text,hi:oeLineHighlighted(nodes)});
+  }
+  var blocks=root.children.length?Array.from(root.children):[root];
+  blocks.forEach(function(block){
+    var cur=[];
+    Array.from(block.childNodes).forEach(function(n){
+      if(n.nodeType===1&&n.tagName==='BR'){pushLine(cur);cur=[];}
+      else cur.push(n);
+    });
+    pushLine(cur);
+  });
+  return lines;
+}
+
+function oeParsePaste(){
+  var root=document.getElementById('oePasteBox');
+  var lines=oeGetLines(root);
+  var qs=[],cur=null;
+  lines.forEach(function(ln){
+    var mQ=OE_Q_RE.exec(ln.text);
+    var mO=OE_OPT_RE.exec(ln.text);
+    if(mQ){
+      cur={text:mQ[2].trim(),options:[]};
+      qs.push(cur);
+    }else if(mO&&cur){
+      cur.options.push({text:mO[2].trim(),hi:ln.hi});
+    }else if(cur&&!cur.options.length){
+      cur.text=(cur.text+' '+ln.text).trim(); // คำถามยาวหลายบรรทัด (ยังไม่เจอตัวเลือกแรก)
+    }
+  });
+  qs=qs.filter(function(q){return q.text&&q.options.length>=2;});
+  var resultEl=document.getElementById('oePasteResult');
+  if(!qs.length){
+    resultEl.innerHTML='<div style="color:var(--red);font-size:13px;">ไม่พบคำถามที่แยกได้ — ต้องขึ้นต้นด้วยเลขข้อ+จุด (เช่น "7.") และตัวเลือกขึ้นต้นด้วย ก./ข./ค./ง.</div>';
+    OE.pasteQs=[];
+    return;
+  }
+  OE.pasteQs=qs;
+  oeRenderPastePreview();
+}
+
+function oeRenderPastePreview(){
+  var el=document.getElementById('oePasteResult');
+  el.innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:8px;">พบ '+OE.pasteQs.length+' ข้อ — ตรวจสอบคำตอบที่ถูกก่อนนำเข้า (ระบบเลือกให้จากสีแดง/ตัวหนา ถ้ามี)</div>'
+    +OE.pasteQs.map(function(q,qi){
+      var detected=q.options.findIndex(function(o){return o.hi;});
+      var warn=detected<0?'<div style="color:#e65100;font-size:12px;margin-top:4px;">⚠️ ไม่พบคำตอบที่ทำสีแดง/ตัวหนา กรุณาเลือกคำตอบที่ถูกด้วยตนเอง</div>':'';
+      var optsHtml=q.options.map(function(o,oi){
+        return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+          +'<input type="radio" name="oePasteCorrect'+qi+'" value="'+oi+'"'+(oi===detected?' checked':'')+'>'
+          +'<input class="form-control oe-paste-opt" data-qi="'+qi+'" data-oi="'+oi+'" value="'+examEsc(o.text)+'" style="flex:1;padding:4px 8px;height:30px;font-size:13px;">'
+          +'</div>';
+      }).join('');
+      return '<div class="exam-panel" style="margin-bottom:8px;background:#fafcff;">'
+        +'<label style="display:flex;gap:8px;align-items:flex-start;">'
+        +'<input type="checkbox" class="oe-paste-inc" data-qi="'+qi+'" checked style="margin-top:5px;">'
+        +'<textarea class="form-control oe-paste-qtext" data-qi="'+qi+'" rows="2" style="flex:1;font-size:13.5px;">'+examEsc(q.text)+'</textarea>'
+        +'</label>'
+        +'<div style="margin:8px 0 0 26px;">'+optsHtml+'</div>'
+        +warn
+        +'</div>';
+    }).join('')
+    +'<div class="form-group" style="max-width:160px;">'
+    +'<label class="form-label">คะแนนต่อข้อ (ทั้งชุดที่นำเข้า)</label>'
+    +'<input class="form-control" type="number" id="oePasteScore" min="0" step="0.5" value="1">'
+    +'</div>'
+    +'<div class="exam-actions"><button class="btn btn-primary btn-sm" onclick="oeImportPasted()">✅ นำเข้าคำถามที่เลือก</button></div>';
+}
+
+async function oeImportPasted(){
+  if(!OE.exam||!OE.exam.id){toast('บันทึกการตั้งค่าชุดข้อสอบก่อน (แท็บตั้งค่า)','err');return;}
+  var score=parseFloat(document.getElementById('oePasteScore').value)||1;
+  var maxOrder=OE.questions.reduce(function(m,q){return Math.max(m,q.sort_order||0);},0);
+  var included=Array.from(document.querySelectorAll('.oe-paste-inc:checked')).map(function(c){return parseInt(c.dataset.qi,10);});
+  if(!included.length){toast('ยังไม่ได้เลือกข้อที่จะนำเข้า','err');return;}
+  var ok=0,fail=0;
+  for(var idx=0;idx<included.length;idx++){
+    var qi=included[idx];
+    var qtextEl=document.querySelector('.oe-paste-qtext[data-qi="'+qi+'"]');
+    var text=qtextEl.value.trim();
+    var optEls=document.querySelectorAll('.oe-paste-opt[data-qi="'+qi+'"]');
+    var optionTexts=Array.from(optEls).map(function(i){return i.value.trim();});
+    var correctRadio=document.querySelector('input[name="oePasteCorrect'+qi+'"]:checked');
+    var correctIdx=correctRadio?parseInt(correctRadio.value,10):NaN;
+    if(!text||optionTexts.some(function(t){return!t;})||isNaN(correctIdx)){fail++;continue;}
+    try{
+      maxOrder++;
+      var newQ=(await api('/rest/v1/oe_questions',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify({exam_id:OE.exam.id,question_text:text,question_type:'mcq',score:score,sort_order:maxOrder})}))[0];
+      var optRows=optionTexts.map(function(t,i){return{question_id:newQ.id,option_text:t,is_correct:i===correctIdx,sort_order:i};});
+      await api('/rest/v1/oe_options',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(optRows)});
+      ok++;
+    }catch(e){fail++;}
+  }
+  toast('นำเข้าสำเร็จ '+ok+' ข้อ'+(fail?(' · ข้าม/ล้มเหลว '+fail+' ข้อ (กรอกไม่ครบหรือยังไม่เลือกคำตอบ)'):''));
+  document.getElementById('oePasteBox').innerHTML='';
+  document.getElementById('oePasteResult').innerHTML='';
+  OE.pasteQs=[];
+  await oeLoadQuestions();
 }
 
 async function oeLoadQuestions(){
