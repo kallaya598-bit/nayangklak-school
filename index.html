@@ -683,24 +683,65 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .oe-run-timer.oe-timer-low{background:#c62828;animation:oePulse 1s infinite;}
 @keyframes oePulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 .oe-run-warn{background:#fff3e0;color:#e65100;font-size:13px;padding:8px 16px;text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
-.oe-run-body{max-width:780px;margin:0 auto;padding:16px;display:flex;gap:16px;align-items:flex-start;}
-.oe-run-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:190px;flex-shrink:0;}
-.oe-run-nav button{height:34px;border-radius:8px;border:1.5px solid var(--border2);background:#fff;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;}
-.oe-run-nav button.oe-nav-answered{background:var(--bluel);border-color:var(--blue);color:var(--blue);}
-.oe-run-nav button.oe-nav-current{background:var(--blue);border-color:var(--blue);color:#fff;}
-.oe-run-nav button.oe-nav-flag{box-shadow:inset 0 0 0 2px #f9a825;}
-.oe-run-q{flex:1;background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:18px;user-select:none;-webkit-user-select:none;min-width:0;}
-.oe-run-q .qtext{font-size:15.6px;font-weight:600;margin-bottom:14px;line-height:1.6;white-space:pre-wrap;}
-.oe-run-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border:1.5px solid var(--border2);border-radius:10px;margin-bottom:8px;cursor:pointer;font-size:14.5px;line-height:1.5;}
-.oe-run-opt.oe-opt-selected{border-color:var(--blue);background:var(--bluel);font-weight:700;}
+.oe-run-body{max-width:700px;margin:0 auto;padding:16px;}
+.oe-progress-bar{height:6px;border-radius:999px;background:var(--bluel);overflow:hidden;}
+.oe-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),#1976d2);border-radius:999px;transition:width .25s ease;}
+.oe-progress-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;margin-bottom:16px;}
+.oe-progress-label{font-size:12px;font-weight:600;color:var(--text3);}
+.oe-jump-btn{display:flex;align-items:center;gap:5px;font-family:inherit;font-size:12px;font-weight:700;color:var(--blue);background:var(--bluel);border:none;border-radius:999px;padding:6px 12px;cursor:pointer;flex-shrink:0;}
+.oe-jump-btn .ms{font-size:14px;}
+.oe-run-q{position:relative;background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:22px 20px;user-select:none;-webkit-user-select:none;}
+.oe-qnum{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#1976d2;margin-bottom:8px;}
+.oe-run-q .qtext{font-size:20px;font-weight:700;line-height:1.55;margin-bottom:18px;white-space:pre-wrap;}
+.oe-opts{display:flex;flex-direction:column;gap:10px;}
+.oe-run-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:inherit;font-size:15.5px;font-weight:600;line-height:1.5;color:var(--text);background:#fff;border:2px solid var(--border2);border-radius:14px;padding:13px 16px;cursor:pointer;min-height:52px;}
+.oe-opt-badge{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--bluel);color:#4b5b74;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;}
+.oe-run-opt .oe-opt-text{flex:1;}
+.oe-opt-check{display:none;width:18px;height:18px;color:var(--blue);flex-shrink:0;}
+.oe-run-opt.oe-opt-selected{border-color:var(--blue);background:var(--bluel);}
+.oe-run-opt.oe-opt-selected .oe-opt-badge{background:var(--blue);color:#fff;}
+.oe-run-opt.oe-opt-selected .oe-opt-check{display:block;}
 .oe-run-bottom{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.oe-flag-btn{display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12.5px;font-weight:700;color:#a1690a;background:#fff6e0;border:none;border-radius:10px;padding:9px 13px;cursor:pointer;}
+.oe-flag-btn.flagged{background:#f9a825;color:#fff;}
+.oe-nav-btns{display:flex;gap:8px;}
 .oe-watermark{position:fixed;bottom:6px;right:10px;font-size:11px;color:rgba(0,0,0,.28);pointer-events:none;z-index:6;}
 .oe-review-q{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;}
 .oe-review-opt{padding:4px 0;}
 .oe-review-opt.correct{color:var(--green);font-weight:700;}
 .oe-review-opt.wrong-picked{color:var(--red);font-weight:700;text-decoration:line-through;}
 #oePasteBox:empty:before{content:attr(data-placeholder);color:#999;}
-@media (max-width:720px){.oe-run-body{flex-direction:column;}.oe-run-nav{width:100%;grid-template-columns:repeat(8,1fr);}}
+
+/* ---- ชีทดูข้อทั้งหมด / ย้อนกลับไปข้อที่ยังไม่ทำ ---- */
+.oe-sheet-backdrop{position:fixed;inset:0;background:rgba(13,26,48,.42);opacity:0;visibility:hidden;transition:opacity .2s ease;z-index:300;}
+.oe-sheet-backdrop.open{opacity:1;visibility:visible;}
+.oe-sheet{position:fixed;left:0;right:0;bottom:0;max-width:700px;margin:0 auto;background:#fff;border-radius:20px 20px 0 0;padding:16px 20px 22px;transform:translateY(100%);transition:transform .25s cubic-bezier(.32,.72,0,1);z-index:301;box-shadow:0 -10px 30px rgba(13,45,94,.18);max-height:70vh;overflow:auto;}
+.oe-sheet.open{transform:translateY(0);}
+.oe-sheet-grab{width:38px;height:4px;border-radius:999px;background:#dde5f1;margin:0 auto 14px;}
+.oe-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.oe-sheet-head span{font-size:15px;font-weight:700;color:var(--text);}
+.oe-sheet-close{width:30px;height:30px;border-radius:50%;border:none;background:#eef1f6;color:#5b6b82;font-size:14px;cursor:pointer;}
+.oe-sheet-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.oe-sn{position:relative;height:42px;border-radius:11px;border:2px solid var(--border2);background:#fff;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--text);cursor:pointer;}
+.oe-sn.answered{background:var(--bluel);border-color:#bcd7f5;color:var(--blue);}
+.oe-sn.current{background:var(--blue);border-color:var(--blue);color:#fff;}
+.oe-sn.flagged::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#f9a825;border:2px solid #fff;}
+.oe-sheet-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;font-weight:600;color:#5b6b82;}
+.oe-sheet-legend span{display:flex;align-items:center;gap:6px;}
+.oe-sheet-legend .dot{width:10px;height:10px;border-radius:50%;background:var(--border2);border:2px solid var(--border2);flex-shrink:0;}
+.oe-sheet-legend .dot.answered{background:var(--bluel);border-color:#bcd7f5;}
+.oe-sheet-legend .dot.flagged{background:#f9a825;border-color:#f9a825;}
+
+@media (min-width:720px){
+  .oe-run-body{padding:26px 20px;}
+  .oe-run-q{padding:32px 34px;}
+  .oe-run-q .qtext{font-size:25px;margin-bottom:24px;}
+  .oe-run-opt{font-size:17px;padding:16px 20px;min-height:60px;}
+  .oe-opt-badge{width:34px;height:34px;font-size:15px;}
+  .oe-run-bottom{padding:14px 20px;}
+  .oe-sheet-grid{grid-template-columns:repeat(8,1fr);}
+}
+@media (prefers-reduced-motion: reduce){.oe-sheet,.oe-sheet-backdrop{transition:none;}}
 .exam-ans{font-family:ui-monospace,Consolas,monospace;font-size:12px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#455a64;}
 .exam-mini-select{min-width:150px;max-width:260px;height:38px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-family:Sarabun,sans-serif;}
 .exam-badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700;}
@@ -1355,14 +1396,35 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     </div>
     <div class="oe-run-warn" id="oeRunWarnBar" style="display:none;"></div>
     <div class="oe-run-body">
-      <div class="oe-run-nav" id="oeRunNav"></div>
+      <div class="oe-progress-bar"><div class="oe-progress-fill" id="oeProgressFill" style="width:0%;"></div></div>
+      <div class="oe-progress-row">
+        <div class="oe-progress-label" id="oeProgressLabel"></div>
+        <button type="button" class="oe-jump-btn" onclick="oeOpenNavSheet()"><span class="ms">apps</span>ทุกข้อ</button>
+      </div>
       <div class="oe-run-q" id="oeRunQBox" oncontextmenu="return false;"></div>
     </div>
     <div class="oe-run-bottom">
-      <button class="btn btn-outline btn-sm" id="oeRunPrev" onclick="oeGoQuestion(-1)">← ก่อนหน้า</button>
-      <span id="oeRunQNo" style="font-weight:700;font-size:13.5px;"></span>
-      <button class="btn btn-outline btn-sm" id="oeRunNext" onclick="oeGoQuestion(1)">ถัดไป →</button>
+      <button type="button" class="oe-flag-btn" id="oeFlagBtn" onclick="oeToggleFlag()">🚩 ทำเครื่องหมาย</button>
+      <div class="oe-nav-btns">
+        <button class="btn btn-outline btn-sm" id="oeRunPrev" onclick="oeGoQuestion(-1)">‹ ก่อนหน้า</button>
+        <button class="btn btn-outline btn-sm" id="oeRunNext" onclick="oeGoQuestion(1)">ถัดไป ›</button>
+      </div>
       <button class="btn btn-primary btn-sm" onclick="oeConfirmSubmit()">✅ ส่งข้อสอบ</button>
+    </div>
+
+    <div class="oe-sheet-backdrop" id="oeSheetBackdrop" onclick="oeCloseNavSheet()"></div>
+    <div class="oe-sheet" id="oeSheet">
+      <div class="oe-sheet-grab"></div>
+      <div class="oe-sheet-head">
+        <span id="oeSheetTitle">ข้อทั้งหมด</span>
+        <button class="oe-sheet-close" onclick="oeCloseNavSheet()">✕</button>
+      </div>
+      <div class="oe-sheet-grid" id="oeSheetGrid"></div>
+      <div class="oe-sheet-legend">
+        <span><i class="dot answered"></i>ตอบแล้ว</span>
+        <span><i class="dot flagged"></i>ทำเครื่องหมายไว้</span>
+        <span><i class="dot"></i>ยังไม่ตอบ — แตะเพื่อย้อนกลับไปทำ</span>
+      </div>
     </div>
   </div>
   <div class="oe-watermark" id="oeWatermark"></div>
@@ -5637,14 +5699,24 @@ function oeEnterRun(){
 }
 
 function oeRenderNav(){
-  var el=document.getElementById('oeRunNav');
+  var el=document.getElementById('oeSheetGrid');
   el.innerHTML=OET.questions.map(function(q,i){
-    var cls=[];
-    if(i===OET.cur)cls.push('oe-nav-current');
-    if(q.selected_option_id!=null)cls.push('oe-nav-answered');
-    if(OET.flags[q.id])cls.push('oe-nav-flag');
-    return '<button type="button" class="'+cls.join(' ')+'" onclick="oeGoTo('+i+')">'+(i+1)+'</button>';
+    var cls=['oe-sn'];
+    if(i===OET.cur)cls.push('current');
+    if(q.selected_option_id!=null)cls.push('answered');
+    if(OET.flags[q.id])cls.push('flagged');
+    return '<button type="button" class="'+cls.join(' ')+'" onclick="oeGoTo('+i+');oeCloseNavSheet();">'+(i+1)+'</button>';
   }).join('');
+  document.getElementById('oeSheetTitle').textContent='ข้อทั้งหมด ('+OET.questions.length+' ข้อ)';
+}
+function oeOpenNavSheet(){
+  oeRenderNav();
+  document.getElementById('oeSheet').classList.add('open');
+  document.getElementById('oeSheetBackdrop').classList.add('open');
+}
+function oeCloseNavSheet(){
+  document.getElementById('oeSheet').classList.remove('open');
+  document.getElementById('oeSheetBackdrop').classList.remove('open');
 }
 function oeGoTo(idx){
   if(idx<0||idx>=OET.questions.length)return;
@@ -5654,24 +5726,31 @@ function oeGoTo(idx){
 }
 function oeGoQuestion(delta){oeGoTo(OET.cur+delta);}
 
+var OE_OPT_LETTERS=['ก','ข','ค','ง','จ','ฉ','ช','ซ'];
 function oeRenderQuestion(){
   var q=OET.questions[OET.cur];
   if(!q)return;
-  document.getElementById('oeRunQNo').textContent='ข้อ '+(OET.cur+1)+' / '+OET.questions.length;
   document.getElementById('oeRunPrev').disabled=(OET.cur===0);
   document.getElementById('oeRunNext').disabled=(OET.cur===OET.questions.length-1);
-  var optsHtml=(q.options||[]).map(function(o){
+  var answered=OET.questions.filter(function(x){return x.selected_option_id!=null;}).length;
+  document.getElementById('oeProgressFill').style.width=Math.round((OET.cur+1)/OET.questions.length*100)+'%';
+  document.getElementById('oeProgressLabel').textContent='ข้อ '+(OET.cur+1)+' จาก '+OET.questions.length+' · ตอบแล้ว '+answered+' ข้อ';
+  var optsHtml=(q.options||[]).map(function(o,oi){
     var sel=(q.selected_option_id===o.id);
-    return '<div class="oe-run-opt'+(sel?' oe-opt-selected':'')+'" onclick="oeSelectOption('+o.id+')">'
-      +'<span>'+(sel?'●':'○')+'</span><span>'+examEsc(o.option_text)+'</span></div>';
+    return '<button type="button" class="oe-run-opt'+(sel?' oe-opt-selected':'')+'" onclick="oeSelectOption('+o.id+')">'
+      +'<span class="oe-opt-badge">'+(OE_OPT_LETTERS[oi]||(oi+1))+'</span>'
+      +'<span class="oe-opt-text">'+examEsc(o.option_text)+'</span>'
+      +'<svg class="oe-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>'
+      +'</button>';
   }).join('');
-  var flagged=!!OET.flags[q.id];
   document.getElementById('oeRunQBox').innerHTML=
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
-    +'<div class="qtext" style="flex:1;">'+examEsc(q.question_text)+'</div>'
-    +'<button type="button" class="btn btn-sm '+(flagged?'':'btn-outline')+'" style="'+(flagged?'background:#f9a825;color:#fff;border-color:#f9a825;':'')+'flex-shrink:0;" onclick="oeToggleFlag()">🚩</button>'
-    +'</div>'
-    +'<div style="margin-top:4px;">'+optsHtml+'</div>';
+    '<div class="oe-qnum">ข้อ '+(OET.cur+1)+'</div>'
+    +'<div class="qtext">'+examEsc(q.question_text)+'</div>'
+    +'<div class="oe-opts">'+optsHtml+'</div>';
+  var flagged=!!OET.flags[q.id];
+  var flagBtn=document.getElementById('oeFlagBtn');
+  flagBtn.classList.toggle('flagged',flagged);
+  flagBtn.innerHTML=flagged?'🚩 ทำเครื่องหมายแล้ว':'🚩 ทำเครื่องหมาย';
 }
 
 async function oeSelectOption(optId){
