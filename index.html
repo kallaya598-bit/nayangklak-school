@@ -3529,6 +3529,22 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   </div>
 </div>
 
+<!-- MODAL: เหตุการณ์ระหว่างสอบออนไลน์ + หมายเหตุ -->
+<div class="modal-bg" id="modalOeEvents">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">📋 เหตุการณ์ระหว่างสอบ <button class="modal-close" onclick="closeModal('modalOeEvents')">✕</button></div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;" id="oeEventsWho"></div>
+    <div id="oeEventsList" style="max-height:220px;overflow:auto;border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px;"></div>
+    <div class="form-group">
+      <label class="form-label">หมายเหตุ / เหตุผล</label>
+      <textarea class="form-control" id="oeEventsNote" rows="3" placeholder="เช่น อินเทอร์เน็ตหลุด, เครื่องรีสตาร์ท, ตรวจสอบแล้วไม่ได้ทุจริต..."></textarea>
+    </div>
+    <div class="exam-actions">
+      <button class="btn btn-primary btn-sm" onclick="oeSaveEventsNote()">💾 บันทึกหมายเหตุ</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
@@ -5435,7 +5451,8 @@ async function oeLoadResults(){
     var sc=r.auto_score==null?'-':examFmt(r.auto_score);
     var fs=r.final_score==null?'-':examFmt(r.final_score);
     var sub=r.submitted_at?new Date(r.submitted_at).toLocaleString('th-TH'):'-';
-    var warn=r.warn_count>0?('<span style="color:var(--red);font-weight:700;">'+r.warn_count+'</span>'):'0';
+    var warnColor=r.warn_count>0?'var(--red)':'var(--text3)';
+    var warn='<span style="color:'+warnColor+';font-weight:700;cursor:pointer;text-decoration:underline;" onclick="oeOpenEventsModal('+r.id+')" title="ดูเหตุการณ์ / ใส่หมายเหตุ">'+(r.warn_count||0)+(r.adjust_note?' 📝':'')+'</span>';
     return '<tr>'
       +'<td>'+(r._student.order_no||'-')+' · '+examEsc(r._student.fullname||('#'+r.student_id))+'</td>'
       +'<td>'+examEsc(r._room)+'</td>'
@@ -5444,7 +5461,7 @@ async function oeLoadResults(){
       +'<td><input type="number" step="0.5" class="form-control oe-adj-input" data-id="'+r.id+'" value="'+(r.adjusted_score==null?'':r.adjusted_score)+'" placeholder="-" style="width:80px;padding:4px 6px;height:28px;"></td>'
       +'<td><b>'+fs+'</b></td>'
       +'<td>'+warn+'</td>'
-      +'<td>'+sub+' <button class="btn btn-sm btn-outline" style="padding:2px 8px;margin-left:4px;" onclick="oeSaveAdjust('+r.id+')">บันทึก</button></td>'
+      +'<td>'+sub+' <button class="btn btn-sm btn-outline" style="padding:2px 8px;margin-left:4px;" onclick="oeSaveAdjust('+r.id+')">บันทึก</button> <button class="btn btn-sm" style="color:#c62828;padding:2px 8px;margin-left:4px;" onclick="oeDeleteAttemptConfirm('+r.id+')">ลบ</button></td>'
       +'</tr>';
   }).join('');
 
@@ -5468,6 +5485,48 @@ async function oeSaveAdjust(attemptId){
     toast('✅ ปรับคะแนนแล้ว');
     await oeLoadResults();
   }catch(e){toast('ปรับคะแนนไม่สำเร็จ: '+e.message,'err');}
+}
+
+function oeDeleteAttemptConfirm(attemptId){
+  var r=OE.results.find(function(x){return x.id===attemptId;});
+  var name=r?((r._student.order_no||'-')+' · '+(r._student.fullname||('#'+r.student_id))):('#'+attemptId);
+  if(!confirm('ลบประวัติการสอบของ '+name+' ?\nคำตอบและคะแนนของการสอบครั้งนี้จะหายไปถาวร กู้คืนไม่ได้'))return;
+  oeDeleteAttempt(attemptId);
+}
+async function oeDeleteAttempt(attemptId){
+  try{
+    await api('/rest/v1/oe_attempts?id=eq.'+attemptId,{method:'DELETE'});
+    toast('🗑️ ลบประวัติการสอบแล้ว');
+    await oeLoadResults();
+  }catch(e){toast('ลบไม่สำเร็จ: '+e.message,'err');}
+}
+
+var OE_EVENT_LABEL={tab_hidden:'สลับแท็บ/ย่อหน้าต่าง',fullscreen_exit:'ออกจากโหมดเต็มหน้าจอ'};
+async function oeOpenEventsModal(attemptId){
+  var r=OE.results.find(function(x){return x.id===attemptId;});
+  if(!r)return;
+  OE.curEventsAttemptId=attemptId;
+  document.getElementById('oeEventsWho').textContent=(r._student.order_no||'-')+' · '+(r._student.fullname||('#'+r.student_id))+(r._room?(' ('+r._room+')'):'')+' — เตือน '+(r.warn_count||0)+' ครั้ง';
+  document.getElementById('oeEventsNote').value=r.adjust_note||'';
+  document.getElementById('oeEventsList').innerHTML='กำลังโหลด...';
+  showModal('modalOeEvents');
+  var events=await api('/rest/v1/oe_events?attempt_id=eq.'+attemptId+'&select=*&order=occurred_at.asc').catch(function(){return[];});
+  document.getElementById('oeEventsList').innerHTML=(events&&events.length)
+    ?events.map(function(e){
+      return '<div style="padding:5px 0;border-bottom:1px dashed var(--border2);">⚠️ '+examEsc(e.event_detail||OE_EVENT_LABEL[e.event_type]||e.event_type)+' <span style="color:var(--text3);float:right;">'+new Date(e.occurred_at).toLocaleTimeString('th-TH')+'</span></div>';
+    }).join('')
+    :'<div style="color:var(--text3);text-align:center;">ไม่มีเหตุการณ์ผิดปกติ</div>';
+}
+async function oeSaveEventsNote(){
+  var attemptId=OE.curEventsAttemptId;
+  if(!attemptId)return;
+  var note=document.getElementById('oeEventsNote').value.trim();
+  try{
+    await api('/rest/v1/oe_attempts?id=eq.'+attemptId,{method:'PATCH',body:JSON.stringify({adjust_note:note||null})});
+    toast('💾 บันทึกหมายเหตุแล้ว');
+    closeModal('modalOeEvents');
+    await oeLoadResults();
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 }
 
 function oeExportCsv(){
