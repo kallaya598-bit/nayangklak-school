@@ -235,11 +235,63 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot-student-row .name{flex:1;min-width:0;font-weight:700;color:var(--blue);}
 .lot-number{width:88px;height:44px;border:1.5px solid var(--border2);border-radius:10px;padding:0 10px;font-size:16px;}
 .lot-winner{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:12px;padding:11px 13px;margin-top:8px;color:#1b5e20;}
+.lot2-scope{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:14px;}
+.lot2-scope .form-group{margin:0;flex:1;min-width:230px;}
+.lot2-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.lot2-head-main{flex:1;min-width:220px;}
+.lot2-head-main h2{font-size:19px;color:var(--blue);margin:0 0 2px;text-wrap:balance;}
+.lot2-balance{display:flex;align-items:center;gap:8px;background:#fff8e1;border:1px solid #f6cf63;border-radius:14px;padding:10px 14px;color:#6d4600;}
+.lot2-balance strong{font-size:24px;line-height:1;}
+.lot2-toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap;padding:14px;background:#f7faff;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;}
+.lot2-toolbar .form-group{margin:0;min-width:130px;flex:1;}
+.lot2-students{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.lot2-student{display:grid;grid-template-columns:34px minmax(150px,1fr) auto;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #e8eef7;}
+.lot2-student:last-child{border-bottom:0;}
+.lot2-student input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue);}
+.lot2-student .bal{font-weight:800;color:#6d4600;white-space:nowrap;}
+.lot2-ledger-row{display:grid;grid-template-columns:minmax(150px,1fr) auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #e8eef7;}
+.lot2-ledger-row:last-child{border-bottom:0;}
+.lot2-round-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;}
+.lot2-board-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:12px 0;}
+.lot2-board-tools input{min-height:42px;min-width:120px;flex:1;border:1.5px solid var(--border2);border-radius:10px;padding:0 12px;font-family:Sarabun,sans-serif;font-size:15px;}
+.lot2-filter{min-height:42px;border:1.5px solid var(--border2);border-radius:10px;background:#fff;color:var(--blue);padding:0 12px;font:700 14px Sarabun,sans-serif;}
+.lot2-filter.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.lot2-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;}
+.lot2-ticket{min-height:64px;border:1.5px solid #9db8df;border-radius:11px;background:#fff;color:#173b67;padding:7px 5px;text-align:center;font-family:Sarabun,sans-serif;position:relative;}
+.lot2-ticket .num{font:800 20px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.05em;display:block;}
+.lot2-ticket .copy{font-size:11px;color:#607d9c;}
+.lot2-ticket.available{cursor:pointer;}
+.lot2-ticket.available:hover,.lot2-ticket.available:focus-visible{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.12);outline:0;}
+.lot2-ticket.selected{background:var(--blue);border-color:var(--blue);color:#fff;}
+.lot2-ticket.selected .copy{color:#d7e7ff;}
+.lot2-ticket.sold{background:#f1f3f6;border-color:#d2d8e0;color:#8b97a5;}
+.lot2-ticket.held{background:#fff8e1;border-color:#f6c24d;color:#8a5b00;}
+.lot2-ticket.mine{background:#e8f5e9;border-color:#66bb6a;color:#1b5e20;}
+.lot2-cart{position:sticky;bottom:10px;z-index:20;display:flex;align-items:center;gap:10px;background:#0d2d5e;color:#fff;border-radius:15px;padding:11px 12px;margin-top:14px;box-shadow:0 10px 30px rgba(13,45,94,.28);}
+.lot2-cart .summary{flex:1;min-width:0;}
+.lot2-cart .summary b{display:block;font-size:16px;}
+.lot2-cart .btn{min-height:44px;background:#fff;color:#0d2d5e;}
+.lot2-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+.lot2-result{background:#fff8e1;border:1px solid #f6cf63;border-radius:14px;text-align:center;padding:13px 8px;}
+.lot2-result .n{font:800 28px ui-monospace,SFMono-Regular,Menlo,monospace;color:#6d4600;letter-spacing:.06em;}
+.lot2-rank{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e8eef7;}
+.lot2-rank:last-child{border-bottom:0;}
+.lot2-rank .pos{width:30px;height:30px;border-radius:50%;background:var(--bluel);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;}
+.lot2-note{padding:10px 12px;border:1px solid #b9d4f5;background:#f4f9ff;border-radius:11px;color:#315a86;font-size:13.5px;line-height:1.5;}
+.lot2-confirm-list{max-height:250px;overflow:auto;border:1px solid var(--border);border-radius:12px;margin:10px 0;}
+.lot2-confirm-item{display:flex;justify-content:space-between;padding:9px 11px;border-bottom:1px solid #e8eef7;}
+.lot2-confirm-item:last-child{border-bottom:0;}
 @media(max-width:600px){
   .lot-wrap{padding:10px 10px 82px}.lot-summary{padding:14px}.lot-balance{font-size:26px}
   .lot-student-row{align-items:flex-start;flex-wrap:wrap}.lot-student-row .name{flex-basis:calc(100% - 52px)}
   .lot-student-row .btn{flex:1;min-height:44px}.lot-number{flex:0 0 82px}
   .lot-qty-btn{flex:1;min-width:64px}.lot-qty-more{flex-basis:100%}
+  .lot2-student{grid-template-columns:30px minmax(0,1fr) auto;padding:10px;}
+  .lot2-ledger-row{grid-template-columns:minmax(0,1fr) auto;}.lot2-ledger-row .btn{grid-column:1/-1;}
+  .lot2-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+  .lot2-ticket{min-height:59px;padding:6px 2px;}.lot2-ticket .num{font-size:18px;}
+  .lot2-result-grid{grid-template-columns:1fr;}
+  .lot2-cart{bottom:8px;}.lot2-cart .btn{padding:0 12px;}
 }
 @media(prefers-reduced-motion:reduce){.lot-tab,.lot-card,.lot-ticket{transition:none!important;animation:none!important;}}
 /* แดชบอร์ดผู้บริหาร */
@@ -1956,6 +2008,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <button class="btn btn-outline btn-xs" onclick="setSaDate('today')">วันนี้</button>
           <button class="btn btn-outline btn-xs" onclick="setSaDate('yesterday')">เมื่อวาน</button>
           <select class="filter-select" id="saPeriod" onchange="loadSubjectStudents()" title="คาบ"></select>
+          <button class="btn btn-outline btn-sm" id="saBtnCancel" onclick="saCancelSession()" title="คาบนี้ไม่นับโบนัสรายสัปดาห์">งดเรียน</button>
           <button class="btn btn-primary btn-sm" id="saBtnSave" style="margin-left:auto;">💾 บันทึก</button>
         </div>
         <div id="saDayInfo" style="display:none;padding:7px 14px;font-size:15px;background:var(--bluel);border-bottom:1px solid var(--border);color:var(--blue);">
@@ -2812,9 +2865,9 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             </div>
           </div>
           <div class="lot-tabs" role="tablist">
-            <button class="lot-tab active" id="lotTabCoins" onclick="lotSwitch('coins')">🪙 จัดการเหรียญ</button>
-            <button class="lot-tab" id="lotTabCampaigns" onclick="lotSwitch('campaigns')">🎟️ กิจกรรมล็อตเตอรี่</button>
-            <button class="lot-tab" id="lotTabCreate" onclick="lotSwitch('create')" style="display:none;">＋ สร้างกิจกรรม</button>
+            <button class="lot-tab active" id="lotTabCoins" onclick="lotSwitch('coins')">🪙 เหรียญรายวิชา</button>
+            <button class="lot-tab" id="lotTabCampaigns" onclick="lotSwitch('campaigns')">🔢 งวดเลข 2/3 ตัว</button>
+            <button class="lot-tab" id="lotTabCreate" onclick="lotSwitch('create')" style="display:none;">＋ สร้างงวด</button>
           </div>
           <div id="lotContent"><div class="loading">กำลังโหลด...</div></div>
         </div>
@@ -3670,6 +3723,30 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     <div class="exam-actions">
       <button class="btn btn-primary btn-sm" onclick="oeSaveEventsNote()">💾 บันทึกหมายเหตุ</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: ยืนยันตะกร้าสลากเลข 2/3 ตัว -->
+<div class="modal-bg" id="modalLotConfirm">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">ยืนยันการซื้อสลาก <button class="modal-close" onclick="stuLotCancelCart()">✕</button></div>
+    <div id="lotConfirmBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="stuLotCancelCart()">ยกเลิก</button>
+      <button class="btn btn-primary" id="lotConfirmBuy" onclick="stuLotPurchaseCart()">ยืนยันและหักเหรียญ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: QR คูปอง (สร้างในเครื่อง ไม่ส่งรหัสออกไปภายนอก) -->
+<div class="modal-bg" id="modalLotCouponQr">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div class="modal-head">QR คูปอง <button class="modal-close" onclick="closeModal('modalLotCouponQr')">✕</button></div>
+    <div id="lotCouponQrTitle" style="font-weight:800;color:var(--blue);margin-bottom:10px"></div>
+    <div id="lotCouponQrCanvas" style="display:flex;justify-content:center;padding:14px;background:#fff"></div>
+    <div id="lotCouponQrCode" style="font-size:20px;font-weight:900;letter-spacing:2px;margin:8px 0"></div>
+    <div class="lot2-note">ใช้ได้ครั้งเดียว · แสดงให้ครูประจำวิชาสแกนหรืออ่านรหัส</div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('modalLotCouponQr')">ปิด</button></div>
   </div>
 </div>
 
@@ -6826,6 +6903,229 @@ async function stuBuyLottery(campaignId){
   }catch(e){toast('❌ '+e.message,'err');}
 }
 
+// ===== COIN & 2/3-DIGIT LOTTERY V2 =====
+// ใช้ RPC ฝั่งฐานข้อมูลเท่านั้น เพื่อให้สิทธิ์ รายวิชา กระเป๋า และการซื้อเป็น transaction เดียวกัน
+LOT={tab:'coins',assignments:[],assignmentId:null,dash:null,round:null};
+var STU_LOT={assignments:[],assignmentId:null,dash:null,board:null,selected:{},cart:null,timer:null,filter:'all',type:'two'};
+
+function lotV2Rpc(name,body){
+  return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(body||{})});
+}
+function lotV2Error(e){
+  var m=(e&&e.message)||'เกิดข้อผิดพลาด';
+  if(/PGRST202|schema cache|Could not find the function|does not exist/i.test(m))
+    return 'ยังไม่ได้ติดตั้งฐานข้อมูลเหรียญและสลากรุ่นใหม่ กรุณารัน sql/coin_lottery_v2.sql ก่อน';
+  return m;
+}
+function lotV2Status(s){
+  return ({draft:'เตรียมงวด',board_ready:'แผงพร้อมยืนยัน',open:'เปิดขาย',sold_out:'ขายหมด',closed:'ปิดขาย',drawing:'กำลังออกรางวัล',pending_confirmation:'รอยืนยันผล',confirmed:'ยืนยันผลแล้ว',completed:'ปิดงวด',cancelled:'ยกเลิก'})[s]||s||'-';
+}
+function lotV2AssignLabel(a){
+  var s=a.subjects||{},c=a.classrooms||{};
+  return (s.subject_code||'ไม่ระบุรหัส')+' · '+(s.subject_name||'รายวิชา')+' · '+(c.room_name||'กลุ่มเรียน')+' กลุ่ม '+(a.group_no||1)+(a._role==='co'?' · สอนร่วม':'');
+}
+function lotV2AssignSelect(id,onchange){
+  return '<div class="lot2-scope"><div class="form-group"><label class="form-label" for="'+id+'">รายวิชา–ห้องเรียน</label><select class="form-control" id="'+id+'" onchange="'+onchange+'">'+LOT.assignments.map(function(a){return '<option value="'+a.id+'"'+(a.id==LOT.assignmentId?' selected':'')+'>'+lotEsc(lotV2AssignLabel(a))+'</option>';}).join('')+'</select></div></div>';
+}
+async function lotV2LoadAssignments(){
+  LOT.assignments=await loadMyAssigns(true)||[];
+  LOT.assignments.sort(function(a,b){return lotV2AssignLabel(a).localeCompare(lotV2AssignLabel(b),'th');});
+  if(!LOT.assignmentId||!LOT.assignments.some(function(a){return a.id==LOT.assignmentId;}))LOT.assignmentId=LOT.assignments[0]&&LOT.assignments[0].id;
+  return LOT.assignments;
+}
+async function lotV2Dash(){
+  LOT.dash=await lotV2Rpc('reward_v2_teacher_dashboard',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId)});
+  return LOT.dash||{};
+}
+function lotV2PickAssignment(id){LOT.assignmentId=parseInt(document.getElementById(id).value);if(LOT.tab==='coins')lotLoadCoins();else if(LOT.tab==='campaigns')lotLoadCampaigns();else lotCreateForm();}
+
+async function lotInit(){
+  if(!lotNeedSession())return;
+  var create=document.getElementById('lotTabCreate');if(create)create.style.display='';
+  LOT.tab='coins';
+  try{await lotV2LoadAssignments();}catch(e){}
+  lotSwitch('coins');
+}
+function lotSwitch(tab){
+  LOT.tab=tab;
+  ['coins','campaigns','create'].forEach(function(x){var b=document.getElementById('lotTab'+x.charAt(0).toUpperCase()+x.slice(1));if(b)b.classList.toggle('active',x===tab);});
+  if(tab==='coins')lotLoadCoins();else if(tab==='campaigns')lotLoadCampaigns();else lotCreateForm();
+}
+async function lotLoadCoins(){
+  var el=document.getElementById('lotContent');if(!lotNeedSession())return;
+  el.innerHTML='<div class="loading">กำลังโหลดกระเป๋าเหรียญรายวิชา...</div>';
+  try{
+    await lotV2LoadAssignments();
+    if(!LOT.assignments.length){el.innerHTML='<div class="sp-empty"><b>ยังไม่มีกลุ่มเรียนรายวิชา</b><br>สร้างกลุ่มเรียนและเพิ่มนักเรียนในเมนูตารางสอนก่อน</div>';return;}
+    var d=await lotV2Dash(),set=d.settings||null;
+    var h=lotV2AssignSelect('lotV2CoinAssign','lotV2PickAssignment(\'lotV2CoinAssign\')');
+    if(!set||!set.enabled){
+      h+='<div class="lot-form"><h3 style="color:var(--blue);">เปิดใช้เหรียญสำหรับรายวิชา–ห้องนี้</h3><p class="lot-muted">ข้อมูลทุกอย่างจะแยกจากรายวิชาอื่น และนักเรียนจะเห็นเมนูหลังเปิดใช้เท่านั้น</p><div class="form-group"><label class="form-label">เหรียญตั้งต้นเท่ากันทั้งกลุ่ม (ไม่เข้าอันดับ)</label><input id="lotV2Opening" class="form-control" type="number" min="0" value="0" inputmode="numeric"></div><button class="btn btn-primary" onclick="lotV2SetEnabled(true)">เปิดใช้โมดูล</button></div>';
+      el.innerHTML=h;return;
+    }
+    var total=(d.students||[]).reduce(function(n,s){return n+(Number(s.balance)||0);},0);
+    h+='<div class="lot2-head"><div class="lot2-head-main"><h2>จัดการเหรียญรายวิชา</h2><div class="lot-muted">มาเรียนตรงเวลาได้ 1 เหรียญ/คาบ · ครูเพิ่มได้เท่านั้น หากผิดให้กลับรายการ</div></div><div class="lot2-balance"><span>เหรียญคงเหลือรวม</span><strong>'+total+'</strong></div><div class="flex gap8" style="flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="lotV2ExportCsv()">Excel/CSV</button><button class="btn btn-outline btn-sm" onclick="lotV2ExportPdf()">PDF</button><button class="btn btn-outline btn-sm" onclick="lotV2SetEnabled(false)">ปิดโมดูล</button></div></div>';
+    h+=lotV2AnalyticsHtml(d)+lotV2GrantPanel(d)+lotV2StudentsHtml(d.students||[])+lotV2RanksHtml(d)+lotV2RankingPrizesHtml(d)+lotV2LedgerHtml(d.recent_ledger||[])+lotV2WheelHtml(d.wheel_prizes||[])+lotV2CouponsHtml(d);
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
+}
+function lotV2GrantPanel(d){
+  var opts='<option value="">— ไม่ใช้แม่แบบ —</option>'+(d.templates||[]).filter(function(t){return t.active;}).map(function(t){return '<option value="'+t.id+'" data-amount="'+t.coin_amount+'" data-title="'+lotEsc(t.title)+'">'+lotEsc((t.icon||'⭐')+' '+t.title+' · '+t.coin_amount+' เหรียญ')+'</option>';}).join('');
+  return '<div class="lot2-toolbar"><div class="form-group"><label class="form-label">แม่แบบกิจกรรม</label><select id="lotV2Template" class="form-control" onchange="lotV2UseTemplate(this)">'+opts+'</select></div><div class="form-group"><label class="form-label">เหตุผล/กิจกรรม *</label><input id="lotV2Reason" class="form-control" placeholder="เช่น ตอบคำถามในชั้นเรียน"></div><div class="form-group" style="max-width:140px"><label class="form-label">จำนวนเหรียญ</label><input id="lotV2Amount" class="form-control" type="number" min="1" value="1" inputmode="numeric"></div><div class="form-group"><label class="form-label">ข้อความที่นักเรียนเห็น</label><input id="lotV2StudentNote" class="form-control" placeholder="ไม่บังคับ"></div><div class="form-group"><label class="form-label">หมายเหตุภายใน</label><input id="lotV2PrivateNote" class="form-control" placeholder="นักเรียนไม่เห็น"></div><button class="btn btn-green" onclick="lotV2Grant()">＋ ให้เหรียญผู้ที่เลือก</button><button class="btn btn-outline" onclick="lotV2NewTemplate()">บันทึกแม่แบบ</button></div>';
+}
+function lotV2StudentsHtml(students){
+  if(!students.length)return '<div class="sp-empty">กลุ่มเรียนนี้ยังไม่มีนักเรียน</div>';
+  return '<div class="lot2-students"><div class="lot2-student" style="background:#f4f8fd"><input type="checkbox" aria-label="เลือกทั้งหมด" onchange="lotV2CheckAll(this.checked)"><b>เลือกทั้งหมด '+students.length+' คน</b><b>ยอด</b></div>'+students.map(function(s){return '<label class="lot2-student"><input class="lotV2StudentCheck" type="checkbox" value="'+s.id+'"><span><b>'+lotEsc((s.order_no||'-')+'. '+s.fullname)+'</b><span class="lot-muted" style="display:block">'+lotEsc(s.student_code||'')+'</span></span><span class="bal">🪙 '+(s.balance||0)+'</span></label>';}).join('')+'</div>';
+}
+function lotV2RanksHtml(d){
+  function one(title,a){return '<div class="lot-card"><h3>'+title+'</h3>'+((a||[]).length?(a||[]).map(function(x){return '<div class="lot2-rank"><span class="pos">'+x.rank_no+'</span><span>'+lotEsc(x.fullname)+'</span><b>'+x.coins+' เหรียญ</b></div>';}).join(''):'<div class="sp-empty">ยังไม่มีคะแนน</div>')+'</div>';}
+  return '<div class="lot-grid" style="margin-top:14px">'+one('🏅 Top 10 สัปดาห์นี้',d.top_week)+one('🏅 Top 10 เดือนนี้',d.top_month)+'</div>';
+}
+function lotV2RankingPrizesHtml(d){
+  function group(type,title){var rows=(d.ranking_prizes||[]).filter(function(x){return x.period_type===type;});return '<div class="lot-card"><h3>'+title+'</h3>'+(!rows.length?'<div class="sp-empty">ยังไม่ตั้งรางวัล ระบบยังประกาศอันดับตามปกติ</div>':rows.map(function(x){return '<div class="sp-row"><span><b>'+lotEsc(x.title)+'</b><span class="d">'+lotEsc(x.prize_kind)+(x.amount?' · '+x.amount:'')+'</span></span><span class="badge '+(x.active?'badge-green':'badge-gray')+'">'+(x.active?'เปิด':'ปิด')+'</span></div>';}).join(''))+'<button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="lotV2NewRankingPrize(\''+type+'\')">＋ เพิ่มรางวัล</button></div>';}
+  var recent=(d.ranking_awards||[]).slice(0,8).map(function(x){return '<div class="sp-row"><span><b>'+lotEsc(x.fullname)+'</b><span class="d">'+lotEsc(x.title)+' · '+lotEsc(x.period_start)+'</span></span><span class="badge badge-green">อันดับ 1 ร่วม</span></div>';}).join('');
+  return '<div class="lot-grid" style="margin-top:14px">'+group('weekly','🎖️ รางวัลอันดับรายสัปดาห์')+group('monthly','🏆 รางวัลอันดับรายเดือน')+'</div>'+(recent?'<div class="lot-card" style="margin-top:14px"><h3>รางวัลอันดับล่าสุด</h3>'+recent+'</div>':'');
+}
+function lotV2AnalyticsHtml(d){
+  var rounds=d.rounds||[],students=d.students||[],maxSold=Math.max.apply(null,[1].concat(rounds.map(function(r){return (r.sold_two||0)+(r.sold_three||0);}))),maxBal=Math.max.apply(null,[1].concat(students.map(function(s){return Number(s.balance)||0;})));
+  var sales=rounds.slice(0,6).map(function(r){var two=r.sold_two||0,three=r.sold_three||0,total=Math.max(1,r.total_tickets||0),buyers=r.buyers||0;return '<div style="margin:10px 0"><div class="flex"><b style="flex:1">'+lotEsc(r.title)+'</b><span class="lot-muted">ผู้ซื้อ '+buyers+'/'+students.length+' คน</span></div><div style="height:12px;background:#e8eef7;border-radius:8px;overflow:hidden;display:flex"><span style="width:'+(two/total*100)+'%;background:#1565c0" title="เลข 2 ตัว '+two+' ใบ"></span><span style="width:'+(three/total*100)+'%;background:#f9a825" title="เลข 3 ตัว '+three+' ใบ"></span></div><div class="lot-muted">2 ตัว '+two+' ใบ · 3 ตัว '+three+' ใบ · ขาย '+Math.round((two+three)/total*100)+'%</div></div>';}).join('')||'<div class="sp-empty">ยังไม่มีข้อมูลงวด</div>';
+  var dist=students.slice().sort(function(a,b){return (b.balance||0)-(a.balance||0);}).slice(0,10).map(function(s){return '<div class="flex" style="gap:8px;align-items:center;margin:7px 0"><span style="width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+lotEsc(s.fullname)+'</span><span style="height:10px;width:'+((Number(s.balance)||0)/maxBal*46)+'%;min-width:2px;background:#2e7d32;border-radius:8px"></span><b>'+(s.balance||0)+'</b></div>';}).join('')||'<div class="sp-empty">ยังไม่มีกระเป๋าเหรียญ</div>';
+  return '<div class="lot-grid" style="margin-bottom:14px"><div class="lot-card"><h3>📊 สลากที่ขายรายงวด</h3><div class="lot-muted"><span style="color:#1565c0">■</span> เลข 2 ตัว · <span style="color:#f9a825">■</span> เลข 3 ตัว</div>'+sales+'</div><div class="lot-card"><h3>📈 การกระจายเหรียญ (10 อันดับยอดคงเหลือ)</h3>'+dist+'</div></div>';
+}
+function lotV2LedgerHtml(rows){
+  return '<div class="lot-card" style="margin-top:14px"><h3>ประวัติเหรียญล่าสุด</h3>'+(!rows.length?'<div class="sp-empty">ยังไม่มีรายการ</div>':rows.map(function(x){var can=x.amount>0&&!x.reversed&&x.entry_type!=='lottery_purchase';return '<div class="lot2-ledger-row"><span><b>'+lotEsc(x.fullname)+'</b><span class="lot-muted" style="display:block">'+lotEsc(x.reason)+' · '+lotDateTime(x.created_at)+(x.private_note?' · ภายใน: '+lotEsc(x.private_note):'')+'</span></span><b style="color:'+(x.amount>0?'var(--green)':'var(--red)')+'">'+(x.amount>0?'+':'')+x.amount+'</b>'+(can?'<button class="btn btn-outline btn-xs" onclick="lotV2Reverse('+x.id+')">กลับรายการ</button>':'<span class="lot-muted">'+(x.reversed?'แก้ไขแล้ว':'')+'</span>')+'</div>';}).join(''))+'</div>';
+}
+function lotV2WheelHtml(rows){
+  function one(type,title){var a=rows.filter(function(x){return x.wheel_type===type;});return '<div class="lot-card"><h3>'+title+'</h3>'+a.map(function(x){return '<div class="sp-row"><span>'+lotEsc(x.title)+'<span class="d">'+lotEsc(x.prize_kind)+' · น้ำหนัก '+x.weight+'</span></span><span class="badge '+(x.active?'badge-green':'badge-gray')+'">'+(x.active?'เปิด':'ปิด')+'</span></div>';}).join('')+'<div class="flex gap8" style="margin-top:10px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="lotV2NewPrize(\''+type+'\')">＋ เพิ่ม/แก้รางวัล</button><button class="btn btn-outline btn-sm" onclick="lotV2TrialWheel(\''+type+'\')">🧪 ทดลองหมุน</button></div></div>';}
+  return '<div class="lot-grid" style="margin-top:14px">'+one('two','🎡 วงล้อเลข 2 ตัว')+one('three','🎡 วงล้อเลข 3 ตัว')+'</div>';
+}
+function lotV2CouponsHtml(d){
+  var gs=d.eligible_grade_structures||[];
+  return '<div class="lot-card" style="margin-top:14px"><h3>🎫 คูปองและรางวัล</h3>'+(!(d.coupons||[]).length?'<div class="sp-empty">ยังไม่มีคูปอง</div>':d.coupons.map(function(c){var action=c.status==='issued'?'<button class="btn btn-green btn-xs" onclick="lotV2Redeem('+c.id+',\''+c.kind+'\')">ใช้/ส่งมอบ</button>':'';return '<div class="lot2-ledger-row"><span><b>'+lotEsc(c.fullname)+' · '+lotEsc(c.title)+'</b><span class="lot-muted" style="display:block">'+lotEsc(c.coupon_code)+' · หมดอายุ '+lotEsc(c.expires_on||'-')+'</span></span><span class="badge badge-gray">'+lotEsc(c.status)+'</span>'+action+'</div>';}).join(''))+'<div class="lot2-note" style="margin-top:10px">คูปองคะแนนใช้ได้เฉพาะหัวข้อคะแนนที่เปิดรับคูปองไว้ ('+gs.length+' หัวข้อ)</div></div>';
+}
+function lotV2UseTemplate(sel){var o=sel.options[sel.selectedIndex];if(!o||!o.value)return;document.getElementById('lotV2Reason').value=o.dataset.title||'';document.getElementById('lotV2Amount').value=o.dataset.amount||1;}
+function lotV2CheckAll(on){document.querySelectorAll('.lotV2StudentCheck').forEach(function(x){x.checked=on;});}
+async function lotV2SetEnabled(on){
+  if(!on&&!confirm('ปิดโมดูลสำหรับรายวิชานี้? ข้อมูลเดิมยังอยู่ แต่นักเรียนจะไม่เห็นเมนู'))return;
+  try{await lotV2Rpc('reward_v2_set_assignment',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_enabled:on,p_opening_balance:on?(parseInt((document.getElementById('lotV2Opening')||{}).value)||0):0,p_duplicate_warning_minutes:10,p_duplicate_warning_count:2});toast(on?'เปิดใช้โมดูลแล้ว':'ปิดโมดูลแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}
+}
+async function lotV2Grant(){
+  var ids=Array.from(document.querySelectorAll('.lotV2StudentCheck:checked')).map(function(x){return parseInt(x.value);});
+  var reason=document.getElementById('lotV2Reason').value.trim(),amount=parseInt(document.getElementById('lotV2Amount').value)||0,tid=parseInt(document.getElementById('lotV2Template').value)||null;
+  if(!ids.length||!reason||amount<1){toast('เลือกนักเรียน ระบุเหตุผล และจำนวนเหรียญให้ครบ','err');return;}
+  try{var r=await lotV2Rpc('reward_v2_grant',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_student_ids:ids,p_amount:amount,p_reason:reason,p_student_note:document.getElementById('lotV2StudentNote').value,p_private_note:document.getElementById('lotV2PrivateNote').value,p_template_id:tid});toast('ให้เหรียญ '+r.count+' คนแล้ว'+(r.duplicate_warnings?' · พบรายการคล้ายเดิม '+r.duplicate_warnings+' คน':''));lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}
+}
+async function lotV2NewTemplate(){var title=prompt('ชื่อแม่แบบกิจกรรม',document.getElementById('lotV2Reason').value||'');if(!title)return;var amount=parseInt(prompt('จำนวนเหรียญ',document.getElementById('lotV2Amount').value||'1'))||0;if(amount<1)return;try{await lotV2Rpc('reward_v2_save_template',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_template_id:null,p_title:title,p_coin_amount:amount,p_icon:'⭐',p_active:true});toast('บันทึกแม่แบบแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2Reverse(id){var reason=prompt('เหตุผลที่แก้ไขรายการนี้');if(!reason)return;try{await lotV2Rpc('reward_v2_reverse_ledger',{p_token:G.rewardToken,p_ledger_id:id,p_reason:reason});toast('สร้างรายการกลับรายการแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2NewPrize(type){var title=prompt('ชื่อรางวัล');if(!title)return;var kind=prompt('ประเภท: coin, item, privilege หรือ score','item');if(['coin','item','privilege','score'].indexOf(kind)<0)return toast('ประเภทรางวัลไม่ถูกต้อง','err');var amount=(kind==='coin'||kind==='score')?(parseInt(prompt('จำนวน',kind==='score'?'1':'5'))||0):null;var weight=parseFloat(prompt('น้ำหนักการสุ่ม','1'))||0;try{await lotV2Rpc('reward_v2_save_wheel_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:null,p_wheel_type:type,p_title:title,p_prize_kind:kind,p_amount:amount,p_weight:weight,p_active:true});toast('บันทึกรางวัลแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2NewRankingPrize(period){var title=prompt('ชื่อรางวัลอันดับ 1 '+(period==='weekly'?'รายสัปดาห์':'รายเดือน'));if(!title)return;var kind=prompt('ประเภท: coin, item, privilege หรือ score','coin');if(['coin','item','privilege','score'].indexOf(kind)<0)return toast('ประเภทรางวัลไม่ถูกต้อง','err');var amount=(kind==='coin'||kind==='score')?(parseInt(prompt('จำนวน',kind==='score'?'1':'5'))||0):null;try{await lotV2Rpc('reward_v2_save_ranking_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:null,p_period_type:period,p_title:title,p_prize_kind:kind,p_amount:amount,p_active:true});toast('บันทึกรางวัลอันดับแล้ว ผู้ที่ได้อันดับ 1 ร่วมจะได้รับเต็มจำนวนทุกคน');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2TrialWheel(type){try{var r=await lotV2Rpc('lottery_v2_trial_wheel',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_wheel_type:type});alert('🧪 ผลทดลองวงล้อ'+(type==='two'?'เลข 2 ตัว':'เลข 3 ตัว')+'\n\n🎉 '+r.prize+'\n\nผลนี้ไม่ถูกบันทึกและไม่สร้างรางวัลจริง');}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2Redeem(id,kind){var grade=null;if(kind==='score'){var opts=(LOT.dash.eligible_grade_structures||[]);if(!opts.length)return toast('ยังไม่มีหัวข้อคะแนนที่อนุญาตคูปอง','err');grade=parseInt(prompt('ใส่เลขหัวข้อคะแนน: '+opts.map(function(x){return x.id+'='+x.name;}).join(', ')))||null;if(!grade)return;}var note=prompt('หมายเหตุการส่งมอบ/ใช้สิทธิ์','')||'';try{await lotV2Rpc('reward_v2_redeem_coupon',{p_token:G.rewardToken,p_coupon_id:id,p_grade_structure_id:grade,p_delivery_note:note});toast('บันทึกการใช้คูปองแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+function lotV2ExportCsv(){
+  var d=LOT.dash||{},rows=[['รายงานเหรียญและสลากรายวิชา'],['วันที่ส่งออก',new Date().toLocaleString('th-TH')],[],['นักเรียน','รหัส','ยอดคงเหลือ']];
+  (d.students||[]).forEach(function(s){rows.push([s.fullname,s.student_code,s.balance||0]);});
+  rows.push([],['งวด','สถานะ','สลาก 2 ตัวขายแล้ว','สลาก 3 ตัวขายแล้ว','ผู้ซื้อ','สลากทั้งหมด']);
+  (d.rounds||[]).forEach(function(r){rows.push([r.title,lotV2Status(r.status),r.sold_two||0,r.sold_three||0,r.buyers||0,r.total_tickets||0]);});
+  rows.push([],['คูปอง','นักเรียน','ประเภท','สถานะ','หมดอายุ']);
+  (d.coupons||[]).forEach(function(c){rows.push([c.title,c.fullname,c.kind,c.status,c.expires_on||'']);});
+  rows.push([],['ประวัติเหรียญ','นักเรียน','จำนวน','เหตุผล','เวลา']);
+  (d.recent_ledger||[]).forEach(function(x){rows.push([x.entry_type,x.fullname,x.amount,x.reason,x.created_at]);});
+  downloadCSV(rows,'coin_lottery_assignment_'+LOT.assignmentId+'_'+today()+'.csv');
+}
+async function lotV2ExportPdf(){
+  var el=document.getElementById('lotContent');if(!el)return;
+  try{
+    toast('กำลังสร้าง PDF...');await ensurePdfLibs();
+    var canvas=await html2canvas(el,{scale:1.6,useCORS:true,backgroundColor:'#ffffff',windowWidth:Math.max(900,el.scrollWidth)});
+    var img=canvas.toDataURL('image/jpeg',0.94),jsPDF=window.jspdf.jsPDF,pdf=new jsPDF('p','mm','a4'),pageW=210,pageH=297,imgH=canvas.height/canvas.width*pageW,y=0;
+    while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(img,'JPEG',0,-y,pageW,imgH);y+=pageH;}
+    pdf.save('coin_lottery_assignment_'+LOT.assignmentId+'_'+today()+'.pdf');toast('✅ ดาวน์โหลด PDF แล้ว');
+  }catch(e){toast('❌ สร้าง PDF ไม่สำเร็จ: '+e.message,'err');}
+}
+
+async function lotLoadCampaigns(){
+  var el=document.getElementById('lotContent');if(!lotNeedSession())return;el.innerHTML='<div class="loading">กำลังโหลดงวดเลข 2/3 ตัว...</div>';
+  try{await lotV2LoadAssignments();if(!LOT.assignments.length){el.innerHTML='<div class="sp-empty">ยังไม่มีกลุ่มเรียนรายวิชา</div>';return;}var d=await lotV2Dash();var h=lotV2AssignSelect('lotV2RoundAssign','lotV2PickAssignment(\'lotV2RoundAssign\')');if(!d.settings||!d.settings.enabled){h+='<div class="sp-alert sp-alert-orange">ต้องเปิดใช้โมดูลเหรียญของรายวิชานี้ก่อนสร้างงวด</div>';el.innerHTML=h;return;}h+='<div class="lot2-note">สลากเป็นกิจกรรมวิชาการภายในโรงเรียน ไม่มีเงินจริง · เลข 2 ตัวและ 3 ตัวมีแผงแยกกัน</div><div class="lot-grid" style="margin-top:12px">';h+=(d.rounds||[]).map(lotV2RoundCard).join('')||'<div class="sp-empty">ยังไม่มีงวด กด “＋ สร้างงวด” เพื่อเริ่ม</div>';el.innerHTML=h+'</div>';}catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
+}
+function lotV2RoundCard(r){
+  var total=(r.total_tickets||0),sold=(r.sold_two||0)+(r.sold_three||0),acts='<button class="btn btn-outline btn-sm" onclick="lotV2OpenTeacherRound('+r.id+')">ดูแผง/ควบคุม</button>';
+  if(r.status==='draft'||r.status==='board_ready')acts+='<button class="btn btn-primary btn-sm" onclick="lotV2GenerateBoard('+r.id+')">'+(r.total_tickets?'สุ่มแผงใหม่':'สร้างแผง')+'</button>';
+  if(r.status==='board_ready'&&!r.board_confirmed_at)acts+='<button class="btn btn-green btn-sm" onclick="lotV2ConfirmBoard('+r.id+')">ยืนยันแผง</button>';
+  if(['closed','sold_out','drawing','confirmed','pending_confirmation'].indexOf(r.status)>=0)acts+='<button class="btn btn-primary btn-sm" onclick="lotV2OpenTeacherRound('+r.id+')">ออกรางวัล/วงล้อ</button>';
+  return '<article class="lot-card"><div class="flex gap8"><h3 style="flex:1">'+lotEsc(r.title)+'</h3><span class="badge badge-gray">'+lotEsc(lotV2Status(r.status))+'</span></div><div class="lot-muted">'+lotEsc(r.description||'กิจกรรมเลข 2 ตัว/3 ตัว')+'</div><div class="lot-meta"><span class="lot-pill">2 ตัว '+r.price_two+' เหรียญ</span><span class="lot-pill">3 ตัว '+r.price_three+' เหรียญ</span><span class="lot-pill">ขาย '+sold+'/'+total+'</span></div><div class="lot-muted">เปิด '+lotDateTime(r.sale_opens_at)+'<br>ปิดขาย '+lotDateTime(r.sale_closes_at)+' · ออกรางวัล '+lotDateTime(r.draw_at)+'</div><div class="lot2-round-actions">'+acts+'</div></article>';
+}
+async function lotCreateForm(){
+  var el=document.getElementById('lotContent');try{await lotV2LoadAssignments();if(!LOT.assignments.length){el.innerHTML='<div class="sp-empty">ยังไม่มีกลุ่มเรียนรายวิชา</div>';return;}var d=await lotV2Dash();if(!d.settings||!d.settings.enabled){el.innerHTML=lotV2AssignSelect('lotV2CreateAssign','lotV2PickAssignment(\'lotV2CreateAssign\')')+'<div class="sp-alert sp-alert-orange">เปิดโมดูลเหรียญของรายวิชานี้ก่อนสร้างงวด</div>';return;}var now=new Date(),close=new Date(now.getTime()+7*86400000),draw=new Date(close.getTime()+3600000);function local(x){var z=new Date(x.getTime()-x.getTimezoneOffset()*60000);return z.toISOString().slice(0,16);}el.innerHTML=lotV2AssignSelect('lotV2CreateAssign','lotV2PickAssignment(\'lotV2CreateAssign\')')+'<div class="lot-form"><h3 style="color:var(--blue)">สร้างงวดเลข 2 ตัว/3 ตัว</h3><div class="form-group"><label class="form-label">ชื่องวด *</label><input id="lotV2Title" class="form-control" placeholder="เช่น งวดสะสมความดี 1 สิงหาคม"></div><div class="form-group"><label class="form-label">รายละเอียด</label><textarea id="lotV2Desc" class="form-control" rows="2"></textarea></div><div class="form-row"><div class="form-group"><label class="form-label">เปิดขาย</label><input id="lotV2Open" class="form-control" type="datetime-local" value="'+local(now)+'"></div><div class="form-group"><label class="form-label">ปิดขาย</label><input id="lotV2Close" class="form-control" type="datetime-local" value="'+local(close)+'"></div></div><div class="form-row"><div class="form-group"><label class="form-label">ออกรางวัล</label><input id="lotV2Draw" class="form-control" type="datetime-local" value="'+local(draw)+'"></div><div class="form-group"><label class="form-label">คาบออกรางวัล</label><input id="lotV2Period" class="form-control" type="number" min="1" max="8" value="1"></div></div><div class="form-row"><div class="form-group"><label class="form-label">ราคาเลข 2 ตัว</label><input id="lotV2Price2" class="form-control" type="number" min="1" value="5"></div><div class="form-group"><label class="form-label">ราคาเลข 3 ตัว</label><input id="lotV2Price3" class="form-control" type="number" min="1" value="7"></div></div><button class="btn btn-primary" style="width:100%;justify-content:center;min-height:48px" onclick="lotCreate()">บันทึกและไปสร้างแผง</button></div>';}catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
+}
+async function lotCreate(){var title=document.getElementById('lotV2Title').value.trim();if(!title)return toast('กรอกชื่องวด','err');try{var r=await lotV2Rpc('lottery_v2_create_round',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_title:title,p_description:document.getElementById('lotV2Desc').value,p_sale_opens_at:document.getElementById('lotV2Open').value,p_sale_closes_at:document.getElementById('lotV2Close').value,p_draw_at:document.getElementById('lotV2Draw').value,p_draw_period:parseInt(document.getElementById('lotV2Period').value)||null,p_price_two:parseInt(document.getElementById('lotV2Price2').value)||5,p_price_three:parseInt(document.getElementById('lotV2Price3').value)||7});toast('สร้างงวดแล้ว');await lotV2GenerateBoard(r.round_id,true);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2GenerateBoard(id,first){var n=first?null:prompt('จำนวนสลากรวม (เว้นว่างให้ระบบคำนวณ)');if(!first&&n===null)return;try{var r=await lotV2Rpc('lottery_v2_generate_board',{p_token:G.rewardToken,p_round_id:id,p_total_tickets:n?parseInt(n):null});toast('สร้างแผง '+r.total+' ใบแล้ว');lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2ConfirmBoard(id){if(!confirm('ยืนยันแผงนี้? หลังเปิดขายแล้วจะเปลี่ยนเลขและราคาไม่ได้'))return;try{await lotV2Rpc('lottery_v2_confirm_board',{p_token:G.rewardToken,p_round_id:id});toast('ยืนยันแผงแล้ว ระบบจะเปิดขายตามเวลา');lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2OpenTeacherRound(id){
+  var el=document.getElementById('lotContent');el.innerHTML='<div class="loading">กำลังโหลดแผง...</div>';
+  try{
+    var b=await lotV2Rpc('lottery_v2_teacher_board',{p_token:G.rewardToken,p_round_id:id});
+    LOT.round=b;var r=b.round||{},res=b.results||[],rights=b.winner_rights||[];
+    var h='<button class="btn btn-outline btn-sm" onclick="lotLoadCampaigns()">← กลับรายการงวด</button><div class="lot2-head" style="margin-top:12px"><div class="lot2-head-main"><h2>'+lotEsc(r.title)+'</h2><div class="lot-muted">'+lotEsc(lotV2Status(r.status))+' · สลากทั้งหมด '+(b.tickets||[]).length+' ใบ</div></div></div><div id="lotV2DrawStage">'+lotV2ResultHtml(res)+'</div>';
+    if(!r.board_confirmed_at&&r.status==='board_ready')h+='<button class="btn btn-green" onclick="lotV2ConfirmBoard('+r.id+')">ยืนยันแผงนี้</button> ';
+    if(['closed','sold_out','drawing'].indexOf(r.status)>=0){
+      h+='<div class="flex gap8" style="flex-wrap:wrap"><button class="btn btn-primary" onclick="lotV2Draw('+r.id+')">'+(r.status==='drawing'?'ทำขั้นตอนออกรางวัลต่อ':'เริ่มออกรางวัลจริง')+'</button><button class="btn btn-outline" onclick="lotV2TrialDraw('+r.id+')">🧪 โหมดทดลอง</button></div>';
+    }
+    if(r.status==='pending_confirmation')h+='<button class="btn btn-green" onclick="lotV2ConfirmResults('+r.id+')">ยืนยันผลอย่างเป็นทางการ</button>';
+    h+='<div class="lot2-board" style="margin-top:14px">'+(b.tickets||[]).map(function(t){return '<div class="lot2-ticket '+t.state+'"><span class="num">'+lotEsc(t.number)+'</span><span class="copy">'+lotEsc(t.type==='two'?'2 ตัว':'3 ตัว')+' · '+t.copy+(t.fullname?' · '+lotEsc(t.fullname):'')+'</span></div>';}).join('')+'</div>';
+    if(rights.length)h+='<div class="lot-card" style="margin-top:14px"><h3>ผู้ชนะและสิทธิ์หมุนวงล้อ</h3>'+rights.map(function(w){return '<div class="lot2-ledger-row"><span><b>'+lotEsc(w.fullname)+'</b><span class="lot-muted" style="display:block">'+lotEsc(w.number+'-'+w.copy+' · '+(w.type==='two'?'เลข 2 ตัว':'เลข 3 ตัว'))+'</span></span><span>'+lotEsc(w.prize||'ยังไม่หมุน')+'</span>'+(w.spin_status==='ready'?'<button class="btn btn-primary btn-sm" onclick="lotV2Spin('+w.id+','+r.id+')">หมุนวงล้อ</button>':'<span class="badge badge-green">ใช้สิทธิ์แล้ว</span>')+'</div>';}).join('')+'</div>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
+}
+function lotV2ResultHtml(a){if(!a||!a.length)return '<div class="lot2-note">ยังไม่มีผลรางวัล · ระบบสุ่มจาก “หมายเลขที่ขายแล้ว” เท่านั้น</div>';return '<div class="lot2-result-grid">'+a.map(function(x){return '<div class="lot2-result"><div class="lot-muted">'+lotEsc(x.slot==='two_first'?'2 ตัว ครั้งที่ 1':x.slot==='two_second'?'2 ตัว ครั้งที่ 2':'3 ตัว')+'</div><div class="n">'+lotEsc(x.number)+'</div></div>';}).join('')+'</div>';}
+async function lotV2TrialDraw(id){try{var r=await lotV2Rpc('lottery_v2_trial_draw',{p_token:G.rewardToken,p_round_id:id});var a=[{slot:'two_first',number:r.two_first},{slot:'two_second',number:r.two_second},{slot:'three',number:r.three}],el=document.getElementById('lotV2DrawStage');if(el)el.innerHTML='<div class="sp-alert sp-alert-orange"><b>🧪 ผลทดลอง — ไม่บันทึกข้อมูลจริง</b></div>'+lotV2ResultHtml(a);toast('แสดงผลทดลองแล้ว ไม่มีการบันทึก');}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2DrawCountdown(label){var el=document.getElementById('lotV2DrawStage');for(var n=3;n>0;n--){if(el)el.innerHTML='<div class="lot2-result" style="max-width:420px;margin:12px auto;text-align:center"><div class="lot-muted">กำลังสุ่ม '+lotEsc(label)+'</div><div class="n">'+n+'</div></div>';await new Promise(function(resolve){setTimeout(resolve,700);});}}
+async function lotV2Draw(id){
+  if(!confirm('เริ่มออกรางวัลจริง? ระบบจะบันทึกทันทีทีละรางวัล และกลับมาทำต่อได้หากหน้าเว็บปิด'))return;
+  try{
+    var labels=['เลข 2 ตัว ครั้งที่ 1','เลข 2 ตัว ครั้งที่ 2','เลข 3 ตัว'];
+    var start=((LOT.round&&LOT.round.results)||[]).length;
+    for(var i=start;i<3;i++){
+      await lotV2DrawCountdown(labels[i]);
+      var r=await lotV2Rpc('lottery_v2_draw_step',{p_token:G.rewardToken,p_round_id:id});
+      var el=document.getElementById('lotV2DrawStage');if(el)el.innerHTML=lotV2ResultHtml(r.results||[]);
+      if(r.done)break;
+    }
+    toast('ออกรางวัลครบแล้ว กรุณาตรวจและยืนยันผลอย่างเป็นทางการ');lotV2OpenTeacherRound(id);
+  }catch(e){toast('❌ '+lotV2Error(e)+' · กด “ทำขั้นตอนออกรางวัลต่อ” เพื่อดำเนินการต่อ','err');lotV2OpenTeacherRound(id);}
+}
+async function lotV2ConfirmResults(id){if(!confirm('ยืนยันผลอย่างเป็นทางการ? หลังยืนยันจะแก้หรือสุ่มใหม่ไม่ได้'))return;try{await lotV2Rpc('lottery_v2_confirm_results',{p_token:G.rewardToken,p_round_id:id});toast('ยืนยันผลแล้ว');lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2Spin(right,id){try{var r=await lotV2Rpc('lottery_v2_spin_wheel',{p_token:G.rewardToken,p_winner_right_id:right});toast('🎉 '+r.prize);lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+
+async function buildStuLottery(stu,mode){
+  if(mode!=='student')return '<div class="sp-empty">การซื้อสลากและข้อมูลเหรียญส่วนบุคคลแสดงเฉพาะบัญชีนักเรียน</div>';
+  try{await stuEnsureRewardSession(false);STU_LOT.assignments=await lotV2Rpc('reward_v2_student_assignments',{p_token:STU.rewardToken})||[];if(!STU_LOT.assignments.length)return '<div class="sp-empty"><b>ยังไม่มีรายวิชาที่เปิดระบบเหรียญ</b><br>ครูประจำวิชาต้องเปิดใช้โมดูลก่อน</div>';if(!STU_LOT.assignmentId||!STU_LOT.assignments.some(function(x){return x.id==STU_LOT.assignmentId;}))STU_LOT.assignmentId=STU_LOT.assignments[0].id;await stuLotV2LoadDashboard(false);return '<div id="stuLotteryV2">'+stuLotV2DashboardHtml()+'</div>';}catch(e){return '<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
+}
+async function stuLotV2LoadDashboard(render){STU_LOT.dash=await lotV2Rpc('reward_v2_student_dashboard',{p_token:STU.rewardToken,p_assignment_id:parseInt(STU_LOT.assignmentId)});if(render){var el=document.getElementById('stuLotteryV2');if(el)el.innerHTML=stuLotV2DashboardHtml();}}
+function stuLotV2DashboardHtml(){var d=STU_LOT.dash||{},w=d.wallet||{},a=STU_LOT.assignments||[];var h='<div class="lot2-scope"><div class="form-group"><label class="form-label">รายวิชา–ห้องเรียน</label><select class="form-control" onchange="stuLotV2PickAssignment(this.value)">'+a.map(function(x){return '<option value="'+x.id+'"'+(x.id==STU_LOT.assignmentId?' selected':'')+'>'+lotEsc(x.subject_code+' · '+x.subject_name+' · '+x.room_name+' กลุ่ม '+x.group_no)+'</option>';}).join('')+'</select></div></div><div class="lot-summary"><div class="lot-coin">฿</div><div><div class="lot-balance">'+(w.balance||0)+' เหรียญ</div><div class="lot-muted">ใช้ได้เฉพาะรายวิชา–ห้องนี้ · โอนหรือแลกเงินจริงไม่ได้</div></div></div>'+stuLotV2Notifications(d.notifications||[])+'<div class="lot-grid">';h+=(d.rounds||[]).map(function(r){return '<article class="lot-card"><div class="flex gap8"><h3 style="flex:1">'+lotEsc(r.title)+'</h3><span class="badge badge-gray">'+lotEsc(lotV2Status(r.status))+'</span></div><div class="lot-muted">'+lotEsc(r.description||'กิจกรรมเลข 2 ตัว/3 ตัว')+'</div><div class="lot-meta"><span class="lot-pill">2 ตัว '+r.price_two+' เหรียญ</span><span class="lot-pill">3 ตัว '+r.price_three+' เหรียญ</span><span class="lot-pill">ของฉัน '+r.my_tickets+' ใบ</span>'+(r.my_wins?'<span class="lot-pill">ถูกรางวัล '+r.my_wins+' สิทธิ์</span>':'')+'</div><div class="lot-muted">ปิดขาย '+lotDateTime(r.sale_closes_at)+' · ออกรางวัล '+lotDateTime(r.draw_at)+'</div><button class="btn btn-primary" style="margin-top:10px" onclick="stuLotV2OpenBoard('+r.id+')">'+(['confirmed','completed'].indexOf(r.status)>=0?'ดูผลและสลากของฉัน':'เลือกเลข 2 ตัว / 3 ตัว')+'</button></article>';}).join('')||'<div class="sp-empty">ยังไม่มีงวดที่เผยแพร่</div>';h+='</div><div class="lot-grid" style="margin-top:14px">'+stuLotV2Ranks('🏅 Top 10 สัปดาห์นี้',d.top_week||[])+stuLotV2Ranks('🏅 Top 10 เดือนนี้',d.top_month||[])+'</div>'+stuLotV2Coupons(d.coupons||[])+stuLotV2Ledger(d.ledger||[])+'<div class="sp-empty" style="font-size:13px">สลากเป็นกิจกรรมวิชาการภายในโรงเรียน ไม่ใช้เงินจริง</div>';return h;}
+async function stuLotV2PickAssignment(id){STU_LOT.assignmentId=parseInt(id);STU_LOT.selected={};try{await stuLotV2LoadDashboard(true);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+function stuLotV2Ranks(title,a){return '<div class="lot-card"><h3>'+title+'</h3>'+(!a.length?'<div class="sp-empty">ยังไม่มีอันดับ</div>':a.map(function(x){return '<div class="lot2-rank"><span class="pos">'+x.rank+'</span><span'+(x.is_me?' style="font-weight:800;color:var(--blue)"':'')+'>'+lotEsc(x.name)+(x.is_me?' (ฉัน)':'')+'</span><span></span></div>';}).join(''))+'<div class="lot2-note" style="margin-top:10px">ไม่แสดงจำนวนเหรียญของเพื่อน</div></div>';}
+function stuLotV2Notifications(a){var unread=a.filter(function(x){return !x.read_at;});if(!unread.length)return '';return '<div class="lot-card" style="margin-bottom:14px"><h3>🔔 การแจ้งเตือนใหม่</h3>'+unread.slice(0,5).map(function(x){return '<div class="sp-row"><span><b>'+lotEsc(x.title)+'</b><span class="d">'+lotEsc(x.body)+' · '+lotDateTime(x.created_at)+'</span></span></div>';}).join('')+'</div>';}
+function stuLotV2Coupons(a){return '<div class="lot-card" style="margin-top:14px"><h3>🎫 คูปองของฉัน</h3>'+(!a.length?'<div class="sp-empty">ยังไม่มีคูปอง</div>':a.map(function(x){return '<div class="sp-row"><span><b>'+lotEsc(x.title)+'</b><span class="d">'+lotEsc(x.coupon_code)+' · หมดอายุ '+lotEsc(x.expires_on||'-')+'</span></span><span class="badge badge-gray">'+lotEsc(x.status)+'</span>'+(x.status==='issued'?'<button class="btn btn-outline btn-xs" onclick="stuLotV2ShowQr(\''+x.coupon_code+'\')">QR</button>':'')+'</div>';}).join(''))+'</div>';}
+async function stuLotV2ShowQr(code){
+  var found=((STU_LOT.dash||{}).coupons||[]).filter(function(x){return x.coupon_code===code;})[0],title=found&&found.title;
+  document.getElementById('lotCouponQrTitle').textContent=title||'คูปองรางวัล';
+  document.getElementById('lotCouponQrCode').textContent=code;
+  var box=document.getElementById('lotCouponQrCanvas');box.innerHTML='<div class="loading">กำลังสร้าง QR...</div>';openModal('modalLotCouponQr');
+  try{if(typeof QRCode!=='function')await loadScriptOnce('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js','qrcodejs');box.innerHTML='';new QRCode(box,{text:'SCHOOL-REWARD:'+code,width:210,height:210,colorDark:'#0d2f63',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){box.innerHTML='<div class="sp-alert sp-alert-red">สร้าง QR ไม่สำเร็จ กรุณาใช้รหัสด้านล่าง</div>';}
+}
+function stuLotV2Ledger(a){return '<div class="lot-card" style="margin-top:14px"><h3>🧾 ประวัติเหรียญ</h3>'+(!a.length?'<div class="sp-empty">ยังไม่มีรายการ</div>':a.map(function(x){return '<div class="sp-row"><span>'+lotEsc(x.reason)+'<span class="d">'+lotDateTime(x.created_at)+(x.student_note?' · '+lotEsc(x.student_note):'')+'</span></span><b style="color:'+(x.amount>0?'var(--green)':'var(--red)')+'">'+(x.amount>0?'+':'')+x.amount+'</b></div>';}).join(''))+'</div>';}
+async function stuLotV2OpenBoard(id){var el=document.getElementById('stuLotteryV2');el.innerHTML='<div class="loading">กำลังโหลดแผงสลาก...</div>';try{STU_LOT.board=await lotV2Rpc('lottery_v2_get_board',{p_token:STU.rewardToken,p_round_id:id});STU_LOT.selected={};STU_LOT.filter='all';STU_LOT.type='two';el.innerHTML=stuLotV2BoardHtml();setTimeout(stuLotV2RenderTickets,0);}catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}}
+function stuLotV2BoardHtml(){var b=STU_LOT.board||{},r=b.round||{},rights=b.my_rights||[],wins=rights.length?'<div class="lot-card" style="margin:12px 0"><h3>🎉 สิทธิ์รางวัลของฉัน</h3>'+rights.map(function(w){return '<div class="sp-row"><span><b>'+(w.type==='two'?'เลข 2 ตัว ':'เลข 3 ตัว ')+lotEsc(w.number+'-'+w.copy)+'</b></span><span class="badge '+(w.spin_status==='spun'?'badge-green':'badge-gray')+'">'+(w.spin_status==='spun'?'หมุนแล้ว':'รอครูหมุนวงล้อ')+'</span></div>';}).join('')+'</div>':'';return '<button class="btn btn-outline btn-sm" onclick="stuLotV2LoadDashboard(true)">← กลับภาพรวม</button><div class="lot2-head" style="margin-top:12px"><div class="lot2-head-main"><h2>'+lotEsc(r.title)+'</h2><div class="lot-muted">'+lotEsc(lotV2Status(r.status))+' · ปิดขาย '+lotDateTime(r.sale_closes_at)+'</div></div></div>'+lotV2ResultHtml(b.results||[])+wins+(r.status!=='open'?'<div class="lot2-note">ขณะนี้ดูแผงและสลากของฉันได้ แต่เลือกซื้อได้เฉพาะช่วงเปิดขาย</div>':'')+'<div class="lot2-board-tools"><button class="lot2-filter active" data-lot-type="two" onclick="stuLotV2Type(\'two\',this)">เลข 2 ตัว · '+r.price_two+' เหรียญ</button><button class="lot2-filter" data-lot-type="three" onclick="stuLotV2Type(\'three\',this)">เลข 3 ตัว · '+r.price_three+' เหรียญ</button></div><div class="lot2-board-tools"><button class="lot2-filter active" data-lot-filter="all" onclick="stuLotV2Filter(\'all\',this)">ทั้งหมด</button><button class="lot2-filter" data-lot-filter="available" onclick="stuLotV2Filter(\'available\',this)">ยังว่าง</button><button class="lot2-filter" data-lot-filter="sold" onclick="stuLotV2Filter(\'sold\',this)">ขายแล้ว</button><button class="lot2-filter" data-lot-filter="mine" onclick="stuLotV2Filter(\'mine\',this)">ของฉัน</button><input id="stuLotV2Search" inputmode="numeric" placeholder="ค้นหาหมายเลข" oninput="stuLotV2RenderTickets()"></div><div id="stuLotV2Tickets"></div><div id="stuLotV2Cart"></div>';}
+function stuLotV2Type(type,btn){STU_LOT.type=type;document.querySelectorAll('[data-lot-type]').forEach(function(x){x.classList.toggle('active',x===btn);});stuLotV2RenderTickets();}
+function stuLotV2Filter(f,btn){STU_LOT.filter=f;document.querySelectorAll('[data-lot-filter]').forEach(function(x){x.classList.toggle('active',x===btn);});stuLotV2RenderTickets();}
+function stuLotV2RenderTickets(){var el=document.getElementById('stuLotV2Tickets');if(!el)return;var canBuy=STU_LOT.board.round.status==='open',q=((document.getElementById('stuLotV2Search')||{}).value||'').trim(),a=(STU_LOT.board.tickets||[]).filter(function(t){return t.type===STU_LOT.type&&(!q||t.number.indexOf(q)>=0)&&(STU_LOT.filter==='all'||(STU_LOT.filter==='available'?t.state==='available':STU_LOT.filter==='sold'?['sold','held'].indexOf(t.state)>=0:t.state==='mine'));});el.innerHTML='<div class="lot2-board">'+a.map(function(t){var selected=!!STU_LOT.selected[t.id],click=canBuy&&t.state==='available'?' onclick="stuLotV2Toggle('+t.id+')"':'';return '<button type="button" class="lot2-ticket '+t.state+(selected?' selected':'')+'"'+click+(!canBuy||t.state!=='available'?' disabled':'')+'><span class="num">'+lotEsc(t.number)+'</span><span class="copy">'+lotEsc(t.copy)+(t.state==='mine'?' · ของฉัน':t.state==='sold'?' · ขายแล้ว':t.state==='held'?' · กำลังจอง':' · ว่าง')+'</span></button>';}).join('')+'</div>';stuLotV2RenderCart();}
+function stuLotV2Toggle(id){if(STU_LOT.selected[id])delete STU_LOT.selected[id];else{if(Object.keys(STU_LOT.selected).length>=10)return toast('ใส่ตะกร้าได้สูงสุด 10 ใบต่อครั้ง','err');STU_LOT.selected[id]=true;}stuLotV2RenderTickets();}
+function stuLotV2RenderCart(){var el=document.getElementById('stuLotV2Cart');if(!el)return;var ids=Object.keys(STU_LOT.selected).map(Number),ts=(STU_LOT.board.tickets||[]).filter(function(t){return ids.indexOf(t.id)>=0;}),r=STU_LOT.board.round||{},sum=ts.reduce(function(n,t){return n+(t.type==='two'?r.price_two:r.price_three);},0);el.innerHTML=ids.length?'<div class="lot2-cart"><div class="summary"><b>'+ids.length+' ใบ · '+sum+' เหรียญ</b><span>'+lotEsc(ts.map(function(t){return t.number+'-'+t.copy;}).join(', '))+'</span></div><button class="btn" onclick="stuLotV2Checkout()">ตรวจสอบและซื้อ</button></div>':'';}
+async function stuLotV2Checkout(){var ids=Object.keys(STU_LOT.selected).map(Number);if(!ids.length)return;try{var r=await lotV2Rpc('lottery_v2_hold_numbers',{p_token:STU.rewardToken,p_round_id:STU_LOT.board.round.id,p_ticket_ids:ids,p_request_key:'web:'+STU.student.id+':'+Date.now()});STU_LOT.cart=r;var ts=(STU_LOT.board.tickets||[]).filter(function(t){return ids.indexOf(t.id)>=0;});document.getElementById('lotConfirmBody').innerHTML='<div class="lot2-confirm-list">'+ts.map(function(t){return '<div class="lot2-confirm-item"><b>'+(t.type==='two'?'2 ตัว ':'3 ตัว ')+lotEsc(t.number+'-'+t.copy)+'</b><span>'+(t.type==='two'?STU_LOT.board.round.price_two:STU_LOT.board.round.price_three)+' เหรียญ</span></div>';}).join('')+'</div><div class="lot2-head"><b style="flex:1">รวม '+r.count+' ใบ</b><b>'+r.total_coins+' เหรียญ</b></div><div id="lotConfirmCountdown" class="sp-alert sp-alert-orange">จองไว้ 02:00 นาที</div>';openModal('modalLotConfirm');clearInterval(STU_LOT.timer);STU_LOT.timer=setInterval(stuLotV2Tick,1000);}catch(e){toast('❌ '+lotV2Error(e),'err');stuLotV2OpenBoard(STU_LOT.board.round.id);}}
+function stuLotV2Tick(){if(!STU_LOT.cart)return;var left=Math.max(0,Math.ceil((new Date(STU_LOT.cart.expires_at)-new Date())/1000)),el=document.getElementById('lotConfirmCountdown');if(el)el.textContent='จองไว้ '+String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0')+' นาที';if(!left){clearInterval(STU_LOT.timer);if(el)el.textContent='หมดเวลาจอง กรุณาเลือกใหม่';var b=document.getElementById('lotConfirmBuy');if(b)b.disabled=true;}}
+async function stuLotCancelCart(){clearInterval(STU_LOT.timer);var c=STU_LOT.cart;STU_LOT.cart=null;closeModal('modalLotConfirm');if(c)try{await lotV2Rpc('lottery_v2_release_cart',{p_token:STU.rewardToken,p_cart_id:c.cart_id});}catch(e){}if(STU_LOT.board)stuLotV2OpenBoard(STU_LOT.board.round.id);}
+async function stuLotPurchaseCart(){if(!STU_LOT.cart)return;var btn=document.getElementById('lotConfirmBuy');btn.disabled=true;try{await lotV2Rpc('lottery_v2_purchase_cart',{p_token:STU.rewardToken,p_cart_id:STU_LOT.cart.cart_id,p_idempotency_key:'purchase:'+STU_LOT.cart.cart_id});clearInterval(STU_LOT.timer);STU_LOT.cart=null;closeModal('modalLotConfirm');toast('ซื้อสลากเรียบร้อยแล้ว');stuLotV2OpenBoard(STU_LOT.board.round.id);}catch(e){btn.disabled=false;toast('❌ '+lotV2Error(e),'err');}}
+
 async function buildStuPortalTabbed(stu,mode){
   mode=mode||'student';
   var id=stu.id,e0=function(){return[];};
@@ -9622,6 +9922,36 @@ function refreshSaPeriods(){
   loadSubjectStudents();
 }
 
+// บันทึกเช็คชื่อผ่าน RPC เหรียญเมื่อรายวิชาเปิดใช้โมดูล
+// หากยังไม่ได้ติดตั้ง/ยังไม่ได้เปิดใช้ จะถอยกลับไปใช้การบันทึกเดิมโดยไม่กระทบงานเช็คชื่อ
+async function saveSubjectAttendanceWithRewards(assignId,dt,period,records,cancelled,cancellationReason){
+  try{
+    var r=await lotV2Rpc('reward_v2_save_attendance',{
+      p_token:G.rewardToken,p_assignment_id:parseInt(assignId),p_att_date:dt,p_period:parseInt(period),
+      p_records:(records||[]).map(function(x){return {student_id:x.student_id,status:x.status,remark:x.remark||null};}),
+      p_cancelled:!!cancelled,p_cancellation_reason:cancellationReason||null,p_timetable_id:null
+    });
+    return {rewardV2:true,result:r};
+  }catch(e){
+    var m=(e&&e.message)||'';
+    var fallback=/PGRST202|schema cache|Could not find the function|does not exist|ยังไม่ได้เปิดโมดูลเหรียญ/i.test(m);
+    if(!fallback)throw e;
+    if(cancelled)throw new Error('ต้องเปิดโมดูลเหรียญของรายวิชานี้ก่อน จึงจะบันทึกคาบงดเรียนได้');
+    await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{
+      method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)
+    });
+    return {rewardV2:false};
+  }
+}
+async function saCancelSession(){
+  var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||0;
+  if(!assignId||!dt||!period){toast('เลือกกลุ่มเรียน วันที่ และคาบก่อน','err');return;}
+  var reason=prompt('เหตุผลงดเรียน (คาบนี้จะไม่ถูกนำไปคำนวณโบนัสครบสัปดาห์)','วันหยุด/ครูติดภารกิจ');
+  if(reason===null)return;
+  try{await saveSubjectAttendanceWithRewards(assignId,dt,period,[],true,reason);toast('บันทึกคาบงดเรียนแล้ว');showSaGrid();}
+  catch(e){toast('❌ '+lotV2Error(e),'err');}
+}
+
 async function loadSubjectStudents(){
   var assignId=document.getElementById('saAssign').value,dt=document.getElementById('saDate').value,period=parseInt(document.getElementById('saPeriod').value)||0;
   var hide=function(){document.getElementById('saStats').style.display='none';document.getElementById('saBulk').style.display='none';};
@@ -9652,7 +9982,7 @@ async function loadSubjectStudents(){
     document.getElementById('saBtnSave').onclick=async function(){
       var records=stus.filter(function(s){return SA.att[s.id]&&SA.att[s.id].status;}).map(function(s){return {assignment_id:parseInt(assignId),student_id:s.id,teacher_id:G.user.id,att_date:dt,period:period,status:SA.att[s.id].status};});
       if(!records.length){toast('ยังไม่ได้เลือกสถานะ','err');return;}
-      try{await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(records)});toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน');applyAttDeduct(records,'subject',dt,{period:period,assignId:assignId});sendSkipAlert(records,stus,assignId,dt,period);saLockedView(true);}
+      try{var saved=await saveSubjectAttendanceWithRewards(assignId,dt,period,records,false,null);toast('✅ เช็คเวลาเรียนเรียบร้อยแล้ว '+records.length+' คน'+(saved.rewardV2?' · ประมวลผลเหรียญแล้ว':''));applyAttDeduct(records,'subject',dt,{period:period,assignId:assignId});sendSkipAlert(records,stus,assignId,dt,period);saLockedView(true);}
       catch(e){toast('❌ '+e.message,'err');}
     };
   }catch(e){hide();document.getElementById('saList').innerHTML='<div class="loading" style="color:var(--red);">'+e.message+'</div>';}
@@ -11721,10 +12051,16 @@ async function setCellStatus(status){
   closeCellEdit();
   try{
     if(status==='clear'){
-      await api('/rest/v1/subject_attendance?assignment_id=eq.'+SAR.assignId+'&student_id=eq.'+sid+'&att_date=eq.'+date+'&period=eq.'+period,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+      try{
+        await lotV2Rpc('reward_v2_clear_attendance',{p_token:G.rewardToken,p_assignment_id:parseInt(SAR.assignId),p_student_id:parseInt(sid),p_att_date:date,p_period:period,p_reason:'ล้างสถานะจากรายงานเวลาเรียน'});
+      }catch(clearErr){
+        var cm=(clearErr&&clearErr.message)||'';
+        if(!/PGRST202|schema cache|Could not find the function|does not exist|ยังไม่ได้เปิดโมดูลเหรียญ/i.test(cm))throw clearErr;
+        await api('/rest/v1/subject_attendance?assignment_id=eq.'+SAR.assignId+'&student_id=eq.'+sid+'&att_date=eq.'+date+'&period=eq.'+period,{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+      }
       delete SAR.att[sid+'_'+key];
     }else{
-      await api('/rest/v1/subject_attendance?on_conflict=assignment_id,student_id,att_date,period',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{assignment_id:parseInt(SAR.assignId),student_id:parseInt(sid),teacher_id:G.user.id,att_date:date,period:period,status:status}])});
+      await saveSubjectAttendanceWithRewards(SAR.assignId,date,period,[{assignment_id:parseInt(SAR.assignId),student_id:parseInt(sid),teacher_id:G.user.id,att_date:date,period:period,status:status}],false,null);
       SAR.att[sid+'_'+key]=status;
     }
     renderSubjAttReport();
