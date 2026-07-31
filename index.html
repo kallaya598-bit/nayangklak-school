@@ -5938,7 +5938,7 @@ async function oeShowReview(){
 }
 
 // ===== COIN & SCHOOL LOTTERY =====
-var LOT={tab:'coins',rooms:[],students:[],campaigns:[]};
+var LOT={tab:'coins',assignments:[],students:[],campaigns:[]};
 function lotEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function lotDateTime(v){if(!v)return '-';try{return new Date(v).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});}catch(e){return v;}}
 function lotStatus(s){return({draft:'แบบร่าง',open:'เปิดแลกสลาก',locked:'ปิดรับสลาก',drawn:'สุ่มแล้ว',cancelled:'ยกเลิก'})[s]||s;}
@@ -5963,36 +5963,50 @@ async function lotInit(){
 }
 async function lotLoadCoins(){
   var el=document.getElementById('lotContent');if(!lotNeedSession())return;
-  el.innerHTML='<div class="loading">กำลังโหลดกระเป๋าเหรียญ...</div>';
+  el.innerHTML='<div class="loading">กำลังโหลดกลุ่มเรียนรายวิชา...</div>';
   try{
-    var roomIds=G.user.role==='admin'?[]:(G.myRoomIds||[]);
-    var rq='/rest/v1/classrooms?select=id,room_name&order=level,room_number';
-    if(roomIds.length)rq+='&id=in.('+roomIds.join(',')+')';
-    LOT.rooms=await api(rq)||[];
-    if(!LOT.rooms.length){el.innerHTML='<div class="sp-empty">บัญชีนี้ยังไม่มีห้องเรียนที่ดูแล</div>';return;}
-    var opts=LOT.rooms.map(function(r){return '<option value="'+r.id+'">'+lotEsc(r.room_name)+'</option>';}).join('');
-    el.innerHTML='<div class="lot-form"><label class="form-label" for="lotRoom">เลือกห้องเรียน</label>'
-      +'<select class="form-control" id="lotRoom" onchange="lotLoadRoomStudents()">'+opts+'</select></div>'
+    LOT.assignments=await loadMyAssigns(true)||[];
+    if(!LOT.assignments.length){
+      el.innerHTML='<div class="sp-empty"><b>ยังไม่มีกลุ่มเรียนรายวิชา</b><br><span class="lot-muted">สร้างกลุ่มเรียนและเพิ่มนักเรียนในเมนู “ตารางสอน › จัดการรายวิชา” ก่อนมอบเหรียญ</span></div>';
+      return;
+    }
+    LOT.assignments.sort(function(a,b){
+      var an=(a.subjects&&a.subjects.subject_name)||'',bn=(b.subjects&&b.subjects.subject_name)||'';
+      return an.localeCompare(bn,'th')||((a.group_no||0)-(b.group_no||0));
+    });
+    var opts=LOT.assignments.map(function(a){
+      var s=a.subjects||{},r=a.classrooms||{};
+      return '<option value="'+a.id+'">'+lotEsc((s.subject_code||'ไม่ระบุรหัส')+' · '+(s.subject_name||'ไม่ระบุชื่อ')+' · '+(r.room_name||'กลุ่มเรียน')+' (กลุ่ม '+(a.group_no||1)+')'+(a._role==='co'?' · สอนร่วม':''))+'</option>';
+    }).join('');
+    el.innerHTML='<div class="lot-form"><label class="form-label" for="lotAssign">เลือกกลุ่มเรียนรายวิชา</label>'
+      +'<select class="form-control" id="lotAssign" onchange="lotLoadAssignmentStudents()">'+opts+'</select>'
+      +'<div class="lot-muted" style="margin-top:8px;">แสดงเฉพาะกลุ่มที่คุณเป็นครูผู้สอนหรือครูร่วมสอน</div></div>'
       +'<div id="lotStudentList"><div class="loading">กำลังโหลด...</div></div>';
-    lotLoadRoomStudents();
+    lotLoadAssignmentStudents();
   }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">โหลดโมดูลไม่ได้ — ตรวจว่ารัน coin_lottery_module.sql แล้ว<br>'+lotEsc(e.message)+'</div>';}
 }
-async function lotLoadRoomStudents(){
-  var rid=parseInt(document.getElementById('lotRoom').value),el=document.getElementById('lotStudentList');
+async function lotLoadAssignmentStudents(){
+  var aid=parseInt(document.getElementById('lotAssign').value),el=document.getElementById('lotStudentList');
   el.innerHTML='<div class="loading">กำลังโหลดนักเรียน...</div>';
   try{
-    var st=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,fullname,student_code,order_no&order=order_no')||[];
+    var enr=await api('/rest/v1/enrollments?assignment_id=eq.'+aid+'&status=eq.active&select=students!inner(id,fullname,student_code,order_no,classrooms(room_name))&students.status=eq.active&order=student_id')||[];
+    var st=enr.map(function(x){return x.students;}).filter(Boolean);
+    st.sort(function(a,b){
+      var ar=(a.classrooms&&a.classrooms.room_name)||'',br=(b.classrooms&&b.classrooms.room_name)||'';
+      return ar.localeCompare(br,'th')||((a.order_no||0)-(b.order_no||0));
+    });
     LOT.students=st;
     var ids=st.map(function(s){return s.id;});
     var ac=ids.length?await api('/rest/v1/coin_accounts?student_id=in.('+ids.join(',')+')&select=student_id,balance,lifetime_earned,lifetime_spent'):[];
     var map={};(ac||[]).forEach(function(a){map[a.student_id]=a;});
-    var rn=(LOT.rooms.filter(function(r){return r.id===rid;})[0]||{}).room_name||'';
-    var h='<div class="lot-form"><div class="flex gap8 mb12"><div style="font-weight:800;color:var(--blue);flex:1;">นักเรียน '+lotEsc(rn)+'</div><span class="lot-muted">'+st.length+' คน</span></div>';
-    if(!st.length)h+='<div class="sp-empty">ไม่มีนักเรียน</div>';
+    var a=(LOT.assignments.filter(function(x){return x.id===aid;})[0]||{}),sj=a.subjects||{},cl=a.classrooms||{};
+    var title=(sj.subject_code||'')+' '+(sj.subject_name||'รายวิชา');
+    var h='<div class="lot-form"><div class="flex gap8 mb12"><div style="font-weight:800;color:var(--blue);flex:1;">'+lotEsc(title)+'<div class="lot-muted">'+lotEsc((cl.room_name||'กลุ่มเรียน')+' · กลุ่ม '+(a.group_no||1))+'</div></div><span class="lot-muted">'+st.length+' คน</span></div>';
+    if(!st.length)h+='<div class="sp-empty"><b>กลุ่มเรียนนี้ยังไม่มีนักเรียน</b><br><span class="lot-muted">เพิ่มนักเรียนในเมนู “ตารางสอน › จัดการรายวิชา” ก่อนมอบเหรียญ</span></div>';
     st.forEach(function(s){
       var bal=map[s.id]?map[s.id].balance:0;
       h+='<div class="lot-student-row"><div class="lot-coin" style="width:42px;height:42px;font-size:20px;">'+bal+'</div>'
-        +'<div class="name">'+(s.order_no||'-')+'. '+lotEsc(s.fullname)+'<div class="lot-muted">'+lotEsc(s.student_code)+'</div></div>'
+        +'<div class="name">'+(s.order_no||'-')+'. '+lotEsc(s.fullname)+'<div class="lot-muted">'+lotEsc(s.student_code)+' · '+lotEsc(s.classrooms&&s.classrooms.room_name||'ไม่ระบุห้อง')+'</div></div>'
         +'<input class="lot-number" type="number" id="lotAmt'+s.id+'" min="1" max="10000" value="1" inputmode="numeric" aria-label="จำนวนเหรียญ">'
         +'<button class="btn btn-green btn-sm" onclick="lotPostCoin('+s.id+',1)">＋ ให้</button>'
         +'<button class="btn btn-red btn-sm" onclick="lotPostCoin('+s.id+',-1)">− หัก</button></div>';
@@ -6011,7 +6025,7 @@ async function lotPostCoin(studentId,sign){
       p_token:G.rewardToken,p_student_id:studentId,p_amount:n*sign,p_reason:reason.trim(),
       p_idempotency_key:'web:'+G.user.id+':'+studentId+':'+Date.now()
     })});
-    toast(sign>0?'🪙 ให้เหรียญเรียบร้อย':'บันทึกการหักเหรียญแล้ว');lotLoadRoomStudents();
+    toast(sign>0?'🪙 ให้เหรียญเรียบร้อย':'บันทึกการหักเหรียญแล้ว');lotLoadAssignmentStudents();
   }catch(e){toast('❌ '+e.message,'err');}
 }
 async function lotLoadCampaigns(){
