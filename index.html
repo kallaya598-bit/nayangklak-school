@@ -201,6 +201,37 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .spt-profile-meta{font-size:13px;color:var(--text2);margin-top:3px;}
 .spt-profile-advisor{font-size:13px;color:#546e7a;margin-top:5px;}
 @media(max-width:600px){.spt-nav{top:60px;}.spt-kpi .kv{font-size:20px;}.spt-kpi{padding:12px 4px;}}
+/* ===== COIN & SCHOOL LOTTERY ===== */
+.lot-wrap{padding:14px 14px 90px;max-width:1080px;margin:0 auto;}
+.lot-summary{display:flex;align-items:center;gap:14px;padding:18px;background:#fff8e1;border:1px solid #f6cf63;border-radius:16px;margin-bottom:14px;}
+.lot-coin{width:54px;height:54px;border-radius:50%;background:#f9a825;color:#5d3b00;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;box-shadow:inset 0 0 0 5px rgba(255,255,255,.38);flex-shrink:0;}
+.lot-balance{font-size:30px;font-weight:800;color:#6d4600;line-height:1;}
+.lot-muted{font-size:13.5px;color:#52687c;line-height:1.45;}
+.lot-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;scrollbar-width:none;}
+.lot-tabs::-webkit-scrollbar{display:none;}
+.lot-tab{min-height:44px;padding:0 16px;border:1.5px solid #c5d5ee;border-radius:22px;background:#fff;color:var(--blue);font-size:14.4px;font-weight:800;white-space:nowrap;}
+.lot-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.lot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+.lot-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow2);}
+.lot-card h3{font-size:17px;color:var(--blue);margin-bottom:4px;text-wrap:balance;}
+.lot-meta{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0;font-size:13px;color:#52687c;}
+.lot-pill{padding:4px 9px;border-radius:999px;background:#eef4fb;color:#244b75;font-weight:700;}
+.lot-ticket{border:1px dashed #e0a11b;background:#fffaf0;border-radius:12px;padding:11px 13px;margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;}
+.lot-serial{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;color:#6d4600;letter-spacing:.04em;}
+.lot-form{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+.lot-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.lot-actions .btn{min-height:44px;}
+.lot-student-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e6edf7;}
+.lot-student-row:last-child{border-bottom:none;}
+.lot-student-row .name{flex:1;min-width:0;font-weight:700;color:var(--blue);}
+.lot-number{width:88px;height:44px;border:1.5px solid var(--border2);border-radius:10px;padding:0 10px;font-size:16px;}
+.lot-winner{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:12px;padding:11px 13px;margin-top:8px;color:#1b5e20;}
+@media(max-width:600px){
+  .lot-wrap{padding:10px 10px 82px}.lot-summary{padding:14px}.lot-balance{font-size:26px}
+  .lot-student-row{align-items:flex-start;flex-wrap:wrap}.lot-student-row .name{flex-basis:calc(100% - 52px)}
+  .lot-student-row .btn{flex:1;min-height:44px}.lot-number{flex:0 0 82px}
+}
+@media(prefers-reduced-motion:reduce){.lot-tab,.lot-card,.lot-ticket{transition:none!important;animation:none!important;}}
 /* แดชบอร์ดผู้บริหาร */
 .ex-hero{background:linear-gradient(135deg,#0d2d5e,#1a3a6b);color:#fff;border-radius:16px;padding:16px 18px;margin-bottom:14px;}
 .ex-hero h2{font-size:20.4px;font-weight:800;margin-bottom:2px;}
@@ -1667,6 +1698,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
           <div class="nav-item" data-page="pgHvMap"><span class="ni ms-teal">map</span> <span>แผนที่บ้านนักเรียน</span></div>
           <div class="nav-item" data-page="pgMH"><span class="ni ms-purple">psychology</span> <span>ประเมินสุขภาพจิต</span></div>
           <div class="nav-item" data-page="pgActivities"><span class="ni ms-blue">diversity_3</span> <span>กิจกรรม/ชุมนุม</span></div>
+          <div class="nav-item" data-page="pgLottery"><span class="ni ms-orange">confirmation_number</span> <span>เหรียญและล็อตเตอรี่</span></div>
           <div class="nav-item hidden" id="navClubsAdminItem" data-page="pgClubsAdmin"><span class="ni ms-indigo">checklist</span> <span>ภาพรวมชุมนุม</span></div>
         </div>
       </div>
@@ -1789,6 +1821,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <div class="dico" onclick="openPage('pgHvMap')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/11-home-map.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">แผนที่บ้านนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgMH')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/12-mental-health.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">สุขภาพจิต</div></div>
             <div class="dico" onclick="openPage('pgActivities')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/13-club-activities.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">กิจกรรมชุมนุม</div></div>
+            <div class="dico" onclick="openPage('pgLottery')"><div class="dico-ico" style="background:#fff3cd;color:#6d4600;"><span class="ms">confirmation_number</span></div><div class="dico-lbl">เหรียญและล็อตเตอรี่</div></div>
             <div class="dico" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="dico-ico iapp-indigo"><span class="ms">checklist</span></div><div class="dico-lbl">ภาพรวมชุมนุม</div></div>
             <div class="dico" onclick="openPage('pgTeachSubjects')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/14-teaching-schedule.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางสอน</div></div>
             <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/15-subject-grades.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ผลการเรียน</div></div>
@@ -2754,6 +2787,29 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         </div>
       </div>
 
+      <!-- ===== COIN & SCHOOL LOTTERY ===== -->
+      <div class="page" id="pgLottery">
+        <div class="page-topbar">
+          <button class="back-btn" onclick="goBack()">← กลับ</button><button class="back-btn" onclick="goHome()" style="margin-left:6px;">🏠 หน้าหลัก</button>
+          <div class="pt1"><span class="pt-ic" style="color:#ffd54f;">confirmation_number</span> เหรียญและล็อตเตอรี่</div>
+        </div>
+        <div class="lot-wrap">
+          <div class="lot-summary">
+            <div class="lot-coin" aria-hidden="true">฿</div>
+            <div style="flex:1;">
+              <div style="font-size:19px;font-weight:800;color:#6d4600;">รางวัลความดีในโรงเรียน</div>
+              <div class="lot-muted">มอบเหรียญอย่างมีเหตุผล แลกสลากโดยไม่ใช้เงินจริง และตรวจสอบย้อนหลังได้ทุกครั้ง</div>
+            </div>
+          </div>
+          <div class="lot-tabs" role="tablist">
+            <button class="lot-tab active" id="lotTabCoins" onclick="lotSwitch('coins')">🪙 จัดการเหรียญ</button>
+            <button class="lot-tab" id="lotTabCampaigns" onclick="lotSwitch('campaigns')">🎟️ กิจกรรมล็อตเตอรี่</button>
+            <button class="lot-tab" id="lotTabCreate" onclick="lotSwitch('create')" style="display:none;">＋ สร้างกิจกรรม</button>
+          </div>
+          <div id="lotContent"><div class="loading">กำลังโหลด...</div></div>
+        </div>
+      </div>
+
       <!-- ===== ADMIN ===== -->
       <div class="page" id="pgAdmin">
         <div class="page-topbar">
@@ -3618,7 +3674,7 @@ var APP_KEY='49790950ea1d82dcf4a1cb68e4cdb53a7e6c6ad5f97a0236';
 var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','x-app-key':APP_KEY};
 
 // ===== STATE =====
-var G={user:null,room:null,students:[],att:{},eveningAtt:{},eveMorningRef:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null};
+var G={user:null,room:null,students:[],att:{},eveningAtt:{},eveMorningRef:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,rewardToken:null};
 
 // ===== SHORTCUTS =====
 var SC_ALL=[
@@ -5881,6 +5937,149 @@ async function oeShowReview(){
   }catch(e){box.innerHTML='<div style="color:var(--red);font-size:13px;">โหลดเฉลยไม่สำเร็จ</div>';}
 }
 
+// ===== COIN & SCHOOL LOTTERY =====
+var LOT={tab:'coins',rooms:[],students:[],campaigns:[]};
+function lotEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function lotDateTime(v){if(!v)return '-';try{return new Date(v).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});}catch(e){return v;}}
+function lotStatus(s){return({draft:'แบบร่าง',open:'เปิดแลกสลาก',locked:'ปิดรับสลาก',drawn:'สุ่มแล้ว',cancelled:'ยกเลิก'})[s]||s;}
+function lotNeedSession(){
+  if(G.rewardToken)return true;
+  document.getElementById('lotContent').innerHTML='<div class="sp-alert sp-alert-orange">🔐 session รางวัลหมดอายุ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่</div>';
+  return false;
+}
+function lotSwitch(tab){
+  LOT.tab=tab;
+  ['coins','campaigns','create'].forEach(function(x){
+    var b=document.getElementById('lotTab'+x.charAt(0).toUpperCase()+x.slice(1));if(b)b.classList.toggle('active',x===tab);
+  });
+  if(tab==='coins')lotLoadCoins();
+  else if(tab==='campaigns')lotLoadCampaigns();
+  else lotCreateForm();
+}
+async function lotInit(){
+  var create=document.getElementById('lotTabCreate');
+  if(create)create.style.display=G.user&&G.user.role==='admin'?'':'none';
+  LOT.tab='coins';lotSwitch('coins');
+}
+async function lotLoadCoins(){
+  var el=document.getElementById('lotContent');if(!lotNeedSession())return;
+  el.innerHTML='<div class="loading">กำลังโหลดกระเป๋าเหรียญ...</div>';
+  try{
+    var roomIds=G.user.role==='admin'?[]:(G.myRoomIds||[]);
+    var rq='/rest/v1/classrooms?select=id,room_name&order=level,room_number';
+    if(roomIds.length)rq+='&id=in.('+roomIds.join(',')+')';
+    LOT.rooms=await api(rq)||[];
+    if(!LOT.rooms.length){el.innerHTML='<div class="sp-empty">บัญชีนี้ยังไม่มีห้องเรียนที่ดูแล</div>';return;}
+    var opts=LOT.rooms.map(function(r){return '<option value="'+r.id+'">'+lotEsc(r.room_name)+'</option>';}).join('');
+    el.innerHTML='<div class="lot-form"><label class="form-label" for="lotRoom">เลือกห้องเรียน</label>'
+      +'<select class="form-control" id="lotRoom" onchange="lotLoadRoomStudents()">'+opts+'</select></div>'
+      +'<div id="lotStudentList"><div class="loading">กำลังโหลด...</div></div>';
+    lotLoadRoomStudents();
+  }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">โหลดโมดูลไม่ได้ — ตรวจว่ารัน coin_lottery_module.sql แล้ว<br>'+lotEsc(e.message)+'</div>';}
+}
+async function lotLoadRoomStudents(){
+  var rid=parseInt(document.getElementById('lotRoom').value),el=document.getElementById('lotStudentList');
+  el.innerHTML='<div class="loading">กำลังโหลดนักเรียน...</div>';
+  try{
+    var st=await api('/rest/v1/students?classroom_id=eq.'+rid+'&status=eq.active&select=id,fullname,student_code,order_no&order=order_no')||[];
+    LOT.students=st;
+    var ids=st.map(function(s){return s.id;});
+    var ac=ids.length?await api('/rest/v1/coin_accounts?student_id=in.('+ids.join(',')+')&select=student_id,balance,lifetime_earned,lifetime_spent'):[];
+    var map={};(ac||[]).forEach(function(a){map[a.student_id]=a;});
+    var rn=(LOT.rooms.filter(function(r){return r.id===rid;})[0]||{}).room_name||'';
+    var h='<div class="lot-form"><div class="flex gap8 mb12"><div style="font-weight:800;color:var(--blue);flex:1;">นักเรียน '+lotEsc(rn)+'</div><span class="lot-muted">'+st.length+' คน</span></div>';
+    if(!st.length)h+='<div class="sp-empty">ไม่มีนักเรียน</div>';
+    st.forEach(function(s){
+      var bal=map[s.id]?map[s.id].balance:0;
+      h+='<div class="lot-student-row"><div class="lot-coin" style="width:42px;height:42px;font-size:20px;">'+bal+'</div>'
+        +'<div class="name">'+(s.order_no||'-')+'. '+lotEsc(s.fullname)+'<div class="lot-muted">'+lotEsc(s.student_code)+'</div></div>'
+        +'<input class="lot-number" type="number" id="lotAmt'+s.id+'" min="1" max="10000" value="1" inputmode="numeric" aria-label="จำนวนเหรียญ">'
+        +'<button class="btn btn-green btn-sm" onclick="lotPostCoin('+s.id+',1)">＋ ให้</button>'
+        +'<button class="btn btn-red btn-sm" onclick="lotPostCoin('+s.id+',-1)">− หัก</button></div>';
+    });
+    el.innerHTML=h+'</div>';
+  }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(e.message)+'</div>';}
+}
+async function lotPostCoin(studentId,sign){
+  if(!lotNeedSession())return;
+  var n=Math.abs(parseInt(document.getElementById('lotAmt'+studentId).value)||0);
+  if(!n){toast('กรอกจำนวนเหรียญ','err');return;}
+  var reason=prompt(sign>0?'เหตุผลที่ให้เหรียญ':'เหตุผลที่หักเหรียญ');
+  if(reason===null)return;if(!reason.trim()){toast('กรุณาระบุเหตุผล','err');return;}
+  try{
+    await api('/rest/v1/rpc/coin_post',{method:'POST',body:JSON.stringify({
+      p_token:G.rewardToken,p_student_id:studentId,p_amount:n*sign,p_reason:reason.trim(),
+      p_idempotency_key:'web:'+G.user.id+':'+studentId+':'+Date.now()
+    })});
+    toast(sign>0?'🪙 ให้เหรียญเรียบร้อย':'บันทึกการหักเหรียญแล้ว');lotLoadRoomStudents();
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+async function lotLoadCampaigns(){
+  var el=document.getElementById('lotContent');
+  el.innerHTML='<div class="loading">กำลังโหลดกิจกรรม...</div>';
+  try{
+    var cs=await api('/rest/v1/lottery_campaigns?select=*,lottery_prizes(id,prize_name,quantity)&order=created_at.desc')||[];
+    LOT.campaigns=cs;
+    var ids=cs.map(function(c){return c.id;});
+    var ts=ids.length?await api('/rest/v1/lottery_tickets?campaign_id=in.('+ids.join(',')+')&select=id,campaign_id,status'):[];
+    var cnt={};(ts||[]).forEach(function(t){cnt[t.campaign_id]=(cnt[t.campaign_id]||0)+1;});
+    var ws=ids.length?await api('/rest/v1/lottery_winners?select=id,student_id,prize_id,lottery_prizes!inner(campaign_id,prize_name),students(fullname,classrooms(room_name))&lottery_prizes.campaign_id=in.('+ids.join(',')+')'):[];
+    var wm={};(ws||[]).forEach(function(w){var cid=w.lottery_prizes&&w.lottery_prizes.campaign_id;(wm[cid]=wm[cid]||[]).push(w);});
+    if(!cs.length){el.innerHTML='<div class="sp-empty">ยังไม่มีกิจกรรมล็อตเตอรี่'+(G.user.role==='admin'?' · กด “สร้างกิจกรรม” เพื่อเริ่มต้น':'')+'</div>';return;}
+    el.innerHTML='<div class="lot-grid">'+cs.map(function(c){
+      var prizes=(c.lottery_prizes||[]).map(function(p){return lotEsc(p.prize_name)+' × '+p.quantity;}).join(', ');
+      var acts='';
+      if(G.user.role==='admin'&&c.status==='draft')acts='<button class="btn btn-green btn-sm" onclick="lotSetStatus('+c.id+',\'open\')">เปิดรับสลาก</button>';
+      if(G.user.role==='admin'&&c.status==='open')acts='<button class="btn btn-outline btn-sm" onclick="lotSetStatus('+c.id+',\'locked\')">ปิดรับ</button><button class="btn btn-primary btn-sm" onclick="lotDraw('+c.id+')">🎲 สุ่มรางวัล</button>';
+      if(G.user.role==='admin'&&c.status==='locked')acts='<button class="btn btn-primary btn-sm" onclick="lotDraw('+c.id+')">🎲 สุ่มรางวัล</button>';
+      if(G.user.role==='admin'&&['draft','open','locked'].indexOf(c.status)>=0)acts+='<button class="btn btn-red btn-sm" onclick="lotSetStatus('+c.id+',\'cancelled\')">ยกเลิกและคืนเหรียญ</button>';
+      var win=(wm[c.id]||[]).map(function(w){return '<div class="lot-winner">🏆 '+lotEsc(w.lottery_prizes.prize_name)+' — <b>'+lotEsc(w.students&&w.students.fullname)+'</b> · '+lotEsc(w.students&&w.students.classrooms&&w.students.classrooms.room_name)+'</div>';}).join('');
+      return '<article class="lot-card"><div class="flex gap8"><h3 style="flex:1;">'+lotEsc(c.title)+'</h3><span class="badge '+(c.status==='open'?'badge-green':c.status==='drawn'?'badge-gold':'badge-gray')+'">'+lotStatus(c.status)+'</span></div>'
+        +'<div class="lot-muted">'+lotEsc(c.description||'กิจกรรมรางวัลภายในโรงเรียน')+'</div>'
+        +'<div class="lot-meta"><span class="lot-pill">🪙 '+c.ticket_cost+' / ใบ</span><span class="lot-pill">🎟️ '+(cnt[c.id]||0)+' ใบ</span><span class="lot-pill">สูงสุด '+c.max_tickets_per_student+' ใบ/คน</span></div>'
+        +'<div class="lot-muted">รางวัล: <b>'+prizes+'</b><br>ปิดรับ '+lotDateTime(c.closes_at)+'</div>'
+        +(acts?'<div class="lot-actions">'+acts+'</div>':'')+win+'</article>';
+    }).join('')+'</div>';
+  }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(e.message)+'</div>';}
+}
+function lotCreateForm(){
+  var el=document.getElementById('lotContent');
+  if(!G.user||G.user.role!=='admin'){el.innerHTML='<div class="sp-empty">เฉพาะผู้ดูแลระบบ</div>';return;}
+  var d=new Date(),open=d.toISOString().slice(0,16);d.setDate(d.getDate()+7);var close=d.toISOString().slice(0,16);
+  el.innerHTML='<div class="lot-form"><h3 style="color:var(--blue);margin-bottom:14px;">สร้างกิจกรรมล็อตเตอรี่</h3>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">ชื่อกิจกรรม</label><input class="form-control" id="lotTitle" placeholder="เช่น สลากความดีประจำเดือน"></div>'
+    +'<div class="form-group"><label class="form-label">ชื่อรางวัล</label><input class="form-control" id="lotPrize" placeholder="เช่น ชุดอุปกรณ์การเรียน"></div></div>'
+    +'<div class="form-group"><label class="form-label">รายละเอียด</label><textarea class="form-control" id="lotDesc" rows="2" placeholder="เงื่อนไขและรายละเอียดที่นักเรียนควรรู้"></textarea></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">เหรียญต่อสลาก 1 ใบ</label><input class="form-control" id="lotCost" type="number" min="1" value="10"></div>'
+    +'<div class="form-group"><label class="form-label">สูงสุดต่อคน</label><input class="form-control" id="lotMax" type="number" min="1" value="10"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">จำนวนรางวัล</label><input class="form-control" id="lotQty" type="number" min="1" value="1"></div>'
+    +'<div class="form-group"><label class="form-label">ปีการศึกษา / ภาคเรียน</label><div class="flex gap8"><input class="form-control" id="lotYear" type="number" value="'+HV_YEAR+'"><input class="form-control" id="lotSem" type="number" min="1" max="2" value="'+(G.semester||1)+'"></div></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">เปิดรับ</label><input class="form-control" id="lotOpen" type="datetime-local" value="'+open+'"></div>'
+    +'<div class="form-group"><label class="form-label">ปิดรับ</label><input class="form-control" id="lotClose" type="datetime-local" value="'+close+'"></div></div>'
+    +'<button class="btn btn-primary" style="min-height:44px;width:100%;justify-content:center;" onclick="lotCreate()">💾 บันทึกเป็นแบบร่าง</button></div>';
+}
+async function lotCreate(){
+  if(!lotNeedSession())return;
+  var body={p_token:G.rewardToken,p_title:document.getElementById('lotTitle').value,p_description:document.getElementById('lotDesc').value,
+    p_ticket_cost:parseInt(document.getElementById('lotCost').value),p_max_tickets:parseInt(document.getElementById('lotMax').value),
+    p_opens_at:document.getElementById('lotOpen').value,p_closes_at:document.getElementById('lotClose').value,
+    p_prize_name:document.getElementById('lotPrize').value,p_prize_quantity:parseInt(document.getElementById('lotQty').value),
+    p_year:parseInt(document.getElementById('lotYear').value),p_semester:parseInt(document.getElementById('lotSem').value)};
+  try{await api('/rest/v1/rpc/lottery_create_campaign',{method:'POST',body:JSON.stringify(body)});toast('สร้างกิจกรรมแล้ว');lotSwitch('campaigns');}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+async function lotSetStatus(id,status){
+  var msg=status==='cancelled'?'ยกเลิกกิจกรรมและคืนเหรียญให้สลากที่ยังใช้งานทั้งหมด?':'ยืนยันเปลี่ยนสถานะกิจกรรม?';
+  if(!confirm(msg))return;
+  try{await api('/rest/v1/rpc/lottery_set_status',{method:'POST',body:JSON.stringify({p_token:G.rewardToken,p_campaign_id:id,p_status:status})});toast('อัปเดตสถานะแล้ว');lotLoadCampaigns();}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+async function lotDraw(id){
+  if(!confirm('ยืนยันสุ่มรางวัล? เมื่อสุ่มแล้วจะแก้ไขรายชื่อสลากไม่ได้'))return;
+  try{await api('/rest/v1/rpc/lottery_draw',{method:'POST',body:JSON.stringify({p_token:G.rewardToken,p_campaign_id:id})});toast('🎉 สุ่มรางวัลเรียบร้อย');lotLoadCampaigns();}
+  catch(e){toast('❌ '+e.message,'err');}
+}
+
 // สแตกหน้าที่เปิดเอง (ไม่พึ่ง history.state) — กันปัญหา iOS PWA แบบ standalone
 // ที่ history API ไม่เสถียร (state หายเป็นระยะ) ทำให้ปุ่มกลับเด้งไปหน้าหลักเสมอ
 var NAV_STACK=['pgDash'];
@@ -5915,6 +6114,7 @@ function openPage(id,fromPop){
   if(id==='pgHomeVisit')hvHome();
   if(id==='pgHvMap')hvMapPageInit();
   if(id==='pgActivities')actHome();
+  if(id==='pgLottery')lotInit();
   if(id==='pgClubsAdmin')clubsAdminHome();
   if(id==='pgAbsentRep')arOpen('absent');
   if(id==='pgSubjAbsentRep')arOpen('subjabsent');
@@ -6034,7 +6234,7 @@ function refreshStaffSessionContext(){
       if(infoRoom)infoRoom.textContent=isViewer?'ผู้บริหาร':'ครูที่ปรึกษา '+rn;
       loadDashStats();
       populateStudentSelects();
-      saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds});
+      saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds,rewardToken:G.rewardToken});
     }catch(e){console.log('session refresh:',e.message);}
   })();
 }
@@ -6046,6 +6246,7 @@ async function resumeSession(){
   try{
     if(s.t==='staff'){
       G.user=s.user;G.semester=s.semester||1;if(s.hvYear)HV_YEAR=s.hvYear;
+      G.rewardToken=s.rewardToken||null;
       if(s.room)G.room=s.room;
       if(s.myRoomIds)G.myRoomIds=s.myRoomIds;
       showApp();
@@ -6053,8 +6254,8 @@ async function resumeSession(){
       restoreLastPage();
       return true;
     }
-    if(s.t==='viewer'){G.user=s.user;G.viewOnly=true;await loadCategories();execStart();return true;}
-    if(s.t==='student'||s.t==='parent'){STU.mode=s.t;await loadCategories();await renderStuPortal(s.student);return true;}
+    if(s.t==='viewer'){G.user=s.user;G.rewardToken=s.rewardToken||null;G.viewOnly=true;await loadCategories();execStart();return true;}
+    if(s.t==='student'||s.t==='parent'){STU.mode=s.t;STU.rewardToken=s.rewardToken||null;await loadCategories();await renderStuPortal(s.student);return true;}
   }catch(e){}
   return false;
 }
@@ -6072,6 +6273,10 @@ async function doLogin(){
     if(!data||!data.length){admLoginEvent({action:'login',success:false,entity:'auth',summary:'ล็อกอินไม่สำเร็จ'}, {actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='Username หรือ Password ไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
     saveLoginRemember(u,p);
     G.user=data[0];G.semester=1;
+    try{
+      var rs=await api('/rest/v1/rpc/reward_staff_session',{method:'POST',body:JSON.stringify({p_username:u,p_password:p})});
+      G.rewardToken=rs&&rs[0]?rs[0].token:null;
+    }catch(re){G.rewardToken=null;}
     admLoginEvent({action:'login',success:true,entity:'auth',summary:'เข้าสู่ระบบสำเร็จ',actor_username:u});
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
     try{var tEx=await api('/rest/v1/teachers?id=eq.'+G.user.id+'&select=is_academic,shortcuts&limit=1');if(tEx&&tEx[0]){G.user.is_academic=!!tEx[0].is_academic;if(tEx[0].shortcuts&&tEx[0].shortcuts.length)G.user.shortcuts=tEx[0].shortcuts;}}catch(e){}
@@ -6080,14 +6285,14 @@ async function doLogin(){
     // ผู้บริหาร (viewer) → เข้าแดชบอร์ดผู้บริหารโดยตรง (ไม่ใช้เมนูครู)
     if(G.user.role==='viewer'){
       G.viewOnly=true;await loadCategories();
-        saveSession({t:'viewer',user:G.user});
+        saveSession({t:'viewer',user:G.user,rewardToken:G.rewardToken});
       execStart();return;
     }
     // โหลด "ทุกห้อง" ที่ครูคนนี้เป็นที่ปรึกษา (ใช้ตรวจสิทธิ์แก้ไข)
     var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id);
     G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
     if(rd&&rd.length){var cd=await api('/rest/v1/classrooms?select=id,room_name&id=eq.'+rd[0].classroom_id+'&limit=1');if(cd&&cd.length)G.room=cd[0];}
-    saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds});
+    saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds,rewardToken:G.rewardToken});
     showApp();
     loadCategories().then(function(){populateCategorySelects();}).catch(function(e){console.log('cats:',e.message);});
   }catch(e){admLoginEvent({action:'login',success:false,entity:'auth',summary:'เกิดข้อผิดพลาด: '+((e.message||'').slice(0,80))},{actor_username:u,actor_name:u,actor_role:'guest'});err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
@@ -6130,7 +6335,7 @@ function setLoginTab(role){
 function pickExec(){fillLogin('','');var u=document.getElementById('loginU');if(u)u.focus();document.getElementById('loginErr').textContent='ℹ️ ผู้บริหารเข้าด้วยบัญชีที่ผู้ดูแลระบบสร้างให้ (บทบาท: ผู้บริหาร)';}
 
 // ===== LOGIN นักเรียน / ผู้ปกครอง (เลขประจำตัว + วันเกิด) =====
-var STU={mode:'student',student:null};
+var STU={mode:'student',student:null,rewardToken:null};
 function openStuLogin(mode){
   STU.mode=mode;
   setLoginTab(mode==='parent'?'parent':'student');
@@ -6162,8 +6367,12 @@ async function doStudentLogin(){
     var d=await api(q);
     if(!d||!d.length){err.textContent='ไม่พบเลขประจำตัวนักเรียนนี้';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
     if(pw!==STU_DEFAULT_PASS){err.textContent='รหัสผ่านไม่ถูกต้อง';btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';return;}
+    try{
+      var sr=await api('/rest/v1/rpc/reward_student_session',{method:'POST',body:JSON.stringify({p_student_code:code,p_password:pw})});
+      STU.rewardToken=sr&&sr[0]?sr[0].token:null;
+    }catch(re){STU.rewardToken=null;}
     await loadCategories();
-    saveSession({t:STU.mode,student:d[0]});
+    saveSession({t:STU.mode,student:d[0],rewardToken:STU.rewardToken});
     await renderStuPortal(d[0]);
     btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';
   }catch(e){err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
@@ -6455,6 +6664,57 @@ function sptSwitch(paneId,btn){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+async function buildStuLottery(stu,mode){
+  var e0=function(){return[];},id=stu.id;
+  var r=await Promise.all([
+    api('/rest/v1/coin_accounts?student_id=eq.'+id+'&select=balance,lifetime_earned,lifetime_spent&limit=1').catch(e0),
+    api('/rest/v1/coin_transactions?student_id=eq.'+id+'&select=id,amount,transaction_type,reason,created_at&order=created_at.desc&limit=15').catch(e0),
+    api('/rest/v1/lottery_campaigns?status=in.(open,locked,drawn)&select=*,lottery_prizes(prize_name,quantity)&order=closes_at.desc').catch(e0),
+    api('/rest/v1/lottery_tickets?student_id=eq.'+id+'&select=id,campaign_id,serial_no,status,created_at&order=created_at.desc').catch(e0),
+    api('/rest/v1/lottery_winners?student_id=eq.'+id+'&select=id,ticket_id,lottery_prizes(prize_name),lottery_draws(drawn_at)&order=created_at.desc').catch(e0)
+  ]);
+  var ac=(r[0]&&r[0][0])||{balance:0,lifetime_earned:0,lifetime_spent:0},tx=r[1]||[],cs=r[2]||[],tickets=r[3]||[],wins=r[4]||[];
+  var tByCamp={};tickets.forEach(function(t){(tByCamp[t.campaign_id]=tByCamp[t.campaign_id]||[]).push(t);});
+  var winTicket={};wins.forEach(function(w){winTicket[w.ticket_id]=w;});
+  var h='<div class="lot-summary"><div class="lot-coin">฿</div><div><div class="lot-balance">'+ac.balance+' เหรียญ</div>'
+    +'<div class="lot-muted">ได้รับสะสม '+ac.lifetime_earned+' · ใช้ไป '+ac.lifetime_spent+'</div></div></div>';
+  h+='<div class="lot-grid">';
+  cs.forEach(function(c){
+    var mine=tByCamp[c.id]||[],canBuy=mode==='student'&&c.status==='open'&&new Date(c.opens_at)<=new Date()&&new Date(c.closes_at)>=new Date();
+    var left=Math.max(0,c.max_tickets_per_student-mine.filter(function(t){return t.status!=='refunded';}).length);
+    var prize=(c.lottery_prizes||[]).map(function(p){return lotEsc(p.prize_name)+' × '+p.quantity;}).join(', ');
+    h+='<article class="lot-card"><div class="flex gap8"><h3 style="flex:1;">'+lotEsc(c.title)+'</h3><span class="badge '+(c.status==='open'?'badge-green':c.status==='drawn'?'badge-gold':'badge-gray')+'">'+lotStatus(c.status)+'</span></div>'
+      +'<div class="lot-muted">'+lotEsc(c.description||'กิจกรรมรางวัลภายในโรงเรียน')+'</div>'
+      +'<div class="lot-meta"><span class="lot-pill">🪙 '+c.ticket_cost+' / ใบ</span><span class="lot-pill">ของฉัน '+mine.length+' ใบ</span><span class="lot-pill">เหลือสิทธิ์ '+left+' ใบ</span></div>'
+      +'<div class="lot-muted">รางวัล: <b>'+prize+'</b><br>ปิดรับ '+lotDateTime(c.closes_at)+'</div>';
+    if(canBuy&&left>0){
+      h+='<div class="lot-actions"><select class="form-control" id="stuLotQty'+c.id+'" style="width:90px;min-height:44px;">';
+      for(var q=1;q<=Math.min(left,10);q++)h+='<option value="'+q+'">'+q+' ใบ</option>';
+      h+='</select><button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="stuBuyLottery('+c.id+')">แลกสลาก</button></div>';
+    }
+    mine.forEach(function(t){
+      var w=winTicket[t.id];
+      h+='<div class="lot-ticket"><span><span class="lot-serial">'+lotEsc(t.serial_no)+'</span><span class="lot-muted" style="display:block;">'+(t.status==='refunded'?'คืนเหรียญแล้ว':t.status==='winner'?'สลากถูกรางวัล':'สลากของฉัน')+'</span></span>'
+        +(w?'<b style="color:#2e7d32;">🏆 '+lotEsc(w.lottery_prizes&&w.lottery_prizes.prize_name)+'</b>':'')+'</div>';
+    });
+    h+='</article>';
+  });
+  if(!cs.length)h+='<div class="sp-empty" style="grid-column:1/-1;">ยังไม่มีกิจกรรมที่เปิดให้นักเรียน</div>';
+  h+='</div><div class="sp-card" style="margin-top:14px;"><h3>🧾 ประวัติเหรียญ</h3>';
+  if(!tx.length)h+='<div class="sp-empty">ยังไม่มีรายการเหรียญ</div>';
+  tx.forEach(function(x){h+='<div class="sp-row"><span>'+lotEsc(x.reason)+'<div class="d">'+lotDateTime(x.created_at)+'</div></span><b style="color:'+(x.amount>0?'var(--green)':'var(--red)')+';">'+(x.amount>0?'+':'')+x.amount+'</b></div>';});
+  return h+'</div><div class="sp-empty" style="font-size:13px;">ล็อตเตอรี่เป็นกิจกรรมรางวัลภายในโรงเรียน ไม่ใช้เงินจริง</div>';
+}
+async function stuBuyLottery(campaignId){
+  if(!STU.rewardToken){toast('session หมดอายุ กรุณาออกแล้วเข้าสู่ระบบใหม่','err');return;}
+  var qty=parseInt(document.getElementById('stuLotQty'+campaignId).value)||1;
+  if(!confirm('ยืนยันใช้เหรียญแลกสลาก '+qty+' ใบ?'))return;
+  try{
+    await api('/rest/v1/rpc/lottery_buy_ticket',{method:'POST',body:JSON.stringify({p_token:STU.rewardToken,p_campaign_id:campaignId,p_quantity:qty})});
+    toast('🎟️ แลกสลากเรียบร้อย');renderStuPortal(STU.student);
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
 async function buildStuPortalTabbed(stu,mode){
   mode=mode||'student';
   var id=stu.id,e0=function(){return[];};
@@ -6670,17 +6930,21 @@ async function buildStuPortalTabbed(stu,mode){
   if(bad.length){bad.slice(0,15).forEach(function(b){deed+='<div class="sp-row"><span>'+(b.description||stuCatName(G.behaveCats,b.category_id)||'พฤติกรรม')+'<div class="d">'+stuThai(b.record_date)+'</div></span><b style="color:var(--red);">'+(b.score||0)+'</b></div>';});}
   else deed+='<div class="sp-empty">ไม่มีบันทึกพฤติกรรม 👍</div>';
   deed+='</div>';
+  var lottery='';
+  try{lottery=await buildStuLottery(stu,mode);}catch(e){lottery='<div class="sp-alert sp-alert-orange">โมดูลเหรียญยังไม่พร้อมใช้งาน</div>';}
 
   return '<div class="spt-nav">'
     +'<button class="spt-tab spt-active" onclick="sptSwitch(\'spt-overview\',this)">📋 ภาพรวม</button>'
     +'<button class="spt-tab" onclick="sptSwitch(\'spt-att\',this)">🕐 เวลาเรียน</button>'
     +'<button class="spt-tab" onclick="sptSwitch(\'spt-grade\',this)">📚 ผลการเรียน</button>'
     +'<button class="spt-tab" onclick="sptSwitch(\'spt-deed\',this)">❤️ ความดี</button>'
+    +'<button class="spt-tab" onclick="sptSwitch(\'spt-lottery\',this)">🎟️ เหรียญและสลาก</button>'
     +'</div>'
     +'<div id="spt-overview" class="spt-pane">'+ov+'</div>'
     +'<div id="spt-att" class="spt-pane" style="display:none;">'+att+'</div>'
     +'<div id="spt-grade" class="spt-pane" style="display:none;">'+gr+'</div>'
     +'<div id="spt-deed" class="spt-pane" style="display:none;">'+deed+'</div>'
+    +'<div id="spt-lottery" class="spt-pane" style="display:none;">'+lottery+'</div>'
     +'<div class="sp-empty" style="margin-top:6px;font-size:13.2px;">👁️ ข้อมูลนี้แสดงผลอย่างเดียว · ติดต่อครูที่ปรึกษาหากข้อมูลคลาดเคลื่อน</div>';
 }
 
@@ -6726,7 +6990,7 @@ function stuOpenAssessment(kind,form){
 function stuLogout(){
   admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบนักเรียน/ผู้ปกครอง'});
   clearSession();
-  STU={mode:'student',student:null};
+  STU={mode:'student',student:null,rewardToken:null};
   document.getElementById('stuPortal').style.display='none';
   document.getElementById('stuCode').value='';document.getElementById('stuPass').value='';
   document.getElementById('stuLoginErr').textContent='';
@@ -15555,7 +15819,7 @@ document.getElementById('logoutBtn').addEventListener('click',function(){
   clearSession();
   NAV_STACK=['pgDash'];
   try{localStorage.removeItem('nyk_last_page');}catch(e){}
-  G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[]};
+  G={user:null,room:null,students:[],att:{},eveningAtt:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,myRoomIds:[],rewardToken:null};
   document.getElementById('loginU').value='';document.getElementById('loginP').value='';document.getElementById('loginErr').textContent='';
   loadLoginRemember();
   document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='➜ เข้าสู่ระบบ';
