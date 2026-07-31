@@ -6048,7 +6048,7 @@ async function lotLoadCampaigns(){
       var ca=allowed[c.assignment_id]||{},csj=ca.subjects||{},ccl=ca.classrooms||{};
       var canManage=G.user.role==='admin'||!!allowed[c.assignment_id];
       var acts='';
-      if(canManage&&c.status==='draft')acts='<button class="btn btn-green btn-sm" onclick="lotSetStatus('+c.id+',\'open\')">เปิดรับสลาก</button>';
+      if(canManage&&c.status==='draft')acts='<button class="btn btn-green btn-sm" onclick="lotSetStatus('+c.id+',\'open\')">เปิดรับสลาก</button><button class="btn btn-red btn-sm" onclick="lotDeleteDraft('+c.id+')">ลบแบบร่าง</button>';
       if(canManage&&c.status==='open')acts='<button class="btn btn-outline btn-sm" onclick="lotSetStatus('+c.id+',\'locked\')">ปิดรับ</button><button class="btn btn-primary btn-sm" onclick="lotDraw('+c.id+')">🎲 สุ่มรางวัล</button>';
       if(canManage&&c.status==='locked')acts='<button class="btn btn-primary btn-sm" onclick="lotDraw('+c.id+')">🎲 สุ่มรางวัล</button>';
       if(canManage&&['draft','open','locked'].indexOf(c.status)>=0)acts+='<button class="btn btn-red btn-sm" onclick="lotSetStatus('+c.id+',\'cancelled\')">ยกเลิกและคืนเหรียญ</button>';
@@ -6079,18 +6079,45 @@ async function lotCreateForm(){
     +'<div class="form-group"><label class="form-label">ปีการศึกษา / ภาคเรียน</label><div class="flex gap8"><input class="form-control" id="lotYear" type="number" value="'+HV_YEAR+'"><input class="form-control" id="lotSem" type="number" min="1" max="2" value="'+(G.semester||1)+'"></div></div></div>'
     +'<div class="form-row"><div class="form-group"><label class="form-label">เปิดรับ</label><input class="form-control" id="lotOpen" type="datetime-local" value="'+open+'"></div>'
     +'<div class="form-group"><label class="form-label">ปิดรับ</label><input class="form-control" id="lotClose" type="datetime-local" value="'+close+'"></div></div>'
-    +'<button class="btn btn-primary" style="min-height:44px;width:100%;justify-content:center;" onclick="lotCreate()">💾 บันทึกเป็นแบบร่าง</button></div>';
+    +'<div id="lotCreateMsg" role="status" aria-live="polite"></div>'
+    +'<button class="btn btn-primary" id="lotCreateBtn" style="min-height:44px;width:100%;justify-content:center;" onclick="lotCreate()">💾 บันทึกเป็นแบบร่าง</button></div>';
 }
 async function lotCreate(){
   if(!lotNeedSession())return;
+  var msg=document.getElementById('lotCreateMsg'),btn=document.getElementById('lotCreateBtn');
   var body={p_token:G.rewardToken,p_title:document.getElementById('lotTitle').value,p_description:document.getElementById('lotDesc').value,
     p_assignment_id:parseInt(document.getElementById('lotCreateAssign').value),
     p_ticket_cost:parseInt(document.getElementById('lotCost').value),p_max_tickets:parseInt(document.getElementById('lotMax').value),
     p_opens_at:document.getElementById('lotOpen').value,p_closes_at:document.getElementById('lotClose').value,
     p_prize_name:document.getElementById('lotPrize').value,p_prize_quantity:parseInt(document.getElementById('lotQty').value),
     p_year:parseInt(document.getElementById('lotYear').value),p_semester:parseInt(document.getElementById('lotSem').value)};
-  try{await api('/rest/v1/rpc/lottery_create_subject_campaign',{method:'POST',body:JSON.stringify(body)});toast('สร้างกิจกรรมแล้ว');lotSwitch('campaigns');}
-  catch(e){toast('❌ '+e.message,'err');}
+  if(!body.p_assignment_id||!body.p_title.trim()||!body.p_prize_name.trim()){
+    msg.innerHTML='<div class="sp-alert sp-alert-orange">กรุณาเลือกกลุ่มเรียน และกรอกชื่อกิจกรรมกับชื่อรางวัลให้ครบ</div>';
+    return;
+  }
+  if(!body.p_opens_at||!body.p_closes_at||new Date(body.p_closes_at)<=new Date(body.p_opens_at)){
+    msg.innerHTML='<div class="sp-alert sp-alert-orange">เวลาปิดรับต้องอยู่หลังเวลาเปิดรับ</div>';
+    return;
+  }
+  btn.disabled=true;btn.textContent='กำลังบันทึก...';msg.innerHTML='';
+  try{
+    var id=await api('/rest/v1/rpc/lottery_create_subject_campaign',{method:'POST',body:JSON.stringify(body)});
+    msg.innerHTML='<div class="sp-alert sp-alert-green">✅ สร้างกิจกรรมเลขที่ '+lotEsc(id)+' เรียบร้อยแล้ว</div>';
+    toast('สร้างกิจกรรมแล้ว');
+    await new Promise(function(resolve){setTimeout(resolve,500);});
+    lotSwitch('campaigns');
+  }catch(e){
+    msg.innerHTML='<div class="sp-alert sp-alert-red">❌ บันทึกไม่สำเร็จ: '+lotEsc(e.message)+'</div>';
+    toast('❌ บันทึกไม่สำเร็จ','err');
+    btn.disabled=false;btn.textContent='💾 บันทึกเป็นแบบร่าง';
+  }
+}
+async function lotDeleteDraft(id){
+  if(!confirm('ลบกิจกรรมแบบร่างนี้ถาวร?'))return;
+  try{
+    await api('/rest/v1/rpc/lottery_delete_draft',{method:'POST',body:JSON.stringify({p_token:G.rewardToken,p_campaign_id:id})});
+    toast('ลบแบบร่างแล้ว');lotLoadCampaigns();
+  }catch(e){toast('❌ '+e.message,'err');}
 }
 async function lotSetStatus(id,status){
   var msg=status==='cancelled'?'ยกเลิกกิจกรรมและคืนเหรียญให้สลากที่ยังใช้งานทั้งหมด?':'ยืนยันเปลี่ยนสถานะกิจกรรม?';
