@@ -1,5 +1,5 @@
 -- ================================================================
--- ล็อตเตอรี่รายวิชา: ครูผู้สอน/ครูร่วมสอนสร้างและจัดการกิจกรรมเอง
+-- ล็อตเตอรี่รายวิชา V2: ครูผู้สอน/ครูร่วมสอนสร้างและจัดการกิจกรรมเอง
 -- รันซ้ำได้ ไม่ลบกิจกรรม สลาก ผู้ชนะ หรือยอดเหรียญเดิม
 -- ================================================================
 
@@ -235,6 +235,34 @@ begin
 end;
 $$ language plpgsql security definer set search_path=public,extensions;
 
+create or replace function lottery_delete_draft(
+  p_token uuid,
+  p_campaign_id bigint
+) returns boolean as $$
+declare
+  v_teacher integer;
+  v_assignment integer;
+  v_status text;
+begin
+  if not public.app_authorized() then raise exception 'unauthorized'; end if;
+  v_teacher := reward_staff_actor(p_token);
+
+  select assignment_id,status into v_assignment,v_status
+  from lottery_campaigns
+  where id=p_campaign_id
+  for update;
+  if v_status is null then raise exception 'ไม่พบกิจกรรม'; end if;
+  if v_status <> 'draft' then raise exception 'ลบได้เฉพาะกิจกรรมแบบร่าง'; end if;
+  if not reward_can_manage_assignment(v_teacher,v_assignment) then
+    raise exception 'คุณไม่มีสิทธิ์ลบกิจกรรมนี้';
+  end if;
+
+  delete from lottery_prizes where campaign_id=p_campaign_id;
+  delete from lottery_campaigns where id=p_campaign_id;
+  return true;
+end;
+$$ language plpgsql security definer set search_path=public,extensions;
+
 grant execute on function reward_can_manage_assignment(integer,integer) to anon,authenticated;
 grant execute on function lottery_create_subject_campaign(
   uuid,integer,text,text,integer,integer,timestamptz,timestamptz,
@@ -243,5 +271,6 @@ grant execute on function lottery_create_subject_campaign(
 grant execute on function lottery_set_status(uuid,bigint,text) to anon,authenticated;
 grant execute on function lottery_draw(uuid,bigint) to anon,authenticated;
 grant execute on function lottery_buy_subject_ticket(uuid,bigint,integer) to anon,authenticated;
+grant execute on function lottery_delete_draft(uuid,bigint) to anon,authenticated;
 
 notify pgrst,'reload schema';
