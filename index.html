@@ -6306,7 +6306,12 @@ async function resumeSession(){
       return true;
     }
     if(s.t==='viewer'){G.user=s.user;G.rewardToken=s.rewardToken||null;G.viewOnly=true;await loadCategories();execStart();return true;}
-    if(s.t==='student'||s.t==='parent'){STU.mode=s.t;STU.rewardToken=s.rewardToken||null;await loadCategories();await renderStuPortal(s.student);return true;}
+    if(s.t==='student'||s.t==='parent'){
+      STU.mode=s.t;STU.student=s.student;STU.rewardToken=s.rewardToken||null;STU.rewardExpiresAt=s.rewardExpiresAt||null;
+      // session เก่าที่บันทึกก่อนมีโมดูลเหรียญจะไม่มี rewardToken — ออก token ให้ใหม่โดยไม่บังคับออกจากระบบ
+      if(!STU.rewardToken){try{await stuRefreshRewardSession(s.student);}catch(re){console.log('student reward session:',re.message);}}
+      await loadCategories();await renderStuPortal(s.student);return true;
+    }
   }catch(e){}
   return false;
 }
@@ -6386,7 +6391,7 @@ function setLoginTab(role){
 function pickExec(){fillLogin('','');var u=document.getElementById('loginU');if(u)u.focus();document.getElementById('loginErr').textContent='ℹ️ ผู้บริหารเข้าด้วยบัญชีที่ผู้ดูแลระบบสร้างให้ (บทบาท: ผู้บริหาร)';}
 
 // ===== LOGIN นักเรียน / ผู้ปกครอง (เลขประจำตัว + วันเกิด) =====
-var STU={mode:'student',student:null,rewardToken:null};
+var STU={mode:'student',student:null,rewardToken:null,rewardExpiresAt:null};
 function openStuLogin(mode){
   STU.mode=mode;
   setLoginTab(mode==='parent'?'parent':'student');
@@ -6407,6 +6412,23 @@ document.getElementById('stuPass').addEventListener('keydown',function(e){if(e.k
 document.getElementById('stuCode').addEventListener('keydown',function(e){if(e.key==='Enter')doStudentLogin();});
 
 var STU_DEFAULT_PASS='1234'; // รหัสผ่านเริ่มต้นนักเรียน/ผู้ปกครอง
+async function stuRefreshRewardSession(stu){
+  stu=stu||STU.student;
+  if(!stu||!stu.student_code)throw new Error('ไม่พบรหัสนักเรียน');
+  var sr=await api('/rest/v1/rpc/reward_student_session',{method:'POST',body:JSON.stringify({p_student_code:stu.student_code,p_password:STU_DEFAULT_PASS})});
+  var row=sr&&sr[0];
+  if(!row||!row.token)throw new Error('สร้าง session เหรียญไม่สำเร็จ');
+  STU.student=stu;STU.rewardToken=row.token;STU.rewardExpiresAt=row.expires_at||null;
+  saveSession({t:STU.mode||'student',student:stu,rewardToken:STU.rewardToken,rewardExpiresAt:STU.rewardExpiresAt});
+  return STU.rewardToken;
+}
+async function stuEnsureRewardSession(force){
+  if(!force&&STU.rewardToken)return STU.rewardToken;
+  return stuRefreshRewardSession(STU.student);
+}
+function stuIsRewardSessionError(e){
+  return /session|หมดอายุ|token|นักเรียนไม่ได้ลงทะเบียน/i.test((e&&e.message)||'');
+}
 async function doStudentLogin(){
   var btn=document.getElementById('stuLoginBtn'),err=document.getElementById('stuLoginErr');
   var code=document.getElementById('stuCode').value.trim();
@@ -6421,9 +6443,10 @@ async function doStudentLogin(){
     try{
       var sr=await api('/rest/v1/rpc/reward_student_session',{method:'POST',body:JSON.stringify({p_student_code:code,p_password:pw})});
       STU.rewardToken=sr&&sr[0]?sr[0].token:null;
+      STU.rewardExpiresAt=sr&&sr[0]?sr[0].expires_at:null;
     }catch(re){STU.rewardToken=null;}
     await loadCategories();
-    saveSession({t:STU.mode,student:d[0],rewardToken:STU.rewardToken});
+    saveSession({t:STU.mode,student:d[0],rewardToken:STU.rewardToken,rewardExpiresAt:STU.rewardExpiresAt});
     await renderStuPortal(d[0]);
     btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';
   }catch(e){err.textContent='เกิดข้อผิดพลาด: '+(e.message||'ไม่ทราบสาเหตุ');btn.disabled=false;btn.textContent='➜ เข้าสู่ระบบ';}
@@ -6760,11 +6783,18 @@ async function buildStuLottery(stu,mode){
   return h+'</div><div class="sp-empty" style="font-size:13px;">ล็อตเตอรี่เป็นกิจกรรมรางวัลภายในโรงเรียน ไม่ใช้เงินจริง</div>';
 }
 async function stuBuyLottery(campaignId){
-  if(!STU.rewardToken){toast('session หมดอายุ กรุณาออกแล้วเข้าสู่ระบบใหม่','err');return;}
   var qty=parseInt(document.getElementById('stuLotQty'+campaignId).value)||1;
   if(!confirm('ยืนยันใช้เหรียญแลกสลาก '+qty+' ใบ?'))return;
   try{
-    await api('/rest/v1/rpc/lottery_buy_subject_ticket',{method:'POST',body:JSON.stringify({p_token:STU.rewardToken,p_campaign_id:campaignId,p_quantity:qty})});
+    await stuEnsureRewardSession(false);
+    try{
+      await api('/rest/v1/rpc/lottery_buy_subject_ticket',{method:'POST',body:JSON.stringify({p_token:STU.rewardToken,p_campaign_id:campaignId,p_quantity:qty})});
+    }catch(firstErr){
+      // token มีอายุจำกัด; ออกให้ใหม่และลองซื้อซ้ำเพียงครั้งเดียว
+      if(!stuIsRewardSessionError(firstErr))throw firstErr;
+      await stuEnsureRewardSession(true);
+      await api('/rest/v1/rpc/lottery_buy_subject_ticket',{method:'POST',body:JSON.stringify({p_token:STU.rewardToken,p_campaign_id:campaignId,p_quantity:qty})});
+    }
     toast('🎟️ แลกสลากเรียบร้อย');renderStuPortal(STU.student);
   }catch(e){toast('❌ '+e.message,'err');}
 }
@@ -7044,7 +7074,7 @@ function stuOpenAssessment(kind,form){
 function stuLogout(){
   admLoginEvent({action:'logout',success:true,entity:'auth',summary:'ออกจากระบบนักเรียน/ผู้ปกครอง'});
   clearSession();
-  STU={mode:'student',student:null,rewardToken:null};
+  STU={mode:'student',student:null,rewardToken:null,rewardExpiresAt:null};
   document.getElementById('stuPortal').style.display='none';
   document.getElementById('stuCode').value='';document.getElementById('stuPass').value='';
   document.getElementById('stuLoginErr').textContent='';
