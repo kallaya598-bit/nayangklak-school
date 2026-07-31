@@ -221,6 +221,15 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot-form{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
 .lot-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .lot-actions .btn{min-height:44px;}
+.lot-buy-controls{margin-top:14px;padding-top:12px;border-top:1px solid #e3ebf6;}
+.lot-qty-label{font-size:13.5px;font-weight:800;color:#315a86;margin-bottom:7px;}
+.lot-qty-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px;}
+.lot-qty-btn,.lot-qty-more{min-height:44px;border:1.5px solid var(--border2);border-radius:10px;background:#fff;color:var(--blue);font:700 15px 'Sarabun',sans-serif;}
+.lot-qty-btn{min-width:58px;padding:0 11px;}
+.lot-qty-more{padding:0 10px;flex:1;min-width:118px;}
+.lot-qty-btn.selected,.lot-qty-more.selected{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(13,45,94,.10);}
+.lot-qty-btn:focus-visible,.lot-qty-more:focus-visible{outline:3px solid rgba(0,184,212,.35);outline-offset:2px;}
+.lot-buy-btn{width:100%;min-height:48px;justify-content:center;font-size:16px;}
 .lot-student-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e6edf7;}
 .lot-student-row:last-child{border-bottom:none;}
 .lot-student-row .name{flex:1;min-width:0;font-weight:700;color:var(--blue);}
@@ -230,6 +239,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   .lot-wrap{padding:10px 10px 82px}.lot-summary{padding:14px}.lot-balance{font-size:26px}
   .lot-student-row{align-items:flex-start;flex-wrap:wrap}.lot-student-row .name{flex-basis:calc(100% - 52px)}
   .lot-student-row .btn{flex:1;min-height:44px}.lot-number{flex:0 0 82px}
+  .lot-qty-btn{flex:1;min-width:64px}.lot-qty-more{flex-basis:100%}
 }
 @media(prefers-reduced-motion:reduce){.lot-tab,.lot-card,.lot-ticket{transition:none!important;animation:none!important;}}
 /* แดชบอร์ดผู้บริหาร */
@@ -6765,9 +6775,15 @@ async function buildStuLottery(stu,mode){
       +'<div class="lot-meta"><span class="lot-pill">🪙 '+c.ticket_cost+' / ใบ</span><span class="lot-pill">ของฉัน '+mine.length+' ใบ</span><span class="lot-pill">เหลือสิทธิ์ '+left+' ใบ</span></div>'
       +'<div class="lot-muted">รางวัล: <b>'+prize+'</b><br>ปิดรับ '+lotDateTime(c.closes_at)+'</div>';
     if(canBuy&&left>0){
-      h+='<div class="lot-actions"><select class="form-control" id="stuLotQty'+c.id+'" style="width:90px;min-height:44px;">';
-      for(var q=1;q<=Math.min(left,10);q++)h+='<option value="'+q+'">'+q+' ใบ</option>';
-      h+='</select><button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="stuBuyLottery('+c.id+')">แลกสลาก</button></div>';
+      var maxBuy=Math.min(left,10);
+      h+='<div class="lot-buy-controls"><div class="lot-qty-label">เลือกจำนวนสลาก</div><div class="lot-qty-row" role="group" aria-label="เลือกจำนวนสลาก">';
+      for(var q=1;q<=Math.min(maxBuy,3);q++)h+='<button type="button" class="lot-qty-btn'+(q===1?' selected':'')+'" aria-pressed="'+(q===1?'true':'false')+'" onclick="stuPickLotteryQty('+c.id+','+q+',this)">'+q+' ใบ</button>';
+      if(maxBuy>3){
+        h+='<select class="lot-qty-more" aria-label="เลือกจำนวนสลากมากกว่า 3 ใบ" onchange="stuPickLotteryQty('+c.id+',parseInt(this.value)||1,this)"><option value="">จำนวนอื่น…</option>';
+        for(var q2=4;q2<=maxBuy;q2++)h+='<option value="'+q2+'">'+q2+' ใบ</option>';
+        h+='</select>';
+      }
+      h+='</div><input type="hidden" id="stuLotQty'+c.id+'" value="1"><button type="button" class="btn btn-primary lot-buy-btn" id="stuLotBuyBtn'+c.id+'" onclick="stuBuyLottery('+c.id+')">แลกสลาก 1 ใบ</button></div>';
     }
     mine.forEach(function(t){
       var w=winTicket[t.id];
@@ -6781,6 +6797,17 @@ async function buildStuLottery(stu,mode){
   if(!tx.length)h+='<div class="sp-empty">ยังไม่มีรายการเหรียญ</div>';
   tx.forEach(function(x){h+='<div class="sp-row"><span>'+lotEsc(x.reason)+'<div class="d">'+lotDateTime(x.created_at)+'</div></span><b style="color:'+(x.amount>0?'var(--green)':'var(--red)')+';">'+(x.amount>0?'+':'')+x.amount+'</b></div>';});
   return h+'</div><div class="sp-empty" style="font-size:13px;">ล็อตเตอรี่เป็นกิจกรรมรางวัลภายในโรงเรียน ไม่ใช้เงินจริง</div>';
+}
+function stuPickLotteryQty(campaignId,qty,control){
+  var input=document.getElementById('stuLotQty'+campaignId),buy=document.getElementById('stuLotBuyBtn'+campaignId);
+  if(!input||!qty)return;
+  input.value=qty;
+  var row=control&&control.closest('.lot-qty-row');
+  if(row){
+    row.querySelectorAll('.lot-qty-btn').forEach(function(b){var on=b===control;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',on?'true':'false');});
+    var more=row.querySelector('.lot-qty-more');if(more)more.classList.toggle('selected',more===control&&!!more.value);
+  }
+  if(buy)buy.textContent='แลกสลาก '+qty+' ใบ';
 }
 async function stuBuyLottery(campaignId){
   var qty=parseInt(document.getElementById('stuLotQty'+campaignId).value)||1;
