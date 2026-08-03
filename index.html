@@ -6907,9 +6907,37 @@ async function stuBuyLottery(campaignId){
 // ใช้ RPC ฝั่งฐานข้อมูลเท่านั้น เพื่อให้สิทธิ์ รายวิชา กระเป๋า และการซื้อเป็น transaction เดียวกัน
 LOT={tab:'coins',assignments:[],assignmentId:null,dash:null,round:null};
 var STU_LOT={assignments:[],assignmentId:null,dash:null,board:null,selected:{},cart:null,timer:null,filter:'all',type:'two'};
+var lotV2ReauthInFlight=null;
 
-function lotV2Rpc(name,body){
-  return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(body||{})});
+function lotV2SessionExpired(e){
+  return /session\s*(ครู)?หมดอายุ|session.*expired|token.*expired|invalid.*token|PGRST301|JWT expired/i.test((e&&e.message)||'');
+}
+async function lotV2Reauth(force){
+  if(!force&&G.rewardToken)return true;
+  if(lotV2ReauthInFlight)return lotV2ReauthInFlight;
+  lotV2ReauthInFlight=(async function(){
+    var u=G.user&&G.user.username;
+    if(!u)return false;
+    var p=prompt('session รางวัลหมดอายุ\nกรอกรหัสผ่านครูเพื่อเชื่อมต่อใหม่');
+    if(p===null||!p)return false;
+    var rs=await api('/rest/v1/rpc/reward_staff_session',{method:'POST',body:JSON.stringify({p_username:u,p_password:p})});
+    var row=rs&&rs[0];
+    if(!row||!row.token)throw new Error('ต่อ session รางวัลไม่สำเร็จ');
+    G.rewardToken=row.token;
+    saveSession({t:G.viewOnly?'viewer':'staff',user:G.user,semester:G.semester||1,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds,rewardToken:G.rewardToken});
+    return true;
+  })().catch(function(e){toast('❌ '+(e.message||'ต่อ session ไม่สำเร็จ'),'err');return false;}).finally(function(){lotV2ReauthInFlight=null;});
+  return lotV2ReauthInFlight;
+}
+async function lotV2Rpc(name,body){
+  body=body||{};
+  if(!body.p_token){if(!await lotV2Reauth(false))throw new Error('session รางวัลหมดอายุ');body.p_token=G.rewardToken;}
+  try{return await api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(body)});}
+  catch(e){
+    if(!lotV2SessionExpired(e)||!await lotV2Reauth(true))throw e;
+    body.p_token=G.rewardToken;
+    return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(body)});
+  }
 }
 function lotV2Error(e){
   var m=(e&&e.message)||'เกิดข้อผิดพลาด';
@@ -6940,7 +6968,7 @@ async function lotV2Dash(){
 function lotV2PickAssignment(id){LOT.assignmentId=parseInt(document.getElementById(id).value);if(LOT.tab==='coins')lotLoadCoins();else if(LOT.tab==='campaigns')lotLoadCampaigns();else lotCreateForm();}
 
 async function lotInit(){
-  if(!lotNeedSession())return;
+  if(!await lotV2Reauth(false)){lotNeedSession();return;}
   var create=document.getElementById('lotTabCreate');if(create)create.style.display='';
   LOT.tab='coins';
   try{await lotV2LoadAssignments();}catch(e){}
