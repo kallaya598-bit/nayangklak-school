@@ -271,6 +271,48 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot2-cart .summary{flex:1;min-width:0;}
 .lot2-cart .summary b{display:block;font-size:16px;}
 .lot2-cart .btn{min-height:44px;background:#fff;color:#0d2d5e;}
+.lot2-board-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 18px;margin:12px 0 14px;background:linear-gradient(135deg,#0d2d5e,#1557a7);color:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(13,45,94,.18);}
+.lot2-board-hero h2{margin:3px 0 2px;font-size:22px;color:#fff;text-wrap:balance;}
+.lot2-board-hero .lot-muted{color:#dbe9ff;}
+.lot2-kicker{font-size:12px;font-weight:800;letter-spacing:.04em;color:#ffd166;}
+.lot2-hero-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.lot2-hero-meta .lot-pill{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.25);color:#fff;}
+.lot2-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px;align-items:start;}
+.lot2-board-panel{min-width:0;background:#0d2d5e;border-radius:18px;padding:12px;box-shadow:0 10px 24px rgba(13,45,94,.2);}
+.lot2-awning{height:42px;border-radius:13px 13px 5px 5px;background:repeating-linear-gradient(90deg,#cf3c48 0 34px,#fff8ec 34px 68px);border:2px solid rgba(255,255,255,.6);box-shadow:0 5px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;color:#173b67;font-size:18px;font-weight:800;text-shadow:0 1px #fff;margin:0 8px 8px;}
+.lot2-board-panel .lot2-board{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;padding:4px;background:transparent;}
+.lot2-board-panel .lot2-ticket{min-height:96px;border:2px dashed #d5c5a8;border-radius:8px;background:#fffaf0;color:#173b67;padding:8px 7px;box-shadow:0 2px 0 rgba(0,0,0,.12);display:flex;flex-direction:column;justify-content:space-between;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;}
+.lot2-board-panel .lot2-ticket:before,.lot2-board-panel .lot2-ticket:after{content:"";position:absolute;width:13px;height:13px;background:#0d2d5e;border-radius:50%;top:50%;transform:translateY(-50%);}
+.lot2-board-panel .lot2-ticket:before{left:-8px;}.lot2-board-panel .lot2-ticket:after{right:-8px;}
+.lot2-board-panel .lot2-ticket .ticket-top{display:flex;justify-content:space-between;gap:4px;font-size:10px;color:#7e8ca0;line-height:1;}
+.lot2-board-panel .lot2-ticket .num{font-size:29px;line-height:1.1;color:#123d73;}
+.lot2-board-panel .lot2-ticket .copy{font-size:11px;color:#6e829c;}
+.lot2-board-panel .lot2-ticket .ticket-foot{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:11px;}
+.lot2-board-panel .lot2-ticket .ticket-status{border:1px solid #9db8df;border-radius:999px;padding:1px 6px;color:#315a86;white-space:nowrap;}
+.lot2-board-panel .lot2-ticket .ticket-price{font-weight:800;color:#8a5b00;white-space:nowrap;}
+.lot2-board-panel .lot2-ticket.available:hover,.lot2-board-panel .lot2-ticket.available:focus-visible{transform:translateY(-2px);box-shadow:0 7px 16px rgba(0,0,0,.2);border-color:#2b73c7;outline:0;}
+.lot2-board-panel .lot2-ticket.selected{background:#1766b1;border-color:#ffe08a;color:#fff;box-shadow:0 0 0 3px rgba(255,209,102,.35);}
+.lot2-board-panel .lot2-ticket.selected .num,.lot2-board-panel .lot2-ticket.selected .copy,.lot2-board-panel .lot2-ticket.selected .ticket-top{color:#fff;}
+.lot2-board-panel .lot2-ticket.selected .ticket-status{border-color:rgba(255,255,255,.7);color:#fff;}
+.lot2-board-panel .lot2-ticket.sold{background:#e7ebf0;border-color:#c2ccd8;color:#8b97a5;filter:saturate(.7);}
+.lot2-board-panel .lot2-ticket.held{background:#fff2c8;border-color:#f3c54d;color:#8a5b00;}
+.lot2-board-panel .lot2-ticket.mine{background:#e3f4e7;border-color:#6fc27a;color:#1b5e20;}
+.lot2-cart-side{position:sticky;top:12px;background:#fff;border:1px solid #b9d4f5;border-radius:16px;overflow:hidden;box-shadow:0 8px 20px rgba(13,45,94,.12);}
+.lot2-cart-side .cart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;background:#1264b4;color:#fff;font-size:18px;font-weight:800;}
+.lot2-cart-side .cart-count{min-width:27px;height:27px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#1264b4;font-size:14px;}
+.lot2-cart-side .cart-empty{padding:22px 15px;text-align:center;color:#607d9c;line-height:1.5;font-size:13px;}
+.lot2-cart-side .cart-list{padding:8px 12px;max-height:330px;overflow:auto;}
+.lot2-cart-side .cart-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed #d9e5f4;}
+.lot2-cart-side .cart-item:last-child{border-bottom:0;}
+.lot2-cart-side .cart-item .cart-num{font:800 23px ui-monospace,SFMono-Regular,Menlo,monospace;color:#123d73;min-width:42px;}
+.lot2-cart-side .cart-item .cart-desc{flex:1;min-width:0;font-size:12px;color:#607d9c;}
+.lot2-cart-side .cart-item .cart-price{font-weight:800;color:#8a5b00;white-space:nowrap;}
+.lot2-cart-side .cart-remove{width:30px;height:30px;border:1px solid #c9d9eb;border-radius:50%;background:#fff;color:#607d9c;font:700 18px/1 Sarabun,sans-serif;cursor:pointer;flex:0 0 auto;}
+.lot2-cart-side .cart-remove:hover,.lot2-cart-side .cart-remove:focus-visible{border-color:#c62828;color:#c62828;outline:3px solid rgba(198,40,40,.12);outline-offset:1px;}
+.lot2-cart-side .cart-total{display:flex;justify-content:space-between;padding:12px 14px;border-top:1px dashed #b9d4f5;font-size:16px;font-weight:800;color:#173b67;}
+.lot2-cart-side .cart-buy{width:calc(100% - 24px);margin:0 12px 12px;min-height:48px;background:#1264b4;color:#fff;border:0;border-radius:11px;font:800 16px Sarabun,sans-serif;cursor:pointer;}
+.lot2-cart-side .cart-buy:hover,.lot2-cart-side .cart-buy:focus-visible{background:#0d4f96;outline:3px solid rgba(21,101,192,.2);outline-offset:2px;}
+.lot2-cart-side .cart-hint{padding:0 14px 13px;color:#7087a3;font-size:12px;line-height:1.45;text-align:center;}
 .lot2-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
 .lot2-result{background:#fff8e1;border:1px solid #f6cf63;border-radius:14px;text-align:center;padding:13px 8px;}
 .lot2-result .n{font:800 28px ui-monospace,SFMono-Regular,Menlo,monospace;color:#6d4600;letter-spacing:.06em;}
@@ -290,6 +332,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
   .lot2-ledger-row{grid-template-columns:minmax(0,1fr) auto;}.lot2-ledger-row .btn{grid-column:1/-1;}
   .lot2-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
   .lot2-ticket{min-height:59px;padding:6px 2px;}.lot2-ticket .num{font-size:18px;}
+  .lot2-layout{grid-template-columns:1fr;}.lot2-cart-side{position:sticky;bottom:8px;top:auto;z-index:25;}.lot2-board-panel .lot2-board{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.lot2-board-panel .lot2-ticket{min-height:88px;}.lot2-board-hero{padding:14px;}.lot2-board-hero h2{font-size:19px;}
   .lot2-result-grid{grid-template-columns:1fr;}
   .lot2-cart{bottom:8px;}.lot2-cart .btn{padding:0 12px;}
 }
@@ -7152,6 +7195,36 @@ function stuLotV2Filter(f,btn){STU_LOT.filter=f;document.querySelectorAll('[data
 function stuLotV2RenderTickets(){var el=document.getElementById('stuLotV2Tickets');if(!el)return;var canBuy=STU_LOT.board.round.status==='open',q=((document.getElementById('stuLotV2Search')||{}).value||'').trim(),a=(STU_LOT.board.tickets||[]).filter(function(t){return t.type===STU_LOT.type&&(!q||t.number.indexOf(q)>=0)&&(STU_LOT.filter==='all'||(STU_LOT.filter==='available'?t.state==='available':STU_LOT.filter==='sold'?['sold','held'].indexOf(t.state)>=0:t.state==='mine'));});el.innerHTML='<div class="lot2-board">'+a.map(function(t){var selected=!!STU_LOT.selected[t.id],click=canBuy&&t.state==='available'?' onclick="stuLotV2Toggle('+t.id+')"':'';return '<button type="button" class="lot2-ticket '+t.state+(selected?' selected':'')+'"'+click+(!canBuy||t.state!=='available'?' disabled':'')+'><span class="num">'+lotEsc(t.number)+'</span><span class="copy">'+lotEsc(t.copy)+(t.state==='mine'?' · ของฉัน':t.state==='sold'?' · ขายแล้ว':t.state==='held'?' · กำลังจอง':' · ว่าง')+'</span></button>';}).join('')+'</div>';stuLotV2RenderCart();}
 function stuLotV2Toggle(id){if(STU_LOT.selected[id])delete STU_LOT.selected[id];else{if(Object.keys(STU_LOT.selected).length>=10)return toast('ใส่ตะกร้าได้สูงสุด 10 ใบต่อครั้ง','err');STU_LOT.selected[id]=true;}stuLotV2RenderTickets();}
 function stuLotV2RenderCart(){var el=document.getElementById('stuLotV2Cart');if(!el)return;var ids=Object.keys(STU_LOT.selected).map(Number),ts=(STU_LOT.board.tickets||[]).filter(function(t){return ids.indexOf(t.id)>=0;}),r=STU_LOT.board.round||{},sum=ts.reduce(function(n,t){return n+(t.type==='two'?r.price_two:r.price_three);},0);el.innerHTML=ids.length?'<div class="lot2-cart"><div class="summary"><b>'+ids.length+' ใบ · '+sum+' เหรียญ</b><span>'+lotEsc(ts.map(function(t){return t.number+'-'+t.copy;}).join(', '))+'</span></div><button class="btn" onclick="stuLotV2Checkout()">ตรวจสอบและซื้อ</button></div>':'';}
+
+/* สลาก V2 — แผงตั๋วฉีก + ตะกร้าด้านข้าง (override รุ่นเดิมเพื่อคง API ซื้อชุดเดิม) */
+function stuLotV2BoardHtml(){
+  var b=STU_LOT.board||{},r=b.round||{},rights=b.my_rights||[],wins=rights.length?'<div class="lot-card" style="margin:12px 0"><h3>🎉 สิทธิ์รางวัลของฉัน</h3>'+rights.map(function(w){return '<div class="sp-row"><span><b>'+(w.type==='two'?'เลข 2 ตัว ':'เลข 3 ตัว ')+lotEsc(w.number+'-'+w.copy)+'</b></span><span class="badge '+(w.spin_status==='spun'?'badge-green':'badge-gray')+'">'+(w.spin_status==='spun'?'หมุนแล้ว':'รอครูหมุนวงล้อ')+'</span></div>';}).join('')+'</div>':'';
+  var canBuy=r.status==='open';
+  var notice=canBuy?'<div class="lot2-note">เลือกหมายเลขที่ยังว่างได้สูงสุด 10 ใบต่อครั้ง แล้วตรวจสอบรายการก่อนใช้เหรียญ</div>':'<div class="lot2-note">ขณะนี้ดูแผงได้ แต่เลือกซื้อได้เฉพาะช่วงเปิดขาย · สถานะ '+lotEsc(lotV2Status(r.status))+'</div>';
+  var h='<button class="btn btn-outline btn-sm" onclick="stuLotV2LoadDashboard(true)">← กลับภาพรวม</button>';
+  h+='<div class="lot2-board-hero"><div><div class="lot2-kicker">🎟️ สลากสะสมของโรงเรียน · ไม่ใช้เงินจริง</div><h2>'+lotEsc(r.title||'แผงสลากสะสม')+'</h2><div class="lot-muted">'+lotEsc(lotV2Status(r.status))+' · เปิด '+lotDateTime(r.sale_opens_at)+' · ปิด '+lotDateTime(r.sale_closes_at)+'</div></div><div class="lot2-hero-meta"><span class="lot-pill">2 ตัว · '+r.price_two+' เหรียญ</span><span class="lot-pill">3 ตัว · '+r.price_three+' เหรียญ</span><span class="lot-pill">🪙 '+((((STU_LOT.dash||{}).wallet||{}).balance)||0)+' เหรียญ</span></div></div>';
+  h+=lotV2ResultHtml(b.results||[])+wins+notice;
+  h+='<div class="lot2-board-tools"><button class="lot2-filter active" data-lot-type="two" onclick="stuLotV2Type(\'two\',this)">เลข 2 ตัว · '+r.price_two+' เหรียญ</button><button class="lot2-filter" data-lot-type="three" onclick="stuLotV2Type(\'three\',this)">เลข 3 ตัว · '+r.price_three+' เหรียญ</button></div>';
+  h+='<div class="lot2-board-tools"><button class="lot2-filter active" data-lot-filter="all" onclick="stuLotV2Filter(\'all\',this)">ทั้งหมด</button><button class="lot2-filter" data-lot-filter="available" onclick="stuLotV2Filter(\'available\',this)">ยังว่าง</button><button class="lot2-filter" data-lot-filter="sold" onclick="stuLotV2Filter(\'sold\',this)">ขายแล้ว</button><button class="lot2-filter" data-lot-filter="mine" onclick="stuLotV2Filter(\'mine\',this)">ของฉัน</button><input id="stuLotV2Search" inputmode="numeric" placeholder="ค้นหาหมายเลข" oninput="stuLotV2RenderTickets()"></div>';
+  h+='<div class="lot2-layout"><section class="lot2-board-panel"><div class="lot2-awning">สลากเลข 2 ตัว / 3 ตัว</div><div id="stuLotV2Tickets"></div></section><aside id="stuLotV2Cart" class="lot2-cart-side"></aside></div>';
+  return h;
+}
+function stuLotV2RenderTickets(){
+  var el=document.getElementById('stuLotV2Tickets');if(!el)return;
+  var r=STU_LOT.board.round||{},canBuy=r.status==='open',q=((document.getElementById('stuLotV2Search')||{}).value||'').trim(),price=STU_LOT.type==='two'?r.price_two:r.price_three;
+  var a=(STU_LOT.board.tickets||[]).filter(function(t){return t.type===STU_LOT.type&&(!q||t.number.indexOf(q)>=0)&&(STU_LOT.filter==='all'||(STU_LOT.filter==='available'?t.state==='available':STU_LOT.filter==='sold'?['sold','held'].indexOf(t.state)>=0:t.state==='mine'));});
+  el.innerHTML='<div class="lot2-board">'+a.map(function(t){var selected=!!STU_LOT.selected[t.id],available=t.state==='available',click=canBuy&&available?' onclick="stuLotV2Toggle('+t.id+')"':'',status=t.state==='mine'?'ของฉัน':t.state==='sold'?'ขายแล้ว':t.state==='held'?'จองแล้ว':selected?'เลือกแล้ว':canBuy?'ว่าง':'รอเปิดขาย';return '<button type="button" aria-label="เลข '+lotEsc(t.number)+' ชุด '+lotEsc(t.copy)+'" class="lot2-ticket '+t.state+(selected?' selected':'')+'"'+click+(!canBuy||!available?' disabled':'')+'><span class="ticket-top"><span>สลากสะสม</span><span>'+lotEsc(t.copy)+'</span></span><span class="num">'+lotEsc(t.number)+'</span><span class="copy">'+(t.type==='two'?'เลข 2 ตัว':'เลข 3 ตัว')+' · ชุด '+lotEsc(t.copy)+'</span><span class="ticket-foot"><span class="ticket-status">'+status+'</span><span class="ticket-price">🪙 '+price+'</span></span></button>';}).join('')+'</div>';
+  stuLotV2RenderCart();
+}
+function stuLotV2RenderCart(){
+  var el=document.getElementById('stuLotV2Cart');if(!el)return;
+  var ids=Object.keys(STU_LOT.selected).map(Number),ts=(STU_LOT.board.tickets||[]).filter(function(t){return ids.indexOf(t.id)>=0;}),r=STU_LOT.board.round||{},sum=ts.reduce(function(n,t){return n+(t.type==='two'?r.price_two:r.price_three);},0);
+  var h='<div class="cart-head"><span>🧺 ตะกร้าสลาก</span><span class="cart-count">'+ids.length+'</span></div>';
+  if(!ids.length){h+='<div class="cart-empty">เลือกหมายเลขจากแผง<br>เพื่อเพิ่มลงตะกร้า</div>';el.innerHTML=h;return;}
+  h+='<div class="cart-list">'+ts.map(function(t){var p=t.type==='two'?r.price_two:r.price_three;return '<div class="cart-item"><span class="cart-num">'+lotEsc(t.number)+'</span><span class="cart-desc">'+(t.type==='two'?'เลข 2 ตัว':'เลข 3 ตัว')+' · ชุด '+lotEsc(t.copy)+'</span><span class="cart-price">🪙 '+p+'</span><button type="button" class="cart-remove" aria-label="ลบเลข '+lotEsc(t.number)+'" onclick="stuLotV2Toggle('+t.id+')">×</button></div>';}).join('')+'</div>';
+  h+='<div class="cart-total"><span>รวมทั้งหมด</span><span>🪙 '+sum+'</span></div><button class="cart-buy" onclick="stuLotV2Checkout()">ใช้เหรียญแลกสลาก</button><div class="cart-hint">ระบบจะจองตั๋วไว้ 2 นาที<br>ตรวจสอบอีกครั้งก่อนยืนยันการแลก</div>';
+  el.innerHTML=h;
+}
 async function stuLotV2Checkout(){var ids=Object.keys(STU_LOT.selected).map(Number);if(!ids.length)return;try{var r=await lotV2Rpc('lottery_v2_hold_numbers',{p_token:STU.rewardToken,p_round_id:STU_LOT.board.round.id,p_ticket_ids:ids,p_request_key:'web:'+STU.student.id+':'+Date.now()});STU_LOT.cart=r;var ts=(STU_LOT.board.tickets||[]).filter(function(t){return ids.indexOf(t.id)>=0;});document.getElementById('lotConfirmBody').innerHTML='<div class="lot2-confirm-list">'+ts.map(function(t){return '<div class="lot2-confirm-item"><b>'+(t.type==='two'?'2 ตัว ':'3 ตัว ')+lotEsc(t.number+'-'+t.copy)+'</b><span>'+(t.type==='two'?STU_LOT.board.round.price_two:STU_LOT.board.round.price_three)+' เหรียญ</span></div>';}).join('')+'</div><div class="lot2-head"><b style="flex:1">รวม '+r.count+' ใบ</b><b>'+r.total_coins+' เหรียญ</b></div><div id="lotConfirmCountdown" class="sp-alert sp-alert-orange">จองไว้ 02:00 นาที</div>';openModal('modalLotConfirm');clearInterval(STU_LOT.timer);STU_LOT.timer=setInterval(stuLotV2Tick,1000);}catch(e){toast('❌ '+lotV2Error(e),'err');stuLotV2OpenBoard(STU_LOT.board.round.id);}}
 function stuLotV2Tick(){if(!STU_LOT.cart)return;var left=Math.max(0,Math.ceil((new Date(STU_LOT.cart.expires_at)-new Date())/1000)),el=document.getElementById('lotConfirmCountdown');if(el)el.textContent='จองไว้ '+String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0')+' นาที';if(!left){clearInterval(STU_LOT.timer);if(el)el.textContent='หมดเวลาจอง กรุณาเลือกใหม่';var b=document.getElementById('lotConfirmBuy');if(b)b.disabled=true;}}
 async function stuLotCancelCart(){clearInterval(STU_LOT.timer);var c=STU_LOT.cart;STU_LOT.cart=null;closeModal('modalLotConfirm');if(c)try{await lotV2Rpc('lottery_v2_release_cart',{p_token:STU.rewardToken,p_cart_id:c.cart_id});}catch(e){}if(STU_LOT.board)stuLotV2OpenBoard(STU_LOT.board.round.id);}
