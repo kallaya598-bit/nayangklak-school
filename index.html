@@ -1156,6 +1156,7 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .dico-ico.dico-3d{background:#fff;box-shadow:0 10px 20px rgba(13,45,94,.22),0 3px 7px rgba(13,45,94,.18),inset 0 1px 0 rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.85);}
 .dico-ico.dico-3d::before{display:none;}
 .dico-ico.dico-3d img{display:block;width:100%;height:100%;object-fit:cover;border-radius:21px;transform:scale(1.36);transform-origin:center;-webkit-user-drag:none;user-select:none;}
+.dico-ico.dico-3d img.lottery-menu-icon{transform:scale(1.68);}
 .dico:hover .dico-3d{transform:translateY(-2px);filter:saturate(1.04) brightness(1.02);box-shadow:0 13px 24px rgba(13,45,94,.25),0 4px 8px rgba(13,45,94,.18),inset 0 1px 0 rgba(255,255,255,.85);}
 .dico-lbl{font-size:11.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;width:82px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 @media(max-width:360px){.dico-ico{width:76px;height:76px;border-radius:20px}.dico-ico.dico-3d img{border-radius:19px}.dico-lbl{width:76px;font-size:11px}.dico-grid{padding-left:5px;padding-right:5px;gap:20px 2px}}
@@ -1926,7 +1927,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
             <div class="dico" onclick="openPage('pgHvMap')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/11-home-map.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">แผนที่บ้านนักเรียน</div></div>
             <div class="dico" onclick="openPage('pgMH')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/12-mental-health.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">สุขภาพจิต</div></div>
             <div class="dico" onclick="openPage('pgActivities')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/13-club-activities.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">กิจกรรมชุมนุม</div></div>
-            <div class="dico" onclick="openPage('pgLottery')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/24-lottery-rewards.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เหรียญและล็อตเตอรี่</div></div>
+            <div class="dico" onclick="openPage('pgLottery')"><div class="dico-ico dico-3d"><img class="lottery-menu-icon" src="assets/menu-icons/24-lottery-rewards.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">เหรียญและล็อตเตอรี่</div></div>
             <div class="dico" id="iappClubsAdmin" style="display:none;" onclick="openPage('pgClubsAdmin')"><div class="dico-ico iapp-indigo"><span class="ms">checklist</span></div><div class="dico-lbl">ภาพรวมชุมนุม</div></div>
             <div class="dico" onclick="openPage('pgTeachSubjects')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/14-teaching-schedule.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ตารางสอน</div></div>
             <div class="dico" onclick="openPage('pgGrades')"><div class="dico-ico dico-3d"><img src="assets/menu-icons/15-subject-grades.png" alt="" loading="lazy" decoding="async"></div><div class="dico-lbl">ผลการเรียน</div></div>
