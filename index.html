@@ -3891,6 +3891,8 @@ function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 function thaiDate(ds){var days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'],months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],d=ds?new Date(ds+'T00:00:00'):new Date();return days[d.getDay()]+'ที่ '+d.getDate()+' '+months[d.getMonth()]+' '+(d.getFullYear()+543);}
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast toast-'+(type||'ok');t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}
 function showModal(id){document.getElementById(id).classList.add('show');}
+// Backward-compatible alias used by the lottery checkout flow.
+function openModal(id){showModal(id);}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function fillLogin(u,p){document.getElementById('loginU').value=u;document.getElementById('loginP').value=p;}
 function setMN(n){for(var i=0;i<5;i++){var el=document.getElementById('mn'+i);if(el)el.classList.toggle('active',i===n);}}
