@@ -351,6 +351,10 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot-student-round-desc{margin:4px 0 9px;color:#607d9c;font-size:13px;}
 .lot-student-round-meta{display:flex;gap:6px;flex-wrap:wrap;}
 .lot-student-round-meta .lot-pill{font-size:13px;}
+.lot-student-owned-list{margin-top:10px;padding:10px 11px;background:#f7fbff;border:1px dashed #9fc2e8;border-radius:11px;}
+.lot-student-owned-list>span{display:block;margin-bottom:7px;color:#173b67;font-size:13px;font-weight:800;}
+.lot-student-ticket-list{display:flex;flex-wrap:wrap;gap:6px;}
+.lot-student-ticket{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:8px;background:#e8f5e9;color:#1b5e20;font-size:13px;font-weight:800;}
 .lot-student-round-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid #e8eef7;}
 .lot-student-round-dates{color:#607d9c;font-size:12.5px;line-height:1.45;}
 .lot-student-round-actions{display:flex;gap:7px;flex-wrap:wrap;}
@@ -7218,7 +7222,17 @@ async function buildStuLottery(stu,mode){
   if(mode!=='student')return '<div class="sp-empty">การซื้อสลากและข้อมูลเหรียญส่วนบุคคลแสดงเฉพาะบัญชีนักเรียน</div>';
   try{await stuEnsureRewardSession(false);STU_LOT.assignments=await lotV2Rpc('reward_v2_student_assignments',{p_token:STU.rewardToken})||[];if(!STU_LOT.assignments.length)return '<div class="sp-empty"><b>ยังไม่มีรายวิชาที่เปิดระบบเหรียญ</b><br>ครูประจำวิชาต้องเปิดใช้โมดูลก่อน</div>';if(!STU_LOT.assignmentId||!STU_LOT.assignments.some(function(x){return x.id==STU_LOT.assignmentId;}))STU_LOT.assignmentId=STU_LOT.assignments[0].id;await stuLotV2LoadDashboard(false);return '<div id="stuLotteryV2">'+stuLotV2DashboardHtml()+'</div>';}catch(e){return '<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
 }
-async function stuLotV2LoadDashboard(render){STU_LOT.dash=await lotV2Rpc('reward_v2_student_dashboard',{p_token:STU.rewardToken,p_assignment_id:parseInt(STU_LOT.assignmentId)});if(render){var el=document.getElementById('stuLotteryV2');if(el)el.innerHTML=stuLotV2DashboardHtml();}}
+async function stuLotV2LoadDashboard(render){
+  STU_LOT.dash=await lotV2Rpc('reward_v2_student_dashboard',{p_token:STU.rewardToken,p_assignment_id:parseInt(STU_LOT.assignmentId)});
+  STU_LOT.ownedTickets={};
+  await Promise.all((STU_LOT.dash.rounds||[]).filter(function(r){return Number(r.my_tickets)>0;}).map(async function(r){
+    try{
+      var b=await lotV2Rpc('lottery_v2_get_board',{p_token:STU.rewardToken,p_round_id:r.id});
+      STU_LOT.ownedTickets[r.id]=(b.tickets||[]).filter(function(t){return t.state==='mine';});
+    }catch(e){STU_LOT.ownedTickets[r.id]=[];}
+  }));
+  if(render){var el=document.getElementById('stuLotteryV2');if(el)el.innerHTML=stuLotV2DashboardHtml();}
+}
 function stuLotV2DashboardHtml(){
   var d=STU_LOT.dash||{},w=d.wallet||{},a=STU_LOT.assignments||[],rounds=(d.rounds||[]).slice();
   var order={open:0,board_ready:1,draft:2,confirmed:3,drawing:4,pending_confirmation:5,completed:6,closed:7};
@@ -7233,6 +7247,8 @@ function stuLotV2DashboardHtml(){
     var canBuy=r.status==='open',owned=Number(r.my_tickets)||0;
     h+='<article class="lot-student-round '+(canBuy?'is-open':'')+'"><div class="lot-student-round-head"><h3>'+lotEsc(r.title)+'</h3><span class="badge '+(canBuy?'badge-green':'badge-gray')+'">'+lotEsc(lotV2Status(r.status))+'</span></div>';
     h+='<div class="lot-student-round-desc">'+lotEsc(r.description||'กิจกรรมสลากเลข 2 ตัวและ 3 ตัวภายในโรงเรียน')+'</div><div class="lot-student-round-meta"><span class="lot-pill">2 ตัว · '+r.price_two+' เหรียญ</span><span class="lot-pill">3 ตัว · '+r.price_three+' เหรียญ</span>'+(owned?'<span class="lot-pill" style="background:#e8f5e9;color:#1b5e20">ซื้อแล้ว '+owned+' ใบ</span>':'')+(r.my_wins?'<span class="lot-pill">ถูกรางวัล '+r.my_wins+' สิทธิ์</span>':'')+'</div>';
+    var ownedTickets=(STU_LOT.ownedTickets&&STU_LOT.ownedTickets[r.id])||[];
+    if(ownedTickets.length){h+='<div class="lot-student-owned-list"><span>เลขที่ซื้อแล้ว</span><div class="lot-student-ticket-list">'+ownedTickets.map(function(t){return '<span class="lot-student-ticket">'+(t.type==='two'?'2 ตัว':'3 ตัว')+' '+lotEsc(t.number)+' · ชุด '+lotEsc(t.copy)+'</span>';}).join('')+'</div></div>';}
     h+='<div class="lot-student-round-foot"><div class="lot-student-round-dates">ปิดขาย '+lotDateTime(r.sale_closes_at)+'<br>ออกรางวัล '+lotDateTime(r.draw_at)+'</div><div class="lot-student-round-actions"><button class="btn '+(canBuy?'btn-primary':'btn-outline')+'" onclick="stuLotV2OpenBoard('+r.id+')">'+(canBuy?'เลือกเลข 2 ตัว / 3 ตัว':'ดูรายละเอียดงวด')+'</button>'+(owned?'<button class="btn btn-outline" onclick="stuLotV2OpenBoard('+r.id+',\'mine\')">ดูสลากที่ซื้อแล้ว</button>':'')+'</div></div></article>';
   });
   h+='</div><details class="lot-student-collapsible"><summary>🏅 อันดับเพื่อน</summary><div class="lot-student-collapsible-body"><div class="lot-grid">'+stuLotV2Ranks('Top 10 สัปดาห์นี้',d.top_week||[])+stuLotV2Ranks('Top 10 เดือนนี้',d.top_month||[])+'</div></div></details>';
