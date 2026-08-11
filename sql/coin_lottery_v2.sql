@@ -853,7 +853,7 @@ create or replace function public.reward_v2_save_attendance(
 set search_path=public,extensions as $$
 declare v_teacher integer;v_session public.reward_subject_sessions%rowtype;v_rec jsonb;v_student integer;v_status text;
   v_award public.reward_attendance_awards%rowtype;v_ledger bigint;v_coin integer:=1;v_count integer:=0;
-  v_week date;v_enabled_at timestamptz;
+  v_old_amount integer;v_new_amount integer;v_balance integer;v_week date;v_enabled_at timestamptz;
 begin
   v_teacher:=public._reward_v2_teacher(p_token);
   if not public._reward_v2_can_manage(v_teacher,p_assignment_id) then raise exception 'ไม่มีสิทธิ์เช็กชื่อกลุ่มเรียนนี้'; end if;
@@ -877,8 +877,9 @@ begin
 
   if p_cancelled then
     for v_award in select * from public.reward_attendance_awards where session_id=v_session.id and current_ledger_id is not null for update loop
+      select amount into v_old_amount from public.reward_ledger where id=v_award.current_ledger_id;
       v_ledger:=public._reward_v2_post(
-        p_assignment_id,v_award.student_id,-v_coin,'reversal','attendance_session',v_session.id::text,
+        p_assignment_id,v_award.student_id,-v_old_amount,'reversal','attendance_session',v_session.id::text,
         'ปรับเหรียญเนื่องจากงดเรียน',null,null,true,v_teacher,
         'attendance-cancel:'||v_award.current_ledger_id,v_award.current_ledger_id,'{}'::jsonb
       );
@@ -905,23 +906,45 @@ begin
         values(v_session.id,v_student) on conflict(session_id,student_id) do nothing;
         select * into v_award from public.reward_attendance_awards
         where session_id=v_session.id and student_id=v_student for update;
-        if v_status='present' and v_award.current_ledger_id is null and v_coin>0 then
+
+        -- มาเรียนได้เหรียญตามค่ารายวิชา · ขาดเรียนหัก 1 เหรียญ · สถานะอื่นไม่เปลี่ยนเหรียญ
+        v_new_amount:=case when v_status='present' then v_coin when v_status='absent' then -1 else 0 end;
+        v_old_amount:=0;
+        if v_award.current_ledger_id is not null then
+          select amount into v_old_amount from public.reward_ledger where id=v_award.current_ledger_id;
+        end if;
+
+        -- เมื่อครูแก้สถานะ ให้กลับรายการเดิมตามจำนวนจริงก่อน จึงไม่หัก/แจกซ้ำ
+        if v_award.current_ledger_id is not null and v_old_amount<>v_new_amount then
           v_ledger:=public._reward_v2_post(
-            p_assignment_id,v_student,v_coin,'attendance','attendance_session',v_session.id::text,
-            'มาเรียนตรงเวลา คาบ '||p_period,null,null,true,v_teacher,
-            'attendance:'||v_session.id||':'||v_student||':'||(v_award.version+1),null,
-            jsonb_build_object('date',p_att_date,'period',p_period)
-          );
-          update public.reward_attendance_awards set current_ledger_id=v_ledger,version=version+1,updated_at=now()
-          where session_id=v_session.id and student_id=v_student;
-        elsif v_status<>'present' and v_award.current_ledger_id is not null then
-          v_ledger:=public._reward_v2_post(
-            p_assignment_id,v_student,-v_coin,'reversal','attendance_session',v_session.id::text,
-            'ปรับเหรียญหลังแก้ไขเวลาเรียน',null,null,true,v_teacher,
+            p_assignment_id,v_student,-v_old_amount,'reversal','attendance_session',v_session.id::text,
+            'ปรับเหรียญหลังแก้ไขเวลาเรียน',null,null,false,v_teacher,
             'attendance-reversal:'||v_award.current_ledger_id,v_award.current_ledger_id,
             jsonb_build_object('new_status',v_status)
           );
           update public.reward_attendance_awards set current_ledger_id=null,version=version+1,updated_at=now()
+          where session_id=v_session.id and student_id=v_student;
+          v_award.current_ledger_id:=null;v_award.version:=v_award.version+1;
+        end if;
+
+        if v_award.current_ledger_id is null and v_new_amount<>0 then
+          -- กระเป๋าไม่ติดลบ: ถ้ายังไม่มีเหรียญ การเช็คขาดจะคงยอดไว้ที่ 0
+          if v_new_amount<0 then
+            select coalesce(max(balance),0) into v_balance from public.reward_wallets
+            where assignment_id=p_assignment_id and student_id=v_student;
+            if v_balance<abs(v_new_amount) then v_new_amount:=0; end if;
+          end if;
+        end if;
+
+        if v_award.current_ledger_id is null and v_new_amount<>0 then
+          v_ledger:=public._reward_v2_post(
+            p_assignment_id,v_student,v_new_amount,'attendance','attendance_session',v_session.id::text,
+            case when v_new_amount<0 then 'ขาดเรียน หัก 1 เหรียญ คาบ '||p_period else 'มาเรียนตรงเวลา คาบ '||p_period end,
+            null,null,v_new_amount>0,v_teacher,
+            'attendance:'||v_session.id||':'||v_student||':'||(v_award.version+1),null,
+            jsonb_build_object('date',p_att_date,'period',p_period,'status',v_status)
+          );
+          update public.reward_attendance_awards set current_ledger_id=v_ledger,version=version+1,updated_at=now()
           where session_id=v_session.id and student_id=v_student;
         end if;
       end if;

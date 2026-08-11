@@ -335,7 +335,11 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot2-board-panel .lot2-ticket.selected{background:#1766b1;border-color:#ffe08a;color:#fff;box-shadow:0 0 0 3px rgba(255,209,102,.35);}
 .lot2-board-panel .lot2-ticket.selected .num,.lot2-board-panel .lot2-ticket.selected .copy,.lot2-board-panel .lot2-ticket.selected .ticket-top{color:#fff;}
 .lot2-board-panel .lot2-ticket.selected .ticket-status{border-color:rgba(255,255,255,.7);color:#fff;}
-.lot2-board-panel .lot2-ticket.sold{background:#e7ebf0;border-color:#c2ccd8;color:#8b97a5;filter:saturate(.7);}
+.lot2-board-panel .lot2-ticket.sold{background:linear-gradient(145deg,#dbeafe 0%,#bfdbfe 100%);border-color:#4384c5;color:#173b67;filter:none;box-shadow:0 2px 0 rgba(21,101,192,.14),inset 0 0 0 1px rgba(255,255,255,.55);}
+.lot2-board-panel .lot2-ticket.sold .num{color:#0d47a1;}
+.lot2-board-panel .lot2-ticket.sold .ticket-top,.lot2-board-panel .lot2-ticket.sold .copy{color:#315a86;}
+.lot2-board-panel .lot2-ticket.sold .ticket-status{background:#1565c0;border-color:#1565c0;color:#fff;box-shadow:0 1px 3px rgba(13,71,161,.22);}
+.lot2-board-panel .lot2-ticket.sold .ticket-price{color:#73500b;}
 .lot2-board-panel .lot2-ticket.held{background:#fff2c8;border-color:#f3c54d;color:#8a5b00;}
 .lot2-board-panel .lot2-ticket.mine{background:#e3f4e7;border-color:#6fc27a;color:#1b5e20;}
 .lot2-cart-side{position:sticky;top:12px;background:#fff;border:1px solid #b9d4f5;border-radius:16px;overflow:hidden;box-shadow:0 8px 20px rgba(13,45,94,.12);}
@@ -357,6 +361,59 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .lot2-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
 .lot2-result{background:#fff8e1;border:1px solid #f6cf63;border-radius:14px;text-align:center;padding:13px 8px;}
 .lot2-result .n{font:800 28px ui-monospace,SFMono-Regular,Menlo,monospace;color:#6d4600;letter-spacing:.06em;}
+/* เวทีออกรางวัลสำหรับฉายให้นักเรียนดู */
+.lot-show{--show-accent:#4fc3f7;--show-accent2:#1565c0;position:fixed;inset:0;z-index:1200;display:none;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 40%,#174f92 0,#0d2d5e 42%,#061934 100%);color:#fff;font-family:'Sarabun',sans-serif;isolation:isolate;}
+.lot-show.open{display:flex;}
+.lot-show.act-two{--show-accent:#ce93d8;--show-accent2:#7b1fa2;background:radial-gradient(circle at 50% 40%,#56317a 0,#231c51 45%,#0c102a 100%);}
+.lot-show.act-grand{--show-accent:#ffd166;--show-accent2:#c62828;background:radial-gradient(circle at 50% 38%,#7d2531 0,#32152e 44%,#130b20 100%);}
+.lot-show:before,.lot-show:after{content:"";position:absolute;top:-18vh;width:34vw;height:120vh;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 62%);clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);filter:blur(7px);opacity:.42;pointer-events:none;z-index:-1;}
+.lot-show:before{left:-2vw;transform:rotate(-15deg);transform-origin:top center;}
+.lot-show:after{right:-2vw;transform:rotate(15deg);transform-origin:top center;}
+.lot-show-head{min-height:76px;flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.15);background:rgba(4,20,45,.48);}
+.lot-show-brand{display:flex;align-items:center;gap:11px;min-width:0;flex:1;}
+.lot-show-brand img{width:48px;height:48px;object-fit:contain;border-radius:50%;background:#fff;padding:3px;}
+.lot-show-brand strong{display:block;font-size:18px;line-height:1.2;}
+.lot-show-brand span{display:block;color:#c9dcf7;font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lot-show-progress{display:flex;align-items:center;gap:7px;}
+.lot-show-step{display:flex;align-items:center;gap:6px;min-height:38px;padding:0 11px;border:1px solid rgba(255,255,255,.22);border-radius:999px;color:#c8d7ec;background:rgba(255,255,255,.06);font-size:13px;font-weight:700;}
+.lot-show-step i{width:23px;height:23px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);font-style:normal;}
+.lot-show-step.active{color:#071d38;background:var(--show-accent);border-color:var(--show-accent);box-shadow:0 0 24px rgba(79,195,247,.42);}
+.lot-show-step.done{color:#fff;border-color:#66bb6a;background:rgba(46,125,50,.65);}
+.lot-show-icon-btn{width:44px;height:44px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font:700 18px Sarabun,sans-serif;cursor:pointer;}
+.lot-show-main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 24px 108px;}
+.lot-show-act{display:inline-flex;align-items:center;gap:7px;padding:6px 15px;border:1px solid var(--show-accent);border-radius:999px;background:rgba(13,45,94,.72);color:#fff;font-size:15px;font-weight:800;box-shadow:0 0 22px rgba(79,195,247,.26);}
+.lot-show-title{margin:10px 0 3px;color:#fff;font-size:clamp(26px,4vw,54px);line-height:1.1;font-weight:900;text-wrap:balance;text-shadow:0 4px 20px rgba(0,0,0,.28);}
+.lot-show-sub{min-height:26px;color:#d7e6fa;font-size:clamp(15px,1.7vw,22px);}
+.lot-show-countdown{height:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:min(32vw,260px);font-weight:900;line-height:1;text-shadow:0 0 45px var(--show-accent),0 8px 30px rgba(0,0,0,.45);opacity:0;transform:scale(.6);pointer-events:none;}
+.lot-show-countdown.show{height:auto;opacity:1;transform:scale(1);animation:lotCount .72s cubic-bezier(.16,1,.3,1);}
+@keyframes lotCount{0%{opacity:0;transform:scale(.45);filter:blur(14px)}35%{opacity:1;transform:scale(1.12);filter:blur(0)}100%{opacity:1;transform:scale(1)}}
+.lot-show-digits{display:flex;align-items:center;justify-content:center;gap:clamp(10px,2vw,24px);margin:18px 0 13px;min-height:clamp(128px,24vh,220px);}
+.lot-show-digit{width:clamp(88px,14vw,168px);height:clamp(122px,23vh,210px);display:flex;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,.42);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(229,239,252,.92));color:#0d2d5e;font:900 clamp(72px,13vw,150px)/1 ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 16px 50px rgba(0,0,0,.35),inset 0 -8px 0 rgba(13,45,94,.10),0 0 32px rgba(79,195,247,.3);overflow:hidden;}
+.lot-show-digit.spinning{animation:lotDigitSpin .16s linear infinite;filter:blur(1px);}
+.lot-show-digit.reveal{animation:lotDigitReveal .65s cubic-bezier(.16,1,.3,1);border-color:var(--show-accent);box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 50px rgba(255,209,102,.5);}
+@keyframes lotDigitSpin{0%{transform:translateY(-4px)}50%{transform:translateY(4px)}100%{transform:translateY(-4px)}}
+@keyframes lotDigitReveal{0%{transform:rotateX(90deg) scale(.75);opacity:.15}70%{transform:rotateX(-8deg) scale(1.08);opacity:1}100%{transform:rotateX(0) scale(1)}}
+.lot-show-winners{min-height:66px;max-width:880px;margin:0 auto;}
+.lot-show-winner-title{font-size:17px;color:#ffe8a3;font-weight:800;margin-bottom:7px;}
+.lot-show-winner-list{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;}
+.lot-show-winner{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(255,255,255,.11);color:#fff;font-size:15px;font-weight:700;animation:lotWinnerIn .5s cubic-bezier(.16,1,.3,1) both;}
+@keyframes lotWinnerIn{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+.lot-show-results{position:absolute;left:18px;bottom:18px;display:flex;gap:8px;z-index:2;}
+.lot-show-result{min-width:108px;padding:7px 12px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(3,16,37,.58);color:#bfcfe4;text-align:left;}
+.lot-show-result span{display:block;font-size:11px;}
+.lot-show-result strong{display:block;color:#fff;font:900 25px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;}
+.lot-show-result.current{border-color:var(--show-accent);box-shadow:0 0 20px rgba(79,195,247,.25);}
+.lot-show-controls{position:absolute;right:18px;bottom:18px;display:flex;align-items:center;gap:8px;z-index:3;padding:8px;border:1px solid rgba(255,255,255,.18);border-radius:15px;background:rgba(3,16,37,.72);box-shadow:0 8px 30px rgba(0,0,0,.28);}
+.lot-show-controls button{min-height:44px;border-radius:10px;padding:0 14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;font:700 14px Sarabun,sans-serif;cursor:pointer;}
+.lot-show-controls .primary{min-width:200px;background:var(--show-accent);border-color:var(--show-accent);color:#071d38;font-size:16px;font-weight:900;}
+.lot-show-controls button:disabled{opacity:.5;cursor:wait;}
+.lot-show-trial{position:absolute;top:91px;right:18px;padding:7px 12px;border-radius:9px;background:#f9a825;color:#2e1b00;font-weight:900;font-size:14px;box-shadow:0 5px 18px rgba(0,0,0,.25);}
+.lot-show-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:5;}
+.lot-show-confetti i{position:absolute;top:-8vh;width:10px;height:18px;border-radius:2px;background:var(--c);animation:lotConfetti var(--d) cubic-bezier(.1,.65,.35,1) var(--delay) forwards;}
+@keyframes lotConfetti{0%{transform:translate3d(0,-8vh,0) rotate(0);opacity:1}100%{transform:translate3d(var(--x),112vh,0) rotate(900deg);opacity:.9}}
+@media(max-width:760px){
+  .lot-show-head{padding:9px 10px;min-height:62px}.lot-show-brand img{width:40px;height:40px}.lot-show-brand strong{font-size:15px}.lot-show-brand span{font-size:11px}.lot-show-progress{display:none}.lot-show-main{padding:12px 10px 176px}.lot-show-title{font-size:27px}.lot-show-digits{gap:8px}.lot-show-digit{width:min(28vw,115px);height:min(34vw,145px);border-radius:17px;font-size:min(23vw,92px)}.lot-show-results{left:10px;right:10px;bottom:82px;justify-content:center}.lot-show-result{min-width:0;flex:1;padding:6px 8px}.lot-show-result strong{font-size:20px}.lot-show-controls{left:10px;right:10px;bottom:10px;justify-content:center}.lot-show-controls .primary{flex:1;min-width:0}.lot-show-controls button{padding:0 10px}.lot-show-winner{font-size:13px;padding:7px 9px}.lot-show-trial{top:72px;right:10px}}
+@media(prefers-reduced-motion:reduce){.lot-show-countdown.show,.lot-show-digit.spinning,.lot-show-digit.reveal,.lot-show-winner,.lot-show-confetti i{animation:none!important}.lot-show:before,.lot-show:after{display:none}}
 .lot2-rank{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e8eef7;}
 .lot2-rank:last-child{border-bottom:0;}
 .lot2-rank .pos{width:30px;height:30px;border-radius:50%;background:var(--bluel);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;}
@@ -3908,6 +3965,38 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   </div>
 </div>
 
+<!-- FULLSCREEN: เวทีเกมโชว์ออกรางวัล -->
+<section class="lot-show" id="lotDrawShow" aria-hidden="true" aria-label="เวทีออกรางวัล">
+  <header class="lot-show-head">
+    <div class="lot-show-brand">
+      <img src="logo.png" alt="ตราโรงเรียนนายางกลักพิทยาคม">
+      <div><strong>เวทีออกรางวัลสลากสะสม</strong><span id="lotShowRoundTitle">โรงเรียนนายางกลักพิทยาคม</span></div>
+    </div>
+    <div class="lot-show-progress" aria-label="ลำดับรางวัล">
+      <span class="lot-show-step" data-show-step="0"><i>1</i> 2 ตัว ครั้งที่ 1</span>
+      <span class="lot-show-step" data-show-step="1"><i>2</i> 2 ตัว ครั้งที่ 2</span>
+      <span class="lot-show-step" data-show-step="2"><i>3</i> รางวัลใหญ่ 3 ตัว</span>
+    </div>
+    <button class="lot-show-icon-btn" type="button" onclick="lotShowClose()" aria-label="ปิดเวที">✕</button>
+  </header>
+  <main class="lot-show-main">
+    <div class="lot-show-trial" id="lotShowTrial" style="display:none">🧪 โหมดทดลอง · ไม่บันทึกผล</div>
+    <div class="lot-show-act" id="lotShowAct">🎬 เตรียมเวที</div>
+    <h1 class="lot-show-title" id="lotShowTitle">พร้อมออกรางวัล</h1>
+    <div class="lot-show-sub" id="lotShowSub">ตรวจสอบความพร้อม แล้วกดเริ่มรางวัลแรก</div>
+    <div class="lot-show-countdown" id="lotShowCountdown" aria-live="assertive"></div>
+    <div class="lot-show-digits" id="lotShowDigits" aria-live="polite"></div>
+    <div class="lot-show-winners" id="lotShowWinners"></div>
+    <div class="lot-show-results" id="lotShowResults"></div>
+    <div class="lot-show-controls">
+      <button class="primary" id="lotShowNext" type="button" onclick="lotShowDrawNext()">เริ่มรางวัลแรก</button>
+      <button id="lotShowSound" type="button" onclick="lotShowToggleSound()" aria-label="เปิดหรือปิดเสียง">🔊 เสียง</button>
+      <button type="button" onclick="lotShowFullscreen()" aria-label="เปิดเต็มหน้าจอ">⛶ เต็มจอ</button>
+    </div>
+  </main>
+  <div class="lot-show-confetti" id="lotShowConfetti" aria-hidden="true"></div>
+</section>
+
 <script>
 // ===== CONFIG =====
 var SB='https://ujajukwmxulayxxxxmpr.supabase.co';
@@ -7324,9 +7413,9 @@ async function lotV2OpenTeacherRound(id){
     if(!r.board_confirmed_at&&r.status==='board_ready')h+='<button class="btn btn-green" onclick="lotV2ConfirmBoard('+r.id+')">ยืนยันแผงนี้</button> ';
     if(r.board_confirmed_at&&r.status==='board_ready')h+='<button class="btn btn-primary" onclick="lotV2OpenNow('+r.id+')">เปิดขายตอนนี้</button><div class="lot2-note" style="margin-top:8px">แผงยืนยันแล้ว · กดเปิดขายทันที หรือรอระบบเปิดตามเวลาที่กำหนด</div>';
     if(['closed','sold_out','drawing'].indexOf(r.status)>=0){
-      h+='<div class="flex gap8" style="flex-wrap:wrap"><button class="btn btn-primary" onclick="lotV2Draw('+r.id+')">'+(r.status==='drawing'?'ทำขั้นตอนออกรางวัลต่อ':'เริ่มออกรางวัลจริง')+'</button><button class="btn btn-outline" onclick="lotV2TrialDraw('+r.id+')">🧪 โหมดทดลอง</button></div>';
+      h+='<div class="flex gap8" style="flex-wrap:wrap"><button class="btn btn-primary" onclick="lotShowOpen('+r.id+',false)">🎬 '+(r.status==='drawing'?'เปิดเวทีและออกรางวัลต่อ':'เปิดเวทีออกรางวัลจริง')+'</button><button class="btn btn-outline" onclick="lotShowOpen('+r.id+',true)">🧪 ทดลองเวทีเกมโชว์</button></div><div class="lot2-note" style="margin-top:8px">เวทีจะแสดงผลทีละรางวัล ครูเป็นผู้กดเริ่มแต่ละช่วงเพื่อควบคุมจังหวะการนำเสนอ</div>';
     }
-    if(r.status==='pending_confirmation')h+='<button class="btn btn-green" onclick="lotV2ConfirmResults('+r.id+')">ยืนยันผลอย่างเป็นทางการ</button>';
+    if(r.status==='pending_confirmation')h+='<div class="flex gap8" style="flex-wrap:wrap"><button class="btn btn-primary" onclick="lotShowOpen('+r.id+',false)">🎬 เปิดเวทีดูผลอีกครั้ง</button><button class="btn btn-green" onclick="lotV2ConfirmResults('+r.id+')">ยืนยันผลอย่างเป็นทางการ</button></div>';
     h+='<div class="lot2-board-panel" style="margin-top:14px"><div class="lot2-awning">แผงสลากเลข 2 ตัว / 3 ตัว</div><div class="lot2-board">'+(b.tickets||[]).map(function(t){var sold=!!t.fullname||t.state==='sold',held=t.state==='held',status=sold?'ขายแล้ว':held?'กำลังจอง':'ว่าง',price=t.type==='two'?r.price_two:r.price_three;return '<div class="lot2-ticket '+(sold?'sold':held?'held':'available')+'"><span class="ticket-top"><span>'+(t.type==='two'?'เลข 2 ตัว':'เลข 3 ตัว')+'</span><span>'+lotEsc(t.copy)+'</span></span><span class="num">'+lotEsc(t.number)+'</span><span class="copy">ชุด '+lotEsc(t.copy)+(t.fullname?' · '+lotEsc(t.fullname):'')+'</span><span class="ticket-foot"><span class="ticket-status">'+status+'</span><span class="ticket-price">🪙 '+price+'</span></span></div>';}).join('')+'</div></div>';
     if(rights.length)h+='<div class="lot-card" style="margin-top:14px"><h3>ผู้ชนะและสิทธิ์หมุนวงล้อ</h3>'+rights.map(function(w){return '<div class="lot2-ledger-row"><span><b>'+lotEsc(w.fullname)+'</b><span class="lot-muted" style="display:block">'+lotEsc(w.number+'-'+w.copy+' · '+(w.type==='two'?'เลข 2 ตัว':'เลข 3 ตัว'))+'</span></span><span>'+lotEsc(w.prize||'ยังไม่หมุน')+'</span>'+(w.spin_status==='ready'?'<button class="btn btn-primary btn-sm" onclick="lotV2Spin('+w.id+','+r.id+')">หมุนวงล้อ</button>':'<span class="badge badge-green">ใช้สิทธิ์แล้ว</span>')+'</div>';}).join('')+'</div>';
     el.innerHTML=h;
@@ -7348,6 +7437,117 @@ async function lotV2Draw(id){
     }
     toast('ออกรางวัลครบแล้ว กรุณาตรวจและยืนยันผลอย่างเป็นทางการ');lotV2OpenTeacherRound(id);
   }catch(e){toast('❌ '+lotV2Error(e)+' · กด “ทำขั้นตอนออกรางวัลต่อ” เพื่อดำเนินการต่อ','err');lotV2OpenTeacherRound(id);}
+}
+
+/* เวทีเกมโชว์ — แสดงผลจาก RPC เดิมโดยไม่เปลี่ยนกระบวนการสุ่ม */
+var LOT_SHOW={roundId:null,trial:false,busy:false,sound:true,board:null,trialPool:[],trialRevealed:[],spinTimer:null,audio:null,bodyOverflow:'',confirmedStart:false};
+function lotShowConfig(i){
+  return [
+    {slot:'two_first',digits:2,cls:'act-one',act:'✨ รางวัลเปิดเวที',title:'เลข 2 ตัว · ครั้งที่ 1',sub:'รางวัลแรกกำลังจะเริ่ม เตรียมลุ้นหมายเลขของคุณ'},
+    {slot:'two_second',digits:2,cls:'act-two',act:'💜 รางวัลลุ้นอีกครั้ง',title:'เลข 2 ตัว · ครั้งที่ 2',sub:'โอกาสครั้งที่สอง ใครยังไม่ถูกรางวัลมาลุ้นกันต่อ'},
+    {slot:'three',digits:3,cls:'act-grand',act:'🏆 รางวัลใหญ่ประจำงวด',title:'เลข 3 ตัว · รางวัลใหญ่',sub:'ช่วงเวลาสำคัญที่สุดของวันนี้ เตรียมนับถอยหลังพร้อมกัน'}
+  ][Math.max(0,Math.min(2,i))];
+}
+function lotShowWait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
+function lotShowCurrentResults(){return LOT_SHOW.trial?LOT_SHOW.trialRevealed:((LOT_SHOW.board&&LOT_SHOW.board.results)||[]);}
+function lotShowEsc(s){return lotEsc(s==null?'':String(s));}
+async function lotShowOpen(id,trial){
+  if(LOT_SHOW.busy)return;
+  var show=document.getElementById('lotDrawShow');if(!show)return;
+  LOT_SHOW.roundId=id;LOT_SHOW.trial=!!trial;LOT_SHOW.busy=true;LOT_SHOW.board=null;LOT_SHOW.trialPool=[];LOT_SHOW.trialRevealed=[];LOT_SHOW.confirmedStart=false;
+  LOT_SHOW.bodyOverflow=document.body.style.overflow||'';document.body.style.overflow='hidden';
+  show.className='lot-show open';show.setAttribute('aria-hidden','false');
+  document.getElementById('lotShowTrial').style.display=trial?'block':'none';
+  document.getElementById('lotShowTitle').textContent='กำลังเตรียมเวที';document.getElementById('lotShowSub').textContent='โหลดข้อมูลสลากและผลรางวัล...';
+  document.getElementById('lotShowDigits').innerHTML='<div class="loading" style="color:#fff">กำลังโหลด...</div>';
+  document.getElementById('lotShowWinners').innerHTML='';document.getElementById('lotShowResults').innerHTML='';
+  var next=document.getElementById('lotShowNext');next.disabled=true;next.textContent='กำลังเตรียมเวที';
+  lotShowTone('open');
+  try{
+    LOT_SHOW.board=await lotV2Rpc('lottery_v2_teacher_board',{p_token:G.rewardToken,p_round_id:id});
+    if(trial){
+      var t=await lotV2Rpc('lottery_v2_trial_draw',{p_token:G.rewardToken,p_round_id:id});
+      LOT_SHOW.trialPool=[{slot:'two_first',type:'two',number:t.two_first},{slot:'two_second',type:'two',number:t.two_second},{slot:'three',type:'three',number:t.three}];
+    }
+    var round=LOT_SHOW.board.round||{};document.getElementById('lotShowRoundTitle').textContent=(round.title||'กิจกรรมสลากสะสม')+' · โรงเรียนนายางกลักพิทยาคม';
+    LOT_SHOW.busy=false;lotShowRenderReady();
+  }catch(e){LOT_SHOW.busy=false;lotShowClose(true);toast('❌ เปิดเวทีไม่สำเร็จ: '+lotV2Error(e),'err');}
+}
+function lotShowRenderReady(){
+  var results=lotShowCurrentResults(),index=Math.min(results.length,2),cfg=lotShowConfig(index),show=document.getElementById('lotDrawShow');
+  show.className='lot-show open '+cfg.cls;
+  document.getElementById('lotShowAct').textContent=results.length>=3?'🎉 ออกรางวัลครบแล้ว':cfg.act;
+  document.getElementById('lotShowTitle').textContent=results.length>=3?'ผลรางวัลประจำงวด':cfg.title;
+  document.getElementById('lotShowSub').textContent=results.length>=3?(LOT_SHOW.trial?'จบการทดลอง ผลทั้งหมดไม่ถูกบันทึก':'ตรวจสอบผลบนเวที แล้วกลับไปยืนยันผลอย่างเป็นทางการ'):cfg.sub;
+  document.getElementById('lotShowCountdown').className='lot-show-countdown';
+  var shown=results.length>=3?results[2]:null,chars=shown?String(shown.number).padStart(cfg.digits,'0').split(''):[];
+  document.getElementById('lotShowDigits').innerHTML=Array.from({length:cfg.digits}).map(function(_,i){return '<div class="lot-show-digit'+(shown?' reveal':'')+'">'+(shown?lotShowEsc(chars[i]):'?')+'</div>';}).join('');
+  document.getElementById('lotShowWinners').innerHTML=shown?lotShowWinnersHtml(shown):'';
+  lotShowRenderResults(results,results.length>=3?2:results.length);
+  lotShowProgress(results.length,results.length>=3?2:results.length);
+  var next=document.getElementById('lotShowNext');next.disabled=false;next.textContent=results.length>=3?'ปิดเวทีและตรวจผล':('เริ่ม'+(index===0?'รางวัลแรก':index===1?'รางวัลที่ 2':'รางวัลใหญ่'));
+}
+function lotShowProgress(done,active){
+  document.querySelectorAll('[data-show-step]').forEach(function(el){var i=parseInt(el.getAttribute('data-show-step'));el.classList.toggle('done',i<done);el.classList.toggle('active',i===active&&done<3);});
+}
+function lotShowRenderResults(results,current){
+  var labels=['2 ตัว · ครั้งที่ 1','2 ตัว · ครั้งที่ 2','รางวัลใหญ่ · 3 ตัว'],slots=['two_first','two_second','three'];
+  document.getElementById('lotShowResults').innerHTML=slots.map(function(slot,i){var r=(results||[]).filter(function(x){return x.slot===slot;})[0];return '<div class="lot-show-result'+(i===current?' current':'')+'"><span>'+labels[i]+'</span><strong>'+(r?lotShowEsc(r.number):'—')+'</strong></div>';}).join('');
+}
+async function lotShowDrawNext(){
+  if(LOT_SHOW.busy)return;
+  var results=lotShowCurrentResults(),index=results.length;if(index>=3){lotShowClose();return;}
+  if(!LOT_SHOW.trial&&!LOT_SHOW.confirmedStart){if(!confirm('เริ่มออกรางวัลจริงบนเวที? ผลจะถูกบันทึกทันทีทีละรางวัลและย้อนกลับไม่ได้'))return;LOT_SHOW.confirmedStart=true;}
+  var cfg=lotShowConfig(index),show=document.getElementById('lotDrawShow'),next=document.getElementById('lotShowNext');
+  LOT_SHOW.busy=true;next.disabled=true;next.textContent='กำลังออกรางวัล...';show.className='lot-show open '+cfg.cls;
+  document.getElementById('lotShowAct').textContent=cfg.act;document.getElementById('lotShowTitle').textContent=cfg.title;document.getElementById('lotShowSub').textContent='นับถอยหลังพร้อมกัน';document.getElementById('lotShowWinners').innerHTML='';
+  lotShowProgress(index,index);lotShowRenderResults(results,index);
+  var cd=document.getElementById('lotShowCountdown'),digits=document.getElementById('lotShowDigits');digits.innerHTML='';
+  try{
+    for(var n=3;n>0;n--){cd.textContent=n;cd.className='lot-show-countdown show';lotShowTone('count');await lotShowWait(760);cd.className='lot-show-countdown';await lotShowWait(100);}
+    document.getElementById('lotShowSub').textContent='กำลังหมุนหมายเลข...';
+    digits.innerHTML=Array.from({length:cfg.digits}).map(function(){return '<div class="lot-show-digit spinning">0</div>';}).join('');
+    var boxes=Array.from(digits.querySelectorAll('.lot-show-digit'));
+    var spinTick=0;LOT_SHOW.spinTimer=setInterval(function(){boxes.forEach(function(b){b.textContent=Math.floor(Math.random()*10);});if(++spinTick%4===0)lotShowTone('tick');},90);
+    var dataPromise=LOT_SHOW.trial?Promise.resolve({results:LOT_SHOW.trialPool.slice(0,index+1),done:index===2}):lotV2Rpc('lottery_v2_draw_step',{p_token:G.rewardToken,p_round_id:LOT_SHOW.roundId});
+    var pair=await Promise.all([dataPromise,lotShowWait(index===2?2400:1900)]),data=pair[0],all=data.results||[],result=all.filter(function(x){return x.slot===cfg.slot;})[0];
+    if(!result)throw new Error('ไม่พบผลรางวัลจากระบบ');
+    clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;
+    var value=String(result.number).padStart(cfg.digits,'0').split('');
+    for(var i=0;i<boxes.length;i++){boxes[i].classList.remove('spinning');boxes[i].textContent=value[i];void boxes[i].offsetWidth;boxes[i].classList.add('reveal');lotShowTone('reveal');await lotShowWait(index===2?720:600);}
+    if(LOT_SHOW.trial)LOT_SHOW.trialRevealed=all.slice();else{LOT_SHOW.board.results=all.slice();if(LOT.round)LOT.round.results=all.slice();}
+    document.getElementById('lotShowSub').textContent='หมายเลขที่ออก';document.getElementById('lotShowWinners').innerHTML=lotShowWinnersHtml(result);
+    lotShowRenderResults(all,index);lotShowProgress(index+1,index);lotShowCelebrate(index===2);lotShowTone(index===2?'grand':'win');
+    LOT_SHOW.busy=false;next.disabled=false;next.textContent=index===2?'ปิดเวทีและตรวจผล':(index===0?'ไปต่อรางวัลที่ 2':'ไปต่อรางวัลใหญ่');
+  }catch(e){if(LOT_SHOW.spinTimer){clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;}LOT_SHOW.busy=false;next.disabled=false;next.textContent='ลองอีกครั้ง';toast('❌ '+lotV2Error(e),'err');}
+}
+function lotShowWinnersHtml(result){
+  var type=result.type||(result.slot==='three'?'three':'two'),w=((LOT_SHOW.board||{}).tickets||[]).filter(function(t){return t.type===type&&String(t.number)===String(result.number)&&!!t.fullname;});
+  if(!w.length)return '<div class="lot-show-winner-title">หมายเลขนี้ไม่มีผู้ถือสลาก</div>';
+  return '<div class="lot-show-winner-title">🎉 ผู้โชคดี '+w.length+' สลาก</div><div class="lot-show-winner-list">'+w.map(function(x,i){return '<span class="lot-show-winner" style="animation-delay:'+(i*.08)+'s">🏆 '+lotShowEsc(x.fullname)+' · ชุด '+lotShowEsc(x.copy)+'</span>';}).join('')+'</div>';
+}
+function lotShowCelebrate(grand){
+  var el=document.getElementById('lotShowConfetti'),colors=grand?['#ffd166','#ff5252','#fff','#ffca28','#ec407a']:['#4fc3f7','#fff','#66bb6a','#ffd166','#ce93d8'],count=grand?110:58,h='';
+  for(var i=0;i<count;i++)h+='<i style="left:'+Math.random()*100+'%;--c:'+colors[i%colors.length]+';--d:'+(2.4+Math.random()*2.2)+'s;--delay:'+Math.random()*.45+'s;--x:'+(-25+Math.random()*50)+'vw"></i>';
+  el.innerHTML=h;setTimeout(function(){el.innerHTML='';},5200);
+}
+function lotShowTone(kind){
+  if(!LOT_SHOW.sound)return;
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!LOT_SHOW.audio)LOT_SHOW.audio=new AC();var ctx=LOT_SHOW.audio;if(ctx.state==='suspended')ctx.resume();
+    var map={open:[392,.10],count:[520,.09],tick:[210,.018],reveal:[760,.16],win:[880,.32],grand:[1046,.48]},p=map[kind]||map.tick,osc=ctx.createOscillator(),gain=ctx.createGain(),now=ctx.currentTime;
+    osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(p[0],now);if(kind==='grand')osc.frequency.exponentialRampToValueAtTime(1568,now+p[1]);gain.gain.setValueAtTime(kind==='tick'?.018:.12,now);gain.gain.exponentialRampToValueAtTime(.0001,now+p[1]);osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+p[1]);
+  }catch(e){}
+}
+function lotShowToggleSound(){LOT_SHOW.sound=!LOT_SHOW.sound;var b=document.getElementById('lotShowSound');if(b)b.textContent=LOT_SHOW.sound?'🔊 เสียง':'🔇 ปิดเสียง';if(LOT_SHOW.sound)lotShowTone('open');}
+function lotShowFullscreen(){var el=document.getElementById('lotDrawShow');try{if(document.fullscreenElement||document.webkitFullscreenElement){var p=document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen();if(p&&p.catch)p.catch(function(){});}else{var q=el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen&&el.webkitRequestFullscreen();if(q&&q.catch)q.catch(function(){toast('เบราว์เซอร์นี้ไม่อนุญาตโหมดเต็มจอ','err');});}}catch(e){toast('เปิดเต็มจอไม่ได้','err');}}
+function lotShowClose(force){
+  if(LOT_SHOW.busy&&!force){toast('กำลังออกรางวัล กรุณารอจนตัวเลขหยุด','err');return;}
+  if(LOT_SHOW.spinTimer){clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;}
+  var show=document.getElementById('lotDrawShow');if(show){show.className='lot-show';show.setAttribute('aria-hidden','true');}
+  document.getElementById('lotShowConfetti').innerHTML='';document.body.style.overflow=LOT_SHOW.bodyOverflow||'';
+  try{if(document.fullscreenElement||document.webkitFullscreenElement){var p=document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen();if(p&&p.catch)p.catch(function(){});}}catch(e){}
+  var id=LOT_SHOW.roundId,shouldRefresh=!!LOT_SHOW.board;LOT_SHOW.busy=false;LOT_SHOW.board=null;if(shouldRefresh&&id&&!force)lotV2OpenTeacherRound(id);
 }
 async function lotV2ConfirmResults(id){if(!confirm('ยืนยันผลอย่างเป็นทางการ? หลังยืนยันจะแก้หรือสุ่มใหม่ไม่ได้'))return;try{await lotV2Rpc('lottery_v2_confirm_results',{p_token:G.rewardToken,p_round_id:id});toast('ยืนยันผลแล้ว');lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
 async function lotV2Spin(right,id){try{var r=await lotV2Rpc('lottery_v2_spin_wheel',{p_token:G.rewardToken,p_winner_right_id:right});toast('🎉 '+r.prize);lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
