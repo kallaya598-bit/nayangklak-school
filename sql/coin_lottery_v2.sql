@@ -1261,9 +1261,9 @@ begin
   if v_status not in ('closed','sold_out','drawing','pending_confirmation') or now()<v_round.draw_at then
     raise exception 'ยังไม่ถึงเวลาออกรางวัลหรือยังไม่ปิดขาย';
   end if;
-  if not exists(select 1 from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and sold_to is not null)
-     or not exists(select 1 from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='three' and sold_to is not null) then
-    raise exception 'ต้องมีสลากที่ขายแล้วทั้งเลข 2 ตัวและ 3 ตัวก่อนออกรางวัล';
+  if not exists(select 1 from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and voided_at is null)
+     or not exists(select 1 from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='three' and voided_at is null) then
+    raise exception 'แผงต้องมีสลากเลข 2 ตัวและ 3 ตัวก่อนออกรางวัล';
   end if;
 
   select * into v_draw from public.lottery_draws_v2 where round_id=p_round_id for update;
@@ -1285,7 +1285,7 @@ begin
 
   select number_text into v_number from (
     select distinct number_text from public.lottery_ticket_inventory
-    where round_id=p_round_id and ticket_type=v_type and sold_to is not null
+    where round_id=p_round_id and ticket_type=v_type and voided_at is null
   ) x order by md5(v_draw.seed::text||':'||v_slot||':'||number_text) limit 1;
   insert into public.lottery_draw_results(draw_id,result_slot,ticket_type,number_text)
   values(v_draw.id,v_slot,v_type,v_number) on conflict(draw_id,result_slot) do nothing;
@@ -1308,10 +1308,10 @@ begin
   v_teacher:=public._reward_v2_teacher(p_token);
   select assignment_id into v_assignment from public.lottery_rounds_v2 where id=p_round_id;
   if not public._reward_v2_can_manage(v_teacher,v_assignment) then raise exception 'ไม่มีสิทธิ์ทดลองออกรางวัล'; end if;
-  select number_text into v_two1 from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and sold_to is not null) x order by md5(v_seed::text||':trial-one:'||number_text) limit 1;
-  select number_text into v_two2 from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and sold_to is not null) x order by md5(v_seed::text||':trial-two:'||number_text) limit 1;
-  select number_text into v_three from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='three' and sold_to is not null) x order by md5(v_seed::text||':trial-three:'||number_text) limit 1;
-  if v_two1 is null or v_three is null then raise exception 'โหมดทดลองต้องมีสลากที่ขายแล้วทั้งเลข 2 ตัวและ 3 ตัว'; end if;
+  select number_text into v_two1 from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and voided_at is null) x order by md5(v_seed::text||':trial-one:'||number_text) limit 1;
+  select number_text into v_two2 from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='two' and voided_at is null) x order by md5(v_seed::text||':trial-two:'||number_text) limit 1;
+  select number_text into v_three from (select distinct number_text from public.lottery_ticket_inventory where round_id=p_round_id and ticket_type='three' and voided_at is null) x order by md5(v_seed::text||':trial-three:'||number_text) limit 1;
+  if v_two1 is null or v_three is null then raise exception 'โหมดทดลองต้องมีสลากเลข 2 ตัวและ 3 ตัวในแผง'; end if;
   return jsonb_build_object('ok',true,'trial',true,'two_first',v_two1,'two_second',v_two2,'three',v_three);
 end $$;
 

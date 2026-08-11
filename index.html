@@ -7421,7 +7421,7 @@ async function lotV2OpenTeacherRound(id){
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div class="sp-alert sp-alert-red">'+lotEsc(lotV2Error(e))+'</div>';}
 }
-function lotV2ResultHtml(a){if(!a||!a.length)return '<div class="lot2-note">ยังไม่มีผลรางวัล · ระบบสุ่มจาก “หมายเลขที่ขายแล้ว” เท่านั้น</div>';return '<div class="lot2-result-grid">'+a.map(function(x){return '<div class="lot2-result"><div class="lot-muted">'+lotEsc(x.slot==='two_first'?'2 ตัว ครั้งที่ 1':x.slot==='two_second'?'2 ตัว ครั้งที่ 2':'3 ตัว')+'</div><div class="n">'+lotEsc(x.number)+'</div></div>';}).join('')+'</div>';}
+function lotV2ResultHtml(a){if(!a||!a.length)return '<div class="lot2-note">ยังไม่มีผลรางวัล · ทุกหมายเลขในแผงมีสิทธิ์ถูกรางวัล แม้ยังไม่มีผู้ซื้อ</div>';return '<div class="lot2-result-grid">'+a.map(function(x){return '<div class="lot2-result"><div class="lot-muted">'+lotEsc(x.slot==='two_first'?'2 ตัว ครั้งที่ 1':x.slot==='two_second'?'2 ตัว ครั้งที่ 2':'3 ตัว')+'</div><div class="n">'+lotEsc(x.number)+'</div></div>';}).join('')+'</div>';}
 async function lotV2TrialDraw(id){try{var r=await lotV2Rpc('lottery_v2_trial_draw',{p_token:G.rewardToken,p_round_id:id});var a=[{slot:'two_first',number:r.two_first},{slot:'two_second',number:r.two_second},{slot:'three',number:r.three}],el=document.getElementById('lotV2DrawStage');if(el)el.innerHTML='<div class="sp-alert sp-alert-orange"><b>🧪 ผลทดลอง — ไม่บันทึกข้อมูลจริง</b></div>'+lotV2ResultHtml(a);toast('แสดงผลทดลองแล้ว ไม่มีการบันทึก');}catch(e){toast('❌ '+lotV2Error(e),'err');}}
 async function lotV2DrawCountdown(label){var el=document.getElementById('lotV2DrawStage');for(var n=3;n>0;n--){if(el)el.innerHTML='<div class="lot2-result" style="max-width:420px;margin:12px auto;text-align:center"><div class="lot-muted">กำลังสุ่ม '+lotEsc(label)+'</div><div class="n">'+n+'</div></div>';await new Promise(function(resolve){setTimeout(resolve,700);});}}
 async function lotV2Draw(id){
@@ -7523,7 +7523,7 @@ async function lotShowDrawNext(){
 }
 function lotShowWinnersHtml(result){
   var type=result.type||(result.slot==='three'?'three':'two'),w=((LOT_SHOW.board||{}).tickets||[]).filter(function(t){return t.type===type&&String(t.number)===String(result.number)&&!!t.fullname;});
-  if(!w.length)return '<div class="lot-show-winner-title">หมายเลขนี้ไม่มีผู้ถือสลาก</div>';
+  if(!w.length)return '<div class="lot-show-winner-title">รางวัลนี้ไม่มีผู้ถูกรางวัล</div>';
   return '<div class="lot-show-winner-title">🎉 ผู้โชคดี '+w.length+' สลาก</div><div class="lot-show-winner-list">'+w.map(function(x,i){return '<span class="lot-show-winner" style="animation-delay:'+(i*.08)+'s">🏆 '+lotShowEsc(x.fullname)+' · ชุด '+lotShowEsc(x.copy)+'</span>';}).join('')+'</div>';
 }
 function lotShowCelebrate(grand){
