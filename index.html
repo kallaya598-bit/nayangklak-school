@@ -7440,7 +7440,7 @@ async function lotV2Draw(id){
 }
 
 /* เวทีเกมโชว์ — แสดงผลจาก RPC เดิมโดยไม่เปลี่ยนกระบวนการสุ่ม */
-var LOT_SHOW={roundId:null,trial:false,busy:false,sound:true,board:null,trialPool:[],trialRevealed:[],spinTimer:null,audio:null,bodyOverflow:'',confirmedStart:false};
+var LOT_SHOW={roundId:null,trial:false,busy:false,sound:true,board:null,trialPool:[],trialRevealed:[],spinTimer:null,audio:null,bodyOverflow:'',confirmedStart:false,pendingResult:null,pendingAll:[],revealCount:0,pendingIndex:0};
 function lotShowConfig(i){
   return [
     {slot:'two_first',digits:2,cls:'act-one',act:'✨ รางวัลเปิดเวที',title:'เลข 2 ตัว · ครั้งที่ 1',sub:'รางวัลแรกกำลังจะเริ่ม เตรียมลุ้นหมายเลขของคุณ'},
@@ -7454,7 +7454,7 @@ function lotShowEsc(s){return lotEsc(s==null?'':String(s));}
 async function lotShowOpen(id,trial){
   if(LOT_SHOW.busy)return;
   var show=document.getElementById('lotDrawShow');if(!show)return;
-  LOT_SHOW.roundId=id;LOT_SHOW.trial=!!trial;LOT_SHOW.busy=true;LOT_SHOW.board=null;LOT_SHOW.trialPool=[];LOT_SHOW.trialRevealed=[];LOT_SHOW.confirmedStart=false;
+  LOT_SHOW.roundId=id;LOT_SHOW.trial=!!trial;LOT_SHOW.busy=true;LOT_SHOW.board=null;LOT_SHOW.trialPool=[];LOT_SHOW.trialRevealed=[];LOT_SHOW.confirmedStart=false;LOT_SHOW.pendingResult=null;LOT_SHOW.pendingAll=[];LOT_SHOW.revealCount=0;LOT_SHOW.pendingIndex=0;
   LOT_SHOW.bodyOverflow=document.body.style.overflow||'';document.body.style.overflow='hidden';
   show.className='lot-show open';show.setAttribute('aria-hidden','false');
   document.getElementById('lotShowTrial').style.display=trial?'block':'none';
@@ -7496,28 +7496,33 @@ function lotShowRenderResults(results,current){
 }
 async function lotShowDrawNext(){
   if(LOT_SHOW.busy)return;
-  var results=lotShowCurrentResults(),index=results.length;if(index>=3){lotShowClose();return;}
+  var results=lotShowCurrentResults(),index=LOT_SHOW.pendingResult?LOT_SHOW.pendingIndex:results.length;if(index>=3){lotShowClose();return;}
   if(!LOT_SHOW.trial&&!LOT_SHOW.confirmedStart){if(!confirm('เริ่มออกรางวัลจริงบนเวที? ผลจะถูกบันทึกทันทีทีละรางวัลและย้อนกลับไม่ได้'))return;LOT_SHOW.confirmedStart=true;}
   var cfg=lotShowConfig(index),show=document.getElementById('lotDrawShow'),next=document.getElementById('lotShowNext');
-  LOT_SHOW.busy=true;next.disabled=true;next.textContent='กำลังออกรางวัล...';show.className='lot-show open '+cfg.cls;
-  document.getElementById('lotShowAct').textContent=cfg.act;document.getElementById('lotShowTitle').textContent=cfg.title;document.getElementById('lotShowSub').textContent='นับถอยหลังพร้อมกัน';document.getElementById('lotShowWinners').innerHTML='';
+  LOT_SHOW.busy=true;next.disabled=true;next.textContent='กำลังเปิดตัวเลข...';show.className='lot-show open '+cfg.cls;
+  document.getElementById('lotShowAct').textContent=cfg.act;document.getElementById('lotShowTitle').textContent=cfg.title;document.getElementById('lotShowSub').textContent='กำลังเปิดหลักที่ '+(LOT_SHOW.revealCount+1)+' จาก '+cfg.digits;document.getElementById('lotShowWinners').innerHTML='';
   lotShowProgress(index,index);lotShowRenderResults(results,index);
   var cd=document.getElementById('lotShowCountdown'),digits=document.getElementById('lotShowDigits');digits.innerHTML='';
   try{
-    for(var n=3;n>0;n--){cd.textContent=n;cd.className='lot-show-countdown show';lotShowTone('count');await lotShowWait(760);cd.className='lot-show-countdown';await lotShowWait(100);}
-    document.getElementById('lotShowSub').textContent='กำลังหมุนหมายเลข...';
-    digits.innerHTML=Array.from({length:cfg.digits}).map(function(){return '<div class="lot-show-digit spinning">0</div>';}).join('');
-    var boxes=Array.from(digits.querySelectorAll('.lot-show-digit'));
-    var spinTick=0;LOT_SHOW.spinTimer=setInterval(function(){boxes.forEach(function(b){b.textContent=Math.floor(Math.random()*10);});if(++spinTick%4===0)lotShowTone('tick');},90);
-    var dataPromise=LOT_SHOW.trial?Promise.resolve({results:LOT_SHOW.trialPool.slice(0,index+1),done:index===2}):lotV2Rpc('lottery_v2_draw_step',{p_token:G.rewardToken,p_round_id:LOT_SHOW.roundId});
-    var pair=await Promise.all([dataPromise,lotShowWait(index===2?2400:1900)]),data=pair[0],all=data.results||[],result=all.filter(function(x){return x.slot===cfg.slot;})[0];
-    if(!result)throw new Error('ไม่พบผลรางวัลจากระบบ');
-    clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;
-    var value=String(result.number).padStart(cfg.digits,'0').split('');
-    for(var i=0;i<boxes.length;i++){boxes[i].classList.remove('spinning');boxes[i].textContent=value[i];void boxes[i].offsetWidth;boxes[i].classList.add('reveal');lotShowTone('reveal');await lotShowWait(index===2?720:600);}
-    if(LOT_SHOW.trial)LOT_SHOW.trialRevealed=all.slice();else{LOT_SHOW.board.results=all.slice();if(LOT.round)LOT.round.results=all.slice();}
-    document.getElementById('lotShowSub').textContent='หมายเลขที่ออก';document.getElementById('lotShowWinners').innerHTML=lotShowWinnersHtml(result);
-    lotShowRenderResults(all,index);lotShowProgress(index+1,index);lotShowCelebrate(index===2);lotShowTone(index===2?'grand':'win');
+    if(!LOT_SHOW.pendingResult){
+      for(var n=3;n>0;n--){cd.textContent=n;cd.className='lot-show-countdown show';lotShowTone('count');await lotShowWait(620);cd.className='lot-show-countdown';await lotShowWait(80);}
+      var data=LOT_SHOW.trial?{results:LOT_SHOW.trialPool.slice(0,index+1),done:index===2}:await lotV2Rpc('lottery_v2_draw_step',{p_token:G.rewardToken,p_round_id:LOT_SHOW.roundId});
+      var all=data.results||[],result=all.filter(function(x){return x.slot===cfg.slot;})[0];if(!result)throw new Error('ไม่พบผลรางวัลจากระบบ');
+      LOT_SHOW.pendingResult=result;LOT_SHOW.pendingAll=all.slice();LOT_SHOW.pendingIndex=index;LOT_SHOW.revealCount=0;
+    }
+    var value=String(LOT_SHOW.pendingResult.number).padStart(cfg.digits,'0').split(''),target=LOT_SHOW.revealCount;
+    digits.innerHTML=value.map(function(ch,i){return '<div class="lot-show-digit'+(i<target?' reveal':'')+'">'+(i<target?lotShowEsc(ch):'?')+'</div>';}).join('');
+    var boxes=Array.from(digits.querySelectorAll('.lot-show-digit')),box=boxes[target],spinTick=0;box.classList.add('spinning');box.textContent='0';
+    LOT_SHOW.spinTimer=setInterval(function(){box.textContent=Math.floor(Math.random()*10);if(++spinTick%4===0)lotShowTone('tick');},90);await lotShowWait(index===2?1450:1150);
+    clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;box.classList.remove('spinning');box.textContent=value[target];void box.offsetWidth;box.classList.add('reveal');lotShowTone('reveal');LOT_SHOW.revealCount++;
+    if(LOT_SHOW.revealCount<cfg.digits){
+      document.getElementById('lotShowSub').textContent='เปิดแล้ว '+LOT_SHOW.revealCount+' หลัก · กดเพื่อเปิดหลักถัดไป';LOT_SHOW.busy=false;next.disabled=false;next.textContent='เปิดหลักที่ '+(LOT_SHOW.revealCount+1)+' จาก '+cfg.digits;return;
+    }
+    var finalResult=LOT_SHOW.pendingResult,finalAll=LOT_SHOW.pendingAll.slice();
+    if(LOT_SHOW.trial)LOT_SHOW.trialRevealed=finalAll.slice();else{LOT_SHOW.board.results=finalAll.slice();if(LOT.round)LOT.round.results=finalAll.slice();}
+    LOT_SHOW.pendingResult=null;LOT_SHOW.pendingAll=[];LOT_SHOW.revealCount=0;
+    document.getElementById('lotShowSub').textContent='หมายเลขที่ออก';document.getElementById('lotShowWinners').innerHTML=lotShowWinnersHtml(finalResult);
+    lotShowRenderResults(finalAll,index);lotShowProgress(index+1,index);lotShowCelebrate(index===2);lotShowTone(index===2?'grand':'win');
     LOT_SHOW.busy=false;next.disabled=false;next.textContent=index===2?'ปิดเวทีและตรวจผล':(index===0?'ไปต่อรางวัลที่ 2':'ไปต่อรางวัลใหญ่');
   }catch(e){if(LOT_SHOW.spinTimer){clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;}LOT_SHOW.busy=false;next.disabled=false;next.textContent='ลองอีกครั้ง';toast('❌ '+lotV2Error(e),'err');}
 }
