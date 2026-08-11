@@ -763,6 +763,28 @@ begin
   return jsonb_build_object('ok',true,'prize_id',v_id);
 end $$;
 
+create or replace function public.reward_v2_delete_wheel_prize(
+  p_token uuid,p_assignment_id integer,p_prize_id bigint
+) returns jsonb language plpgsql security definer
+set search_path=public,extensions as $$
+declare v_teacher integer;v_used boolean;v_title text;
+begin
+  v_teacher:=public._reward_v2_teacher(p_token);
+  if not public._reward_v2_can_manage(v_teacher,p_assignment_id) then raise exception 'ไม่มีสิทธิ์จัดการวงล้อ'; end if;
+  select title into v_title from public.reward_wheel_prizes where id=p_prize_id and assignment_id=p_assignment_id for update;
+  if v_title is null then raise exception 'ไม่พบรางวัลวงล้อ'; end if;
+  select exists(select 1 from public.reward_wheel_spins where prize_id=p_prize_id) into v_used;
+  if v_used then
+    update public.reward_wheel_prizes set active=false,updated_at=now() where id=p_prize_id;
+  else
+    delete from public.reward_wheel_prizes where id=p_prize_id;
+  end if;
+  perform public._reward_v2_audit(v_teacher,'teacher','delete','reward_wheel_prizes',p_prize_id::text,
+    case when v_used then 'ถอดรางวัลออกจากวงล้อ (เก็บประวัติเดิม)' else 'ลบรางวัลวงล้อ' end,
+    jsonb_build_object('title',v_title,'kept_history',v_used));
+  return jsonb_build_object('ok',true,'deleted',not v_used,'retired',v_used);
+end $$;
+
 -- ===== Attendance sessions and automatic rewards =====
 create or replace function public._reward_v2_materialize_week(p_assignment integer,p_week_start date)
 returns integer language plpgsql security definer
@@ -1427,7 +1449,7 @@ begin
   insert into public.reward_notifications(assignment_id,recipient_type,student_id,event_type,title,body,entity_type,entity_id)
   values(v_prize.assignment_id,'student',v_right.student_id,'wheel_reward','ผลหมุนวงล้อ',v_prize.title,'wheel_spin',v_spin::text);
   perform public._reward_v2_audit(v_teacher,'teacher','spin','reward_wheel_spins',v_spin::text,'หมุนวงล้อและบันทึกรางวัล',jsonb_build_object('winner_right_id',v_right.id,'prize_id',v_prize.id));
-  return jsonb_build_object('ok',true,'spin_id',v_spin,'prize',v_prize.title,'prize_kind',v_prize.prize_kind,'amount',v_prize.amount,'ledger_id',v_ledger,'coupon_id',v_coupon);
+  return jsonb_build_object('ok',true,'spin_id',v_spin,'prize_id',v_prize.id,'prize',v_prize.title,'prize_kind',v_prize.prize_kind,'amount',v_prize.amount,'ledger_id',v_ledger,'coupon_id',v_coupon);
 end $$;
 
 create or replace function public.reward_v2_redeem_coupon(
@@ -1768,6 +1790,7 @@ grant execute on function public.reward_v2_grant(uuid,integer,integer[],integer,
 grant execute on function public.reward_v2_reverse_ledger(uuid,bigint,text) to anon,authenticated;
 grant execute on function public.reward_v2_save_template(uuid,integer,bigint,text,integer,text,boolean) to anon,authenticated;
 grant execute on function public.reward_v2_save_wheel_prize(uuid,integer,bigint,text,text,text,integer,numeric,boolean) to anon,authenticated;
+grant execute on function public.reward_v2_delete_wheel_prize(uuid,integer,bigint) to anon,authenticated;
 grant execute on function public.reward_v2_save_ranking_prize(uuid,integer,bigint,text,text,text,integer,boolean) to anon,authenticated;
 grant execute on function public.reward_v2_save_attendance(uuid,integer,date,integer,jsonb,boolean,text,integer) to anon,authenticated;
 grant execute on function public.reward_v2_clear_attendance(uuid,integer,integer,date,integer,text) to anon,authenticated;

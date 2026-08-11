@@ -414,6 +414,28 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 @media(max-width:760px){
   .lot-show-head{padding:9px 10px;min-height:62px}.lot-show-brand img{width:40px;height:40px}.lot-show-brand strong{font-size:15px}.lot-show-brand span{font-size:11px}.lot-show-progress{display:none}.lot-show-main{padding:12px 10px 176px}.lot-show-title{font-size:27px}.lot-show-digits{gap:8px}.lot-show-digit{width:min(28vw,115px);height:min(34vw,145px);border-radius:17px;font-size:min(23vw,92px)}.lot-show-results{left:10px;right:10px;bottom:82px;justify-content:center}.lot-show-result{min-width:0;flex:1;padding:6px 8px}.lot-show-result strong{font-size:20px}.lot-show-controls{left:10px;right:10px;bottom:10px;justify-content:center}.lot-show-controls .primary{flex:1;min-width:0}.lot-show-controls button{padding:0 10px}.lot-show-winner{font-size:13px;padding:7px 9px}.lot-show-trial{top:72px;right:10px}}
 @media(prefers-reduced-motion:reduce){.lot-show-countdown.show,.lot-show-digit.spinning,.lot-show-digit.reveal,.lot-show-winner,.lot-show-confetti i{animation:none!important}.lot-show:before,.lot-show:after{display:none}}
+.lot-wheel-modal{max-width:920px!important;padding:0!important;overflow:hidden;background:#071b38;color:#fff;border:1px solid rgba(255,209,102,.55);}
+.lot-wheel-modal .modal-head{padding:14px 18px;background:#0d2f63;color:#fff;border-bottom:1px solid rgba(255,255,255,.16);}
+.lot-wheel-body{padding:16px;background:radial-gradient(circle at 50% 45%,#3b2670 0,#123967 43%,#06152c 100%);}
+.lot-wheel-person{text-align:center;color:#d7e6fb;margin-bottom:8px;font-weight:700;}
+.lot-wheel-stage{position:relative;min-height:500px;display:grid;place-items:center;overflow:hidden;border:4px solid #ffd166;border-radius:18px;box-shadow:inset 0 0 70px rgba(0,0,0,.35),0 0 30px rgba(255,209,102,.25);isolation:isolate;}
+.lot-wheel-stage:before,.lot-wheel-stage:after{content:"";position:absolute;top:-20%;width:28%;height:130%;background:linear-gradient(rgba(255,238,160,.36),transparent 72%);clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);filter:blur(5px);z-index:-1;}
+.lot-wheel-stage:before{left:3%;transform:rotate(-18deg)}.lot-wheel-stage:after{right:3%;transform:rotate(18deg)}
+.lot-wheel-marquee{position:absolute;inset:9px;border:2px dashed rgba(255,224,138,.85);border-radius:12px;pointer-events:none;animation:lotWheelMarquee 1.3s linear infinite;}
+@keyframes lotWheelMarquee{50%{opacity:.45}}
+.lot-wheel-pointer{position:absolute;top:38px;z-index:6;width:0;height:0;border-left:23px solid transparent;border-right:23px solid transparent;border-top:56px solid #ffd166;filter:drop-shadow(0 5px 4px rgba(0,0,0,.5));}
+.lot-wheel-disc{position:relative;width:min(390px,76vw);height:min(390px,76vw);border-radius:50%;border:10px solid #fff;box-shadow:0 0 0 4px #ffd166,0 0 38px rgba(255,209,102,.65),0 24px 55px rgba(0,0,0,.45);transition:transform 5.2s cubic-bezier(.08,.72,.12,1);will-change:transform;}
+.lot-wheel-disc:after{content:"★";position:absolute;inset:40%;display:grid;place-items:center;border-radius:50%;background:#fff;color:#0d2f63;border:4px solid #ffd166;font-size:34px;font-weight:900;z-index:3;box-shadow:0 5px 16px rgba(0,0,0,.3);}
+.lot-wheel-label{position:absolute;width:98px;text-align:center;color:#09254b;font-size:13px;line-height:1.2;font-weight:900;text-shadow:0 1px 2px rgba(255,255,255,.75);transform:translate(-50%,-50%);z-index:2;}
+.lot-wheel-result{min-height:64px;text-align:center;padding:12px 8px 2px;color:#d7e6fb;}
+.lot-wheel-result strong{display:block;color:#ffd166;font-size:26px;}
+.lot-wheel-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px 16px 18px;background:#071b38;}
+.lot-wheel-actions .btn-primary{min-width:220px;background:#ffd166;color:#09254b;border-color:#ffd166;}
+.lot-wheel-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8;}
+.lot-wheel-confetti i{position:absolute;top:-8%;width:9px;height:18px;background:var(--c);animation:lotWheelFall var(--d) cubic-bezier(.1,.65,.35,1) var(--delay) forwards;}
+@keyframes lotWheelFall{to{transform:translate3d(var(--x),570px,0) rotate(900deg);opacity:.9}}
+.lot-prize-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid #e7edf6;}
+@media(max-width:600px){#modalLotWheel{padding:0;align-items:stretch}.lot-wheel-modal{border-radius:0!important;max-height:100vh!important}.lot-wheel-body{padding:8px}.lot-wheel-stage{min-height:410px}.lot-wheel-pointer{top:28px}.lot-wheel-label{width:72px;font-size:11px}.lot-prize-row{grid-template-columns:minmax(0,1fr) auto}.lot-prize-row .lot-prize-delete{grid-column:2}}
 .lot2-rank{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e8eef7;}
 .lot2-rank:last-child{border-bottom:0;}
 .lot2-rank .pos{width:30px;height:30px;border-radius:50%;background:var(--bluel);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;}
@@ -3965,6 +3987,23 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
   </div>
 </div>
 
+<!-- MODAL: วงล้อคูปองตามรางวัลจริง -->
+<div class="modal-bg" id="modalLotWheel">
+  <div class="modal lot-wheel-modal">
+    <div class="modal-head"><span>🎡 วงล้อคูปองรางวัล</span><button class="modal-close" onclick="lotWheelClose()" aria-label="ปิด">✕</button></div>
+    <div class="lot-wheel-body">
+      <div class="lot-wheel-person" id="lotWheelPerson"></div>
+      <div class="lot-wheel-stage">
+        <div class="lot-wheel-marquee" aria-hidden="true"></div><div class="lot-wheel-pointer" aria-hidden="true"></div>
+        <div class="lot-wheel-disc" id="lotWheelDisc" aria-label="วงล้อรางวัล"></div>
+        <div class="lot-wheel-confetti" id="lotWheelConfetti" aria-hidden="true"></div>
+      </div>
+      <div class="lot-wheel-result" id="lotWheelResult">ตรวจสอบรายชื่อรางวัลแล้วกดเริ่มหมุน</div>
+    </div>
+    <div class="lot-wheel-actions"><button class="btn btn-outline" onclick="lotWheelClose()">ปิด</button><button class="btn btn-primary" id="lotWheelSpinBtn" onclick="lotWheelSpin()">เริ่มหมุนวงล้อ</button></div>
+  </div>
+</div>
+
 <!-- FULLSCREEN: เวทีเกมโชว์ออกรางวัล -->
 <section class="lot-show" id="lotDrawShow" aria-hidden="true" aria-label="เวทีออกรางวัล">
   <header class="lot-show-head">
@@ -7329,7 +7368,7 @@ function lotV2LedgerHtml(rows){
   return '<div class="lot-card" style="margin-top:14px"><h3>ประวัติเหรียญล่าสุด</h3>'+(!rows.length?'<div class="sp-empty">ยังไม่มีรายการ</div>':rows.map(function(x){var can=x.amount>0&&!x.reversed&&x.entry_type!=='lottery_purchase';return '<div class="lot2-ledger-row"><span><b>'+lotEsc(x.fullname)+'</b><span class="lot-muted" style="display:block">'+lotEsc(x.reason)+' · '+lotDateTime(x.created_at)+(x.private_note?' · ภายใน: '+lotEsc(x.private_note):'')+'</span></span><b style="color:'+(x.amount>0?'var(--green)':'var(--red)')+'">'+(x.amount>0?'+':'')+x.amount+'</b>'+(can?'<button class="btn btn-outline btn-xs" onclick="lotV2Reverse('+x.id+')">กลับรายการ</button>':'<span class="lot-muted">'+(x.reversed?'แก้ไขแล้ว':'')+'</span>')+'</div>';}).join(''))+'</div>';
 }
 function lotV2WheelHtml(rows){
-  function one(type,title){var a=rows.filter(function(x){return x.wheel_type===type;});return '<div class="lot-card"><h3>'+title+'</h3>'+a.map(function(x){return '<div class="sp-row"><span>'+lotEsc(x.title)+'<span class="d">'+lotEsc(x.prize_kind)+' · น้ำหนัก '+x.weight+'</span></span><span class="badge '+(x.active?'badge-green':'badge-gray')+'">'+(x.active?'เปิด':'ปิด')+'</span></div>';}).join('')+'<div class="flex gap8" style="margin-top:10px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="lotV2NewPrize(\''+type+'\')">＋ เพิ่ม/แก้รางวัล</button><button class="btn btn-outline btn-sm" onclick="lotV2TrialWheel(\''+type+'\')">🧪 ทดลองหมุน</button></div></div>';}
+  function one(type,title){var a=rows.filter(function(x){return x.wheel_type===type;});return '<div class="lot-card"><h3>'+title+'</h3><div class="lot-muted" style="margin-bottom:6px">ช่องบนวงล้อปรับตามรายการที่เปิดใช้งานและน้ำหนักการสุ่ม</div>'+(!a.length?'<div class="sp-empty">ยังไม่มีรางวัล</div>':a.map(function(x){return '<div class="lot-prize-row"><span><b>'+lotEsc(x.title)+'</b><span class="d">'+lotEsc(x.prize_kind)+(x.amount?' · '+x.amount:'')+' · น้ำหนัก '+x.weight+'</span></span><span class="badge '+(x.active?'badge-green':'badge-gray')+'">'+(x.active?'บนวงล้อ':'ปิด')+'</span><span class="flex gap8"><button class="btn btn-outline btn-xs" onclick="lotV2EditPrize('+x.id+')">แก้ไข</button><button class="btn btn-red btn-xs lot-prize-delete" onclick="lotV2DeletePrize('+x.id+')">ลบ</button></span></div>';}).join(''))+'<div class="flex gap8" style="margin-top:10px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="lotV2NewPrize(\''+type+'\')">＋ เพิ่มรางวัล</button><button class="btn btn-outline btn-sm" onclick="lotV2TrialWheel(\''+type+'\')">🎡 ดูวงล้อทดลอง</button></div></div>';}
   return '<div class="lot-grid" style="margin-top:14px">'+one('two','🎡 วงล้อเลข 2 ตัว')+one('three','🎡 วงล้อเลข 3 ตัว')+'</div>';
 }
 function lotV2CouponsHtml(d){
@@ -7350,9 +7389,13 @@ async function lotV2Grant(){
 }
 async function lotV2NewTemplate(){var title=prompt('ชื่อแม่แบบกิจกรรม',document.getElementById('lotV2Reason').value||'');if(!title)return;var amount=parseInt(prompt('จำนวนเหรียญ',document.getElementById('lotV2Amount').value||'1'))||0;if(amount<1)return;try{await lotV2Rpc('reward_v2_save_template',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_template_id:null,p_title:title,p_coin_amount:amount,p_icon:'⭐',p_active:true});toast('บันทึกแม่แบบแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
 async function lotV2Reverse(id){var reason=prompt('เหตุผลที่แก้ไขรายการนี้');if(!reason)return;try{await lotV2Rpc('reward_v2_reverse_ledger',{p_token:G.rewardToken,p_ledger_id:id,p_reason:reason});toast('สร้างรายการกลับรายการแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
-async function lotV2NewPrize(type){var title=prompt('ชื่อรางวัล');if(!title)return;var kind=prompt('ประเภท: coin, item, privilege หรือ score','item');if(['coin','item','privilege','score'].indexOf(kind)<0)return toast('ประเภทรางวัลไม่ถูกต้อง','err');var amount=(kind==='coin'||kind==='score')?(parseInt(prompt('จำนวน',kind==='score'?'1':'5'))||0):null;var weight=parseFloat(prompt('น้ำหนักการสุ่ม','1'))||0;try{await lotV2Rpc('reward_v2_save_wheel_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:null,p_wheel_type:type,p_title:title,p_prize_kind:kind,p_amount:amount,p_weight:weight,p_active:true});toast('บันทึกรางวัลแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+async function lotV2RefreshRewards(){await lotV2Dash();lotV2OverviewSwitch('rewards');}
+async function lotV2SavePrizePrompt(row,type){var title=prompt('ชื่อรางวัล',row?row.title:'');if(!title)return;var kind=prompt('ประเภท: coin, item, privilege หรือ score',row?row.prize_kind:'item');if(['coin','item','privilege','score'].indexOf(kind)<0)return toast('ประเภทรางวัลไม่ถูกต้อง','err');var amount=(kind==='coin'||kind==='score')?(parseInt(prompt('จำนวน',row&&row.amount!=null?row.amount:(kind==='score'?'1':'5')))||0):null;var weight=parseFloat(prompt('น้ำหนักการสุ่ม (มาก = มีโอกาสออกมาก)',row?row.weight:'1'))||0;var active=row?confirm('เปิดรางวัลนี้ไว้บนวงล้อหรือไม่?\nกด “ตกลง” = เปิด · “ยกเลิก” = ปิด'):true;try{await lotV2Rpc('reward_v2_save_wheel_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:row?row.id:null,p_wheel_type:type,p_title:title,p_prize_kind:kind,p_amount:amount,p_weight:weight,p_active:active});toast('บันทึกรางวัลแล้ว วงล้ออัปเดตทันที');await lotV2RefreshRewards();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+function lotV2NewPrize(type){return lotV2SavePrizePrompt(null,type);}
+function lotV2EditPrize(id){var row=((LOT.dash||{}).wheel_prizes||[]).filter(function(x){return x.id==id;})[0];if(!row)return toast('ไม่พบรางวัล','err');return lotV2SavePrizePrompt(row,row.wheel_type);}
+async function lotV2DeletePrize(id){var row=((LOT.dash||{}).wheel_prizes||[]).filter(function(x){return x.id==id;})[0];if(!row||!confirm('นำ “'+row.title+'” ออกจากวงล้อ?\nประวัติรางวัลที่เคยออกจะยังอยู่'))return;try{await lotV2Rpc('reward_v2_delete_wheel_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:id});toast('นำรางวัลออกแล้ว วงล้ออัปเดตทันที');await lotV2RefreshRewards();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
 async function lotV2NewRankingPrize(period){var title=prompt('ชื่อรางวัลอันดับ 1 '+(period==='weekly'?'รายสัปดาห์':'รายเดือน'));if(!title)return;var kind=prompt('ประเภท: coin, item, privilege หรือ score','coin');if(['coin','item','privilege','score'].indexOf(kind)<0)return toast('ประเภทรางวัลไม่ถูกต้อง','err');var amount=(kind==='coin'||kind==='score')?(parseInt(prompt('จำนวน',kind==='score'?'1':'5'))||0):null;try{await lotV2Rpc('reward_v2_save_ranking_prize',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_prize_id:null,p_period_type:period,p_title:title,p_prize_kind:kind,p_amount:amount,p_active:true});toast('บันทึกรางวัลอันดับแล้ว ผู้ที่ได้อันดับ 1 ร่วมจะได้รับเต็มจำนวนทุกคน');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
-async function lotV2TrialWheel(type){try{var r=await lotV2Rpc('lottery_v2_trial_wheel',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_wheel_type:type});alert('🧪 ผลทดลองวงล้อ'+(type==='two'?'เลข 2 ตัว':'เลข 3 ตัว')+'\n\n🎉 '+r.prize+'\n\nผลนี้ไม่ถูกบันทึกและไม่สร้างรางวัลจริง');}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+function lotV2TrialWheel(type){lotWheelOpen(null,null,type,true);}
 async function lotV2Redeem(id,kind){var grade=null;if(kind==='score'){var opts=(LOT.dash.eligible_grade_structures||[]);if(!opts.length)return toast('ยังไม่มีหัวข้อคะแนนที่อนุญาตคูปอง','err');grade=parseInt(prompt('ใส่เลขหัวข้อคะแนน: '+opts.map(function(x){return x.id+'='+x.name;}).join(', ')))||null;if(!grade)return;}var note=prompt('หมายเหตุการส่งมอบ/ใช้สิทธิ์','')||'';try{await lotV2Rpc('reward_v2_redeem_coupon',{p_token:G.rewardToken,p_coupon_id:id,p_grade_structure_id:grade,p_delivery_note:note});toast('บันทึกการใช้คูปองแล้ว');lotLoadCoins();}catch(e){toast('❌ '+lotV2Error(e),'err');}}
 function lotV2ExportCsv(){
   var d=LOT.dash||{},rows=[['รายงานเหรียญและสลากรายวิชา'],['วันที่ส่งออก',new Date().toLocaleString('th-TH')],[],['นักเรียน','รหัส','ยอดคงเหลือ']];
@@ -7555,7 +7598,30 @@ function lotShowClose(force){
   var id=LOT_SHOW.roundId,shouldRefresh=!!LOT_SHOW.board;LOT_SHOW.busy=false;LOT_SHOW.board=null;if(shouldRefresh&&id&&!force)lotV2OpenTeacherRound(id);
 }
 async function lotV2ConfirmResults(id){if(!confirm('ยืนยันผลอย่างเป็นทางการ? หลังยืนยันจะแก้หรือสุ่มใหม่ไม่ได้'))return;try{await lotV2Rpc('lottery_v2_confirm_results',{p_token:G.rewardToken,p_round_id:id});toast('ยืนยันผลแล้ว');lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
-async function lotV2Spin(right,id){try{var r=await lotV2Rpc('lottery_v2_spin_wheel',{p_token:G.rewardToken,p_winner_right_id:right});toast('🎉 '+r.prize);lotV2OpenTeacherRound(id);}catch(e){toast('❌ '+lotV2Error(e),'err');}}
+var LOT_WHEEL={rightId:null,roundId:null,type:'two',trial:false,rows:[],busy:false,rotation:0};
+function lotWheelOpen(rightId,roundId,type,trial){
+  var rights=((LOT.round||{}).winner_rights||[]),right=rights.filter(function(x){return x.id==rightId;})[0];type=type||(right&&right.type)||'two';
+  var rows=((LOT.dash||{}).wheel_prizes||[]).filter(function(x){return x.wheel_type===type&&x.active;}).sort(function(a,b){return a.id-b.id;});
+  if(!rows.length){toast('วงล้อนี้ยังไม่มีรางวัลที่เปิดใช้งาน','err');return;}
+  LOT_WHEEL={rightId:rightId,roundId:roundId,type:type,trial:!!trial,rows:rows,busy:false,rotation:0};
+  var total=rows.reduce(function(n,x){return n+(Number(x.weight)||1);},0),acc=0,colors=['#42a5f5','#66bb6a','#ffca28','#ef5350','#ab47bc','#26a69a','#ff8a65','#7e57c2'],stops=[],labels='';
+  rows.forEach(function(x,i){var start=acc/total*360;acc+=Number(x.weight)||1;var end=acc/total*360,mid=(start+end)/2,rad=(mid-90)*Math.PI/180,left=50+Math.cos(rad)*32,top=50+Math.sin(rad)*32;stops.push(colors[i%colors.length]+' '+start+'deg '+end+'deg');x._mid=mid;labels+='<span class="lot-wheel-label" style="left:'+left+'%;top:'+top+'%">'+lotEsc(x.title)+'</span>';});
+  var disc=document.getElementById('lotWheelDisc');disc.style.transition='none';disc.style.transform='rotate(0deg)';disc.style.background='conic-gradient('+stops.join(',')+')';disc.innerHTML=labels;
+  document.getElementById('lotWheelPerson').textContent=trial?'🧪 โหมดทดลอง · '+(type==='two'?'วงล้อเลข 2 ตัว':'วงล้อเลข 3 ตัว'):(right?'ผู้โชคดี: '+right.fullname+' · สลาก '+right.number+'-'+right.copy:'วงล้อคูปองรางวัล');
+  document.getElementById('lotWheelResult').innerHTML=trial?'ทดลองจากรางวัลที่เปิดใช้งานล่าสุด · ผลไม่ถูกบันทึก':'ตรวจสอบรายชื่อรางวัลแล้วกดเริ่มหมุน';
+  var btn=document.getElementById('lotWheelSpinBtn');btn.disabled=false;btn.textContent='เริ่มหมุนวงล้อ';document.getElementById('lotWheelConfetti').innerHTML='';openModal('modalLotWheel');
+}
+async function lotWheelSpin(){
+  if(LOT_WHEEL.busy)return;LOT_WHEEL.busy=true;var btn=document.getElementById('lotWheelSpinBtn'),result=document.getElementById('lotWheelResult'),disc=document.getElementById('lotWheelDisc');btn.disabled=true;btn.textContent='กำลังหมุน...';result.innerHTML='วงล้อกำลังค้นหารางวัลของผู้โชคดี...';
+  try{
+    var r=LOT_WHEEL.trial?await lotV2Rpc('lottery_v2_trial_wheel',{p_token:G.rewardToken,p_assignment_id:parseInt(LOT.assignmentId),p_wheel_type:LOT_WHEEL.type}):await lotV2Rpc('lottery_v2_spin_wheel',{p_token:G.rewardToken,p_winner_right_id:LOT_WHEEL.rightId});
+    var prize=LOT_WHEEL.rows.filter(function(x){return x.id==r.prize_id;})[0]||LOT_WHEEL.rows.filter(function(x){return x.title===r.prize;})[0];if(!prize)throw new Error('ไม่พบช่องรางวัลที่ระบบสุ่มได้');
+    var desired=-prize._mid,target=((desired%360)+360)%360;LOT_WHEEL.rotation=7*360+target;void disc.offsetWidth;disc.style.transition='transform 5.2s cubic-bezier(.08,.72,.12,1)';disc.style.transform='rotate('+LOT_WHEEL.rotation+'deg)';
+    setTimeout(function(){var cf=document.getElementById('lotWheelConfetti'),cols=['#ffd166','#42a5f5','#66bb6a','#ef5350','#fff'],h='';for(var i=0;i<90;i++)h+='<i style="left:'+Math.random()*100+'%;--c:'+cols[i%cols.length]+';--d:'+(2.4+Math.random()*2)+'s;--delay:'+Math.random()*.45+'s;--x:'+(-180+Math.random()*360)+'px"></i>';cf.innerHTML=h;result.innerHTML='<strong>🎉 '+lotEsc(r.prize)+'</strong>'+(LOT_WHEEL.trial?'ผลทดลอง · ไม่มีการบันทึก':'บันทึกรางวัลและคูปองเรียบร้อยแล้ว');btn.textContent=LOT_WHEEL.trial?'ทดลองอีกครั้ง':'หมุนเรียบร้อยแล้ว';btn.disabled=!LOT_WHEEL.trial;LOT_WHEEL.busy=false;setTimeout(function(){cf.innerHTML='';},4700);},5300);
+  }catch(e){LOT_WHEEL.busy=false;btn.disabled=false;btn.textContent='ลองอีกครั้ง';result.innerHTML='<span style="color:#ffcdd2">'+lotEsc(lotV2Error(e))+'</span>';}
+}
+function lotWheelClose(){if(LOT_WHEEL.busy){toast('กรุณารอให้วงล้อหยุดก่อน','err');return;}var id=LOT_WHEEL.roundId,refresh=id&&!LOT_WHEEL.trial;closeModal('modalLotWheel');if(refresh)lotV2OpenTeacherRound(id);}
+function lotV2Spin(right,id){lotWheelOpen(right,id,null,false);}
 
 async function buildStuLottery(stu,mode){
   if(mode!=='student')return '<div class="sp-empty">การซื้อสลากและข้อมูลเหรียญส่วนบุคคลแสดงเฉพาะบัญชีนักเรียน</div>';
