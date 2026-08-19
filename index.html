@@ -4029,7 +4029,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
     <div class="lot-show-results" id="lotShowResults"></div>
     <div class="lot-show-controls">
       <button class="primary" id="lotShowNext" type="button" onclick="lotShowDrawNext()">เริ่มรางวัลแรก</button>
-      <button id="lotShowSound" type="button" onclick="lotShowToggleSound()" aria-label="เปิดหรือปิดเสียง">🔊 เสียง</button>
+      <button id="lotShowSound" type="button" onclick="lotShowToggleSound()" aria-label="ปิดเสียงผู้ประกาศ" aria-pressed="true">🔊 ผู้ประกาศ</button>
       <button type="button" onclick="lotShowFullscreen()" aria-label="เปิดเต็มหน้าจอ">⛶ เต็มจอ</button>
     </div>
   </main>
@@ -7483,7 +7483,7 @@ async function lotV2Draw(id){
 }
 
 /* เวทีเกมโชว์ — แสดงผลจาก RPC เดิมโดยไม่เปลี่ยนกระบวนการสุ่ม */
-var LOT_SHOW={roundId:null,trial:false,busy:false,sound:true,board:null,trialPool:[],trialRevealed:[],spinTimer:null,audio:null,bodyOverflow:'',confirmedStart:false,pendingResult:null,pendingAll:[],revealCount:0,pendingIndex:0};
+var LOT_SHOW={roundId:null,trial:false,busy:false,sound:true,board:null,trialPool:[],trialRevealed:[],spinTimer:null,audio:null,voice:null,utterance:null,speechFinish:null,speechSupported:null,voicesBound:false,bodyOverflow:'',confirmedStart:false,pendingResult:null,pendingAll:[],revealCount:0,pendingIndex:0};
 function lotShowConfig(i){
   return [
     {slot:'two_first',digits:2,cls:'act-one',act:'✨ รางวัลเปิดเวที',title:'เลข 2 ตัว · ครั้งที่ 1',sub:'รางวัลแรกกำลังจะเริ่ม เตรียมลุ้นหมายเลขของคุณ'},
@@ -7494,6 +7494,52 @@ function lotShowConfig(i){
 function lotShowWait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
 function lotShowCurrentResults(){return LOT_SHOW.trial?LOT_SHOW.trialRevealed:((LOT_SHOW.board&&LOT_SHOW.board.results)||[]);}
 function lotShowEsc(s){return lotEsc(s==null?'':String(s));}
+function lotShowPrepareSpeech(){
+  var ok=!!(window.speechSynthesis&&window.SpeechSynthesisUtterance);LOT_SHOW.speechSupported=ok;if(!ok)return false;
+  try{
+    var voices=window.speechSynthesis.getVoices()||[],thai=voices.filter(function(v){return /^th(?:-|_)/i.test(v.lang||'');});
+    LOT_SHOW.voice=thai.filter(function(v){return String(v.lang).toLowerCase()==='th-th';})[0]||thai[0]||LOT_SHOW.voice||null;
+    if(!LOT_SHOW.voicesBound&&window.speechSynthesis.addEventListener){LOT_SHOW.voicesBound=true;window.speechSynthesis.addEventListener('voiceschanged',function(){LOT_SHOW.voice=null;lotShowPrepareSpeech();});}
+  }catch(e){}
+  return true;
+}
+function lotShowStopSpeech(){
+  if(LOT_SHOW.speechFinish)LOT_SHOW.speechFinish(false);LOT_SHOW.speechFinish=null;LOT_SHOW.utterance=null;
+  try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}
+}
+function lotShowSpeak(text,opt){
+  opt=opt||{};if(!LOT_SHOW.sound||!text||!lotShowPrepareSpeech())return Promise.resolve(false);
+  return new Promise(function(resolve){
+    var synth=window.speechSynthesis,finished=false,timer=null,u;
+    function done(ok){if(finished)return;finished=true;if(timer)clearTimeout(timer);if(LOT_SHOW.utterance===u)LOT_SHOW.utterance=null;if(LOT_SHOW.speechFinish===done)LOT_SHOW.speechFinish=null;resolve(ok);}
+    try{
+      if(LOT_SHOW.speechFinish)LOT_SHOW.speechFinish(false);
+      if(opt.cancel!==false)synth.cancel();
+      u=new SpeechSynthesisUtterance(String(text));u.lang='th-TH';if(LOT_SHOW.voice)u.voice=LOT_SHOW.voice;
+      u.rate=opt.rate||0.88;u.pitch=opt.pitch||1;u.volume=1;u.onend=function(){done(true);};u.onerror=function(){done(false);};
+      LOT_SHOW.utterance=u;LOT_SHOW.speechFinish=done;synth.speak(u);if(synth.paused)synth.resume();
+      timer=setTimeout(function(){done(false);},opt.timeout||Math.max(3000,Math.min(12000,String(text).length*170)));
+    }catch(e){done(false);}
+  });
+}
+function lotShowDigitWord(n){return ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'][parseInt(n,10)]||String(n);}
+function lotShowNumberSpeech(number,digits){return String(number).padStart(digits,'0').split('').map(lotShowDigitWord).join(' ');}
+function lotShowWinnerRows(result){
+  var type=result.type||(result.slot==='three'?'three':'two');
+  return ((LOT_SHOW.board||{}).tickets||[]).filter(function(t){return t.type===type&&String(t.number)===String(result.number)&&!!t.fullname;});
+}
+function lotShowResultAnnouncement(result,index){
+  var cfg=lotShowConfig(index),number=lotShowNumberSpeech(result.number,cfg.digits),w=lotShowWinnerRows(result),msg=(index===2?'รางวัลใหญ่ เลขสามตัว':'ผลรางวัลเลขสองตัว ครั้งที่ '+(index+1))+' หมายเลขที่ออกคือ '+number;
+  if(!w.length)return msg+' รางวัลนี้ไม่มีผู้ถูกรางวัล';
+  var names=w.slice(0,5).map(function(x){return x.fullname;});msg+=' ผู้โชคดี '+w.length+' สลาก ได้แก่ '+names.join(' และ ');
+  if(w.length>5)msg+=' และอีก '+(w.length-5)+' สลาก';
+  return msg+' ขอแสดงความยินดี';
+}
+function lotShowUpdateSoundButton(){
+  var b=document.getElementById('lotShowSound');if(!b)return;var speech=lotShowPrepareSpeech();
+  b.textContent=LOT_SHOW.sound?(speech?'🔊 ผู้ประกาศ':'🔔 เอฟเฟกต์'):'🔇 ปิดเสียง';b.setAttribute('aria-pressed',LOT_SHOW.sound?'true':'false');
+  b.setAttribute('aria-label',LOT_SHOW.sound?'ปิดเสียงผู้ประกาศ':'เปิดเสียงผู้ประกาศ');
+}
 async function lotShowOpen(id,trial){
   if(LOT_SHOW.busy)return;
   var show=document.getElementById('lotDrawShow');if(!show)return;
@@ -7505,7 +7551,7 @@ async function lotShowOpen(id,trial){
   document.getElementById('lotShowDigits').innerHTML='<div class="loading" style="color:#fff">กำลังโหลด...</div>';
   document.getElementById('lotShowWinners').innerHTML='';document.getElementById('lotShowResults').innerHTML='';
   var next=document.getElementById('lotShowNext');next.disabled=true;next.textContent='กำลังเตรียมเวที';
-  lotShowTone('open');
+  lotShowPrepareSpeech();lotShowUpdateSoundButton();lotShowTone('open');
   try{
     LOT_SHOW.board=await lotV2Rpc('lottery_v2_teacher_board',{p_token:G.rewardToken,p_round_id:id});
     if(trial){
@@ -7548,7 +7594,8 @@ async function lotShowDrawNext(){
   var cd=document.getElementById('lotShowCountdown'),digits=document.getElementById('lotShowDigits');digits.innerHTML='';
   try{
     if(!LOT_SHOW.pendingResult){
-      for(var n=3;n>0;n--){cd.textContent=n;cd.className='lot-show-countdown show';lotShowTone('count');await lotShowWait(620);cd.className='lot-show-countdown';await lotShowWait(80);}
+      await lotShowSpeak(LOT_SHOW.trial?'กำลังทดลอง '+cfg.title:'ต่อไปเป็นการออกรางวัล '+cfg.title,{rate:0.88,pitch:index===2?0.94:1.02,timeout:6500});
+      for(var n=3;n>0;n--){cd.textContent=n;cd.className='lot-show-countdown show';lotShowTone('count');lotShowSpeak(lotShowDigitWord(n),{rate:0.82,timeout:1200});await lotShowWait(700);cd.className='lot-show-countdown';await lotShowWait(90);}
       var data=LOT_SHOW.trial?{results:LOT_SHOW.trialPool.slice(0,index+1),done:index===2}:await lotV2Rpc('lottery_v2_draw_step',{p_token:G.rewardToken,p_round_id:LOT_SHOW.roundId});
       var all=data.results||[],result=all.filter(function(x){return x.slot===cfg.slot;})[0];if(!result)throw new Error('ไม่พบผลรางวัลจากระบบ');
       LOT_SHOW.pendingResult=result;LOT_SHOW.pendingAll=all.slice();LOT_SHOW.pendingIndex=index;LOT_SHOW.revealCount=0;
@@ -7559,18 +7606,19 @@ async function lotShowDrawNext(){
     LOT_SHOW.spinTimer=setInterval(function(){box.textContent=Math.floor(Math.random()*10);if(++spinTick%4===0)lotShowTone('tick');},90);await lotShowWait(index===2?1450:1150);
     clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;box.classList.remove('spinning');box.textContent=value[target];void box.offsetWidth;box.classList.add('reveal');lotShowTone('reveal');LOT_SHOW.revealCount++;
     if(LOT_SHOW.revealCount<cfg.digits){
+      lotShowSpeak('หลักที่ '+LOT_SHOW.revealCount+' คือ '+lotShowDigitWord(value[target]),{rate:0.86,timeout:3000});
       document.getElementById('lotShowSub').textContent='เปิดแล้ว '+LOT_SHOW.revealCount+' หลัก · กดเพื่อเปิดหลักถัดไป';LOT_SHOW.busy=false;next.disabled=false;next.textContent='เปิดหลักที่ '+(LOT_SHOW.revealCount+1)+' จาก '+cfg.digits;return;
     }
     var finalResult=LOT_SHOW.pendingResult,finalAll=LOT_SHOW.pendingAll.slice();
     if(LOT_SHOW.trial)LOT_SHOW.trialRevealed=finalAll.slice();else{LOT_SHOW.board.results=finalAll.slice();if(LOT.round)LOT.round.results=finalAll.slice();}
     LOT_SHOW.pendingResult=null;LOT_SHOW.pendingAll=[];LOT_SHOW.revealCount=0;
     document.getElementById('lotShowSub').textContent='หมายเลขที่ออก';document.getElementById('lotShowWinners').innerHTML=lotShowWinnersHtml(finalResult);
-    lotShowRenderResults(finalAll,index);lotShowProgress(index+1,index);lotShowCelebrate(index===2);lotShowTone(index===2?'grand':'win');
+    lotShowRenderResults(finalAll,index);lotShowProgress(index+1,index);lotShowCelebrate(index===2);lotShowTone(index===2?'grand':'win');lotShowSpeak(lotShowResultAnnouncement(finalResult,index),{rate:0.84,pitch:index===2?0.94:1.02,timeout:12000});
     LOT_SHOW.busy=false;next.disabled=false;next.textContent=index===2?'ปิดเวทีและตรวจผล':(index===0?'ไปต่อรางวัลที่ 2':'ไปต่อรางวัลใหญ่');
   }catch(e){if(LOT_SHOW.spinTimer){clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;}LOT_SHOW.busy=false;next.disabled=false;next.textContent='ลองอีกครั้ง';toast('❌ '+lotV2Error(e),'err');}
 }
 function lotShowWinnersHtml(result){
-  var type=result.type||(result.slot==='three'?'three':'two'),w=((LOT_SHOW.board||{}).tickets||[]).filter(function(t){return t.type===type&&String(t.number)===String(result.number)&&!!t.fullname;});
+  var w=lotShowWinnerRows(result);
   if(!w.length)return '<div class="lot-show-winner-title">รางวัลนี้ไม่มีผู้ถูกรางวัล</div>';
   return '<div class="lot-show-winner-title">🎉 ผู้โชคดี '+w.length+' สลาก</div><div class="lot-show-winner-list">'+w.map(function(x,i){return '<span class="lot-show-winner" style="animation-delay:'+(i*.08)+'s">🏆 '+lotShowEsc(x.fullname)+' · ชุด '+lotShowEsc(x.copy)+'</span>';}).join('')+'</div>';
 }
@@ -7587,11 +7635,12 @@ function lotShowTone(kind){
     osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(p[0],now);if(kind==='grand')osc.frequency.exponentialRampToValueAtTime(1568,now+p[1]);gain.gain.setValueAtTime(kind==='tick'?.018:.12,now);gain.gain.exponentialRampToValueAtTime(.0001,now+p[1]);osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+p[1]);
   }catch(e){}
 }
-function lotShowToggleSound(){LOT_SHOW.sound=!LOT_SHOW.sound;var b=document.getElementById('lotShowSound');if(b)b.textContent=LOT_SHOW.sound?'🔊 เสียง':'🔇 ปิดเสียง';if(LOT_SHOW.sound)lotShowTone('open');}
+function lotShowToggleSound(){LOT_SHOW.sound=!LOT_SHOW.sound;if(!LOT_SHOW.sound)lotShowStopSpeech();lotShowUpdateSoundButton();if(LOT_SHOW.sound){lotShowTone('open');if(LOT_SHOW.speechSupported)lotShowSpeak('เปิดเสียงผู้ประกาศแล้ว',{rate:0.9,timeout:3500});else toast('เครื่องนี้ไม่รองรับเสียงพูด จึงเปิดเฉพาะเสียงเอฟเฟกต์','err');}}
 function lotShowFullscreen(){var el=document.getElementById('lotDrawShow');try{if(document.fullscreenElement||document.webkitFullscreenElement){var p=document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen();if(p&&p.catch)p.catch(function(){});}else{var q=el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen&&el.webkitRequestFullscreen();if(q&&q.catch)q.catch(function(){toast('เบราว์เซอร์นี้ไม่อนุญาตโหมดเต็มจอ','err');});}}catch(e){toast('เปิดเต็มจอไม่ได้','err');}}
 function lotShowClose(force){
   if(LOT_SHOW.busy&&!force){toast('กำลังออกรางวัล กรุณารอจนตัวเลขหยุด','err');return;}
   if(LOT_SHOW.spinTimer){clearInterval(LOT_SHOW.spinTimer);LOT_SHOW.spinTimer=null;}
+  lotShowStopSpeech();
   var show=document.getElementById('lotDrawShow');if(show){show.className='lot-show';show.setAttribute('aria-hidden','true');}
   document.getElementById('lotShowConfetti').innerHTML='';document.body.style.overflow=LOT_SHOW.bodyOverflow||'';
   try{if(document.fullscreenElement||document.webkitFullscreenElement){var p=document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen();if(p&&p.catch)p.catch(function(){});}}catch(e){}
