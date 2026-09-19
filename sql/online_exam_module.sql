@@ -249,6 +249,7 @@ begin
     return jsonb_build_object(
       'already_submitted', true,
       'access_required', v_access_required,
+      'attempt_token', v_attempt.attempt_token,
       'score', case when v_exam.show_score then v_attempt.final_score else null end,
       'show_score', v_exam.show_score,
       'student', jsonb_build_object(
@@ -339,6 +340,7 @@ begin
       order by attempt_number desc limit 1;
       return jsonb_build_object(
         'already_submitted', true,
+        'attempt_token', v_attempt.attempt_token,
         'score', case when v_exam.show_score then v_attempt.final_score else null end,
         'show_score', v_exam.show_score
       );

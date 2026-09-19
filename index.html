@@ -6131,7 +6131,7 @@ async function oeVerifyStart(){
     oeApplyPrepareMeta(data);
 
     if(data.already_submitted){
-      oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
+      oeShowAlreadySubmitted(data);
       return;
     }
 
@@ -6202,7 +6202,7 @@ async function oeConfirmIdentity(){
 
 function oeShowExamIntro(data){
   if(data.already_submitted){
-    oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
+    oeShowAlreadySubmitted(data);
     return;
   }
   OET.attemptToken=data.attempt_token;
@@ -6218,6 +6218,12 @@ function oeShowExamIntro(data){
   document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
   document.getElementById('oeVIntro').style.display='block';
   document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
+}
+
+function oeShowAlreadySubmitted(data){
+  OET.attemptToken=data.attempt_token||null;
+  OET.student=data.student||OET.student;
+  oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
 }
 
 function oeEnterRun(){
@@ -6399,11 +6405,13 @@ function oeShowDone(score,showScore,msg){
   document.getElementById('oeVDone').style.display='block';
   document.getElementById('oeVDoneMsg').textContent=msg||'ส่งข้อสอบเรียบร้อยแล้ว';
   document.getElementById('oeVDoneScore').textContent=(showScore&&score!=null)?('คะแนน: '+examFmt(score)):'';
-  document.getElementById('oeVReviewBtn').style.display='';
+  document.getElementById('oeVReviewBtn').style.display=OET.attemptToken?'':'none';
+  document.getElementById('oeVReviewBox').style.display='none';
 }
 async function oeShowReview(){
   var box=document.getElementById('oeVReviewBox');
   box.style.display='block';
+  if(!OET.attemptToken){box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">ยังไม่พบข้อมูลการสอบสำหรับดูเฉลย กรุณาเข้าใหม่ผ่านลิงก์สอบ</div>';return;}
   box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">กำลังโหลด...</div>';
   try{
     var res=await api('/rest/v1/rpc/oe_get_review',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken})});
