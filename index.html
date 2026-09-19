@@ -987,6 +987,12 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .oe-take-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
 .oe-take-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(13,45,94,.15);padding:28px 24px;max-width:420px;width:100%;text-align:center;}
 .oe-take-logo img{width:56px;height:56px;border-radius:12px;margin-bottom:10px;}
+.oe-id-hint{font-size:13.5px;color:var(--text3);background:#f4f9ff;border:1px solid #c5d5ee;border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:left;line-height:1.45;}
+.oe-confirm-box{background:#f4f9ff;border:1px solid #c5d5ee;border-radius:14px;padding:14px;margin:8px 0 14px;}
+.oe-confirm-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #c5d5ee;padding:8px 0;font-size:14px;}
+.oe-confirm-row:last-child{border-bottom:0;}
+.oe-confirm-row span{color:var(--text3);}
+.oe-confirm-row b{color:var(--blue);text-align:right;}
 .oe-run-top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(100deg,#0d2d5e,#1a3a6b);color:#fff;}
 .oe-run-title{font-weight:700;font-size:14.5px;}
 .oe-run-timer{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.15);}
@@ -1660,23 +1666,29 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <p id="oeVDesc" style="color:var(--text3);font-size:13.5px;margin:0 0 14px;"></p>
 
       <div id="oeVForm">
-        <div class="form-group" style="text-align:left;">
-          <label class="form-label">ชื่อ-นามสกุล</label>
-          <input class="form-control" id="oeVName" placeholder="เช่น เด็กชายสมชาย ใจดี">
-        </div>
-        <div class="form-group" style="text-align:left;">
-          <label class="form-label">ชั้น/ห้อง</label>
-          <input class="form-control" id="oeVRoom" placeholder="เช่น ม.5/1">
-        </div>
+        <div class="oe-id-hint">กรอกเลขประจำตัวนักเรียน แล้วระบบจะแสดงชื่อและห้องให้ตรวจสอบก่อนเริ่มสอบ</div>
         <div class="form-group" style="text-align:left;">
           <label class="form-label">เลขประจำตัวนักเรียน</label>
-          <input class="form-control" id="oeVCode" inputmode="numeric" placeholder="เลขประจำตัว">
+          <input class="form-control" id="oeVCode" type="text" inputmode="numeric" autocomplete="off" placeholder="เช่น 07958">
         </div>
         <div class="form-group" id="oeVAccessWrap" style="display:none;text-align:left;">
-          <label class="form-label">รหัสเข้าสอบ</label>
+          <label class="form-label">รหัสเข้าสอบเพิ่มเติม</label>
           <input class="form-control" id="oeVAccess" placeholder="รหัสที่ครูให้">
         </div>
-        <button class="btn btn-primary" style="width:100%;height:44px;" id="oeVBtn" onclick="oeVerifyStart()">➜ เข้าสอบ</button>
+        <button class="btn btn-primary" style="width:100%;height:44px;" id="oeVBtn" onclick="oeVerifyStart()">➜ ตรวจสอบข้อมูล</button>
+      </div>
+
+      <div id="oeVConfirm" style="display:none;text-align:left;">
+        <div style="font-weight:800;color:var(--blue);font-size:17px;margin-bottom:8px;text-align:center;">ยืนยันตัวตนก่อนเริ่มสอบ</div>
+        <div class="oe-confirm-box">
+          <div class="oe-confirm-row"><span>ชื่อ-นามสกุล</span><b id="oeVCName">-</b></div>
+          <div class="oe-confirm-row"><span>ชั้น/ห้อง</span><b id="oeVCRoom">-</b></div>
+          <div class="oe-confirm-row"><span>เลขประจำตัว</span><b id="oeVCCode">-</b></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn btn-outline" style="height:44px;justify-content:center;font-size:14px;" onclick="oeEditIdentity()">ไม่ใช่ฉัน/แก้เลข</button>
+          <button class="btn btn-primary" style="height:44px;justify-content:center;" id="oeVStartBtn" onclick="oeConfirmIdentity()">ใช่ เริ่มสอบ</button>
+        </div>
       </div>
 
       <div id="oeVErr" style="color:var(--red);font-size:13.5px;margin-top:12px;"></div>
@@ -2636,6 +2648,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
                   <div class="form-group">
                     <label class="form-label">รหัสเข้าสอบเพิ่มเติม (ไม่บังคับ)</label>
                     <input class="form-control" id="oeAccessCode" placeholder="เช่น 1234">
+                    <div style="font-size:12px;color:var(--text3);margin-top:5px;line-height:1.35;">ไม่ต้องกรอกหากต้องการให้นักเรียนใช้ลิงก์ + เลขประจำตัวเท่านั้น</div>
                   </div>
                 </div>
                 <div class="form-row">
@@ -5377,7 +5390,7 @@ var OE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ตัดตัวที่�
 
 function oeFriendlyErr(e,prefix){
   var m=(e&&e.message)||'';
-  if(/oe_exams|oe_questions|oe_options|oe_attempts|oe_answers|oe_events|oe_start_attempt|oe_save_answer|oe_submit_attempt|oe_log_event|oe_get_review|schema cache/i.test(m)){
+  if(/oe_exams|oe_questions|oe_options|oe_attempts|oe_answers|oe_events|oe_prepare_attempt|oe_start_attempt|oe_save_answer|oe_submit_attempt|oe_log_event|oe_get_review|schema cache/i.test(m)){
     return (prefix?prefix+': ':'')+'ยังไม่ได้ติดตั้งฐานข้อมูลสอบออนไลน์ — กรุณารันไฟล์ sql/online_exam_module.sql ใน Supabase SQL Editor ก่อนใช้งาน';
   }
   return (prefix?prefix+': ':'')+m;
@@ -6041,7 +6054,7 @@ function oeExportCsv(){
 }
 
 // ===== ONLINE EXAM — ฝั่งนักเรียน (เข้าทางลิงก์ ?exam=CODE ไม่ต้องล็อกอิน ไม่พึ่ง G/session เดิม) =====
-var OET={code:null,attemptToken:null,exam:null,questions:[],cur:0,flags:{},timerInt:null,deadline:null,warnCount:0,fsEntered:false,submitting:false,student:null};
+var OET={code:null,attemptToken:null,exam:null,questions:[],cur:0,flags:{},timerInt:null,deadline:null,warnCount:0,fsEntered:false,submitting:false,student:null,prepared:null,accessRequired:false};
 
 // เรียกจาก bootstrap ตอนโหลดหน้า — คืน true ถ้าเป็นลิงก์เข้าสอบ (ต้องข้าม flow login ปกติทั้งหมด)
 function oeTakeCheckBoot(){
@@ -6054,10 +6067,9 @@ function oeTakeCheckBoot(){
   OET.code=code.trim();
   var saved=null;try{saved=JSON.parse(localStorage.getItem('oe_last_id')||'null');}catch(e){}
   if(saved){
-    document.getElementById('oeVName').value=saved.name||'';
-    document.getElementById('oeVRoom').value=saved.room||'';
     document.getElementById('oeVCode').value=saved.code||'';
   }
+  setTimeout(oeLoadTakeMeta,0);
   return true;
 }
 
@@ -6066,52 +6078,146 @@ var OE_ERR_MSG={
   exam_not_open:'ข้อสอบชุดนี้ยังไม่เปิดให้สอบในขณะนี้',
   exam_not_started:'ยังไม่ถึงเวลาเปิดสอบ',
   exam_closed:'หมดเวลาสอบแล้ว หรือครูปิดสอบแล้ว',
+  access_code_required:'ข้อสอบนี้มีรหัสเข้าสอบเพิ่มเติม กรุณากรอกรหัสที่ครูให้',
   wrong_access_code:'รหัสเข้าสอบไม่ถูกต้อง',
   student_not_found:'ไม่พบเลขประจำตัวนักเรียนนี้ในระบบ — ติดต่อครูผู้สอน',
-  student_mismatch:'ชื่อ-สกุล หรือ ชั้น/ห้อง ไม่ตรงกับเลขประจำตัวนักเรียนที่ครูลงทะเบียนไว้ กรุณาตรวจสอบการสะกด',
+  student_mismatch:'ข้อมูลนักเรียนในทะเบียนยังไม่สมบูรณ์ กรุณาติดต่อครูผู้สอน',
   room_not_allowed:'ห้องเรียนของคุณไม่ได้อยู่ในรายชื่อที่อนุญาตให้สอบชุดนี้',
   attempt_limit_reached:'คุณเข้าสอบครบจำนวนครั้งที่กำหนดแล้ว',
   exam_has_no_questions:'ข้อสอบชุดนี้ยังไม่มีคำถาม — ติดต่อครูผู้สอน',
   unauthorized:'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่'
 };
 
+function oeSetAccessRequired(required){
+  OET.accessRequired=!!required;
+  var wrap=document.getElementById('oeVAccessWrap');
+  if(wrap)wrap.style.display=OET.accessRequired?'block':'none';
+  if(!OET.accessRequired){
+    var inp=document.getElementById('oeVAccess');
+    if(inp)inp.value='';
+  }
+}
+function oeApplyPrepareMeta(data){
+  data=data||{};
+  if(data.exam){
+    document.getElementById('oeVTitle').textContent=data.exam.title||'สอบออนไลน์';
+    document.getElementById('oeVDesc').textContent=data.exam.description||'';
+  }
+  oeSetAccessRequired(!!data.access_required);
+}
+async function oeLoadTakeMeta(){
+  try{
+    var data=await api('/rest/v1/rpc/oe_prepare_attempt',{method:'POST',body:JSON.stringify({
+      p_exam_code:OET.code,p_access_code:'',p_student_code:''
+    })});
+    oeApplyPrepareMeta(data);
+  }catch(e){
+    var key=(e.message||'').trim();
+    document.getElementById('oeVErr').textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
+  }
+}
+
 async function oeVerifyStart(){
-  var name=document.getElementById('oeVName').value.trim();
-  var room=document.getElementById('oeVRoom').value.trim();
   var code=document.getElementById('oeVCode').value.trim();
   var access=document.getElementById('oeVAccess').value.trim();
   var errEl=document.getElementById('oeVErr');errEl.textContent='';
-  if(!name||!room||!code){errEl.textContent='กรอกข้อมูลให้ครบทุกช่อง';return;}
+  OET.prepared=null;
+  if(!code){errEl.textContent='กรอกเลขประจำตัวนักเรียน';return;}
   var btn=document.getElementById('oeVBtn');btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';
   try{
-    var data=await api('/rest/v1/rpc/oe_start_attempt',{method:'POST',body:JSON.stringify({
-      p_exam_code:OET.code,p_access_code:access,p_student_code:code,p_fullname:name,p_room:room
+    var data=await api('/rest/v1/rpc/oe_prepare_attempt',{method:'POST',body:JSON.stringify({
+      p_exam_code:OET.code,p_access_code:access,p_student_code:code
     })});
-    try{localStorage.setItem('oe_last_id',JSON.stringify({name:name,room:room,code:code}));}catch(e){}
+    oeApplyPrepareMeta(data);
 
     if(data.already_submitted){
       oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
       return;
     }
 
-    OET.attemptToken=data.attempt_token;
-    OET.exam=data.exam;
-    OET.questions=data.questions||[];
-    OET.student=data.student;
-    OET.deadline=new Date(data.started_at).getTime()+OET.exam.duration_minutes*60000;
+    if(data.needs_access_code){
+      oeSetAccessRequired(true);
+      errEl.textContent=OE_ERR_MSG.access_code_required;
+      document.getElementById('oeVAccess').focus();
+      return;
+    }
+    if(!data.ready||!data.student){errEl.textContent='ไม่สามารถตรวจสอบข้อมูลได้ กรุณาลองใหม่';return;}
 
+    OET.prepared=data;
+    try{localStorage.setItem('oe_last_id',JSON.stringify({code:code}));}catch(e){}
+    document.getElementById('oeVCName').textContent=data.student.fullname||'-';
+    document.getElementById('oeVCRoom').textContent=data.student.room_name||'-';
+    document.getElementById('oeVCCode').textContent=data.student.student_code||code;
     document.getElementById('oeVForm').style.display='none';
-    document.getElementById('oeVIntroTitle').textContent=OET.exam.title||'';
-    document.getElementById('oeVIntroDesc').textContent=OET.exam.description||'';
-    document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
-    document.getElementById('oeVIntro').style.display='block';
-    document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
+    document.getElementById('oeVConfirm').style.display='block';
+  }catch(e){
+    var key=(e.message||'').trim();
+    if(key==='access_code_required')oeSetAccessRequired(true);
+    errEl.textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
+    if(key==='access_code_required'||key==='wrong_access_code'){
+      document.getElementById('oeVAccess').focus();
+    }
+  }finally{
+    btn.disabled=false;btn.textContent='➜ ตรวจสอบข้อมูล';
+  }
+}
+
+function oeEditIdentity(){
+  OET.prepared=null;
+  document.getElementById('oeVConfirm').style.display='none';
+  document.getElementById('oeVIntro').style.display='none';
+  document.getElementById('oeVForm').style.display='block';
+  document.getElementById('oeVErr').textContent='';
+  document.getElementById('oeVCode').focus();
+}
+
+async function oeConfirmIdentity(){
+  var data=OET.prepared||{};
+  var code=(data.student&&data.student.student_code)||document.getElementById('oeVCode').value.trim();
+  var access=document.getElementById('oeVAccess').value.trim();
+  var errEl=document.getElementById('oeVErr');errEl.textContent='';
+  var btn=document.getElementById('oeVStartBtn');btn.disabled=true;btn.textContent='กำลังเริ่มสอบ...';
+  try{
+    var started=await api('/rest/v1/rpc/oe_start_attempt',{method:'POST',body:JSON.stringify({
+      p_exam_code:OET.code,
+      p_access_code:access,
+      p_student_code:code,
+      p_fullname:(data.student&&data.student.fullname)||'',
+      p_room:(data.student&&data.student.room_name)||''
+    })});
+    oeShowExamIntro(started);
   }catch(e){
     var key=(e.message||'').trim();
     errEl.textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
+    if(key==='wrong_access_code'){
+      document.getElementById('oeVConfirm').style.display='none';
+      document.getElementById('oeVForm').style.display='block';
+      oeSetAccessRequired(true);
+      document.getElementById('oeVAccess').focus();
+    }
   }finally{
-    btn.disabled=false;btn.textContent='➜ เข้าสอบ';
+    btn.disabled=false;btn.textContent='ใช่ เริ่มสอบ';
   }
+}
+
+function oeShowExamIntro(data){
+  if(data.already_submitted){
+    oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
+    return;
+  }
+  OET.attemptToken=data.attempt_token;
+  OET.exam=data.exam;
+  OET.questions=data.questions||[];
+  OET.student=data.student;
+  OET.deadline=new Date(data.started_at).getTime()+OET.exam.duration_minutes*60000;
+
+  document.getElementById('oeVForm').style.display='none';
+  document.getElementById('oeVConfirm').style.display='none';
+  document.getElementById('oeVIntroTitle').textContent=OET.exam.title||'';
+  document.getElementById('oeVIntroDesc').textContent=OET.exam.description||'';
+  document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
+  document.getElementById('oeVIntro').style.display='block';
+  document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
 }
 
 function oeEnterRun(){
@@ -6288,6 +6394,7 @@ function oeShowDone(score,showScore,msg){
   document.getElementById('oeRunBox').style.display='none';
   document.getElementById('oeVerifyBox').style.display='flex';
   document.getElementById('oeVForm').style.display='none';
+  document.getElementById('oeVConfirm').style.display='none';
   document.getElementById('oeVIntro').style.display='none';
   document.getElementById('oeVDone').style.display='block';
   document.getElementById('oeVDoneMsg').textContent=msg||'ส่งข้อสอบเรียบร้อยแล้ว';

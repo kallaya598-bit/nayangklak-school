@@ -9,7 +9,7 @@
 -- DevTools แล้วยิง REST ไปตาราง oe_options ตรงๆ (จะยังอ่าน is_correct ได้เหมือนตารางอื่น
 -- ทุกตารางในระบบนี้)
 -- การป้องกันจริงที่ทำได้คือ: หน้าทำข้อสอบของนักเรียนต้องเรียกผ่าน RPC
--- (oe_start_attempt / oe_save_answer / oe_submit_attempt) เท่านั้น ห้ามอ่านตาราง
+-- (oe_prepare_attempt / oe_start_attempt / oe_save_answer / oe_submit_attempt) เท่านั้น ห้ามอ่านตาราง
 -- oe_options/oe_questions ตรงๆ — RPC เหล่านี้เป็น SECURITY DEFINER และตัดคอลัมน์
 -- is_correct ออกก่อนส่งกลับเสมอ ทำให้ "การใช้งานปกติ" (เปิดลิงก์สอบ → ทำข้อสอบ)
 -- ไม่มีทางเห็นเฉลยผ่าน Network tab ได้ — ป้องกันได้เฉพาะช่องทางใช้งานปกติ
@@ -155,6 +155,126 @@ create trigger trg_oe_exams_updated before update on oe_exams
 -- 4) RPC ฝั่งนักเรียน (SECURITY DEFINER — ไม่ส่ง is_correct กลับเด็ดขาด)
 -- ================================================================
 
+-- ตรวจข้อมูลก่อนเริ่มสอบ โดยยังไม่สร้าง attempt
+create or replace function oe_prepare_attempt(
+  p_exam_code text, p_access_code text, p_student_code text
+) returns jsonb as $$
+declare
+  v_exam oe_exams%rowtype;
+  v_student students%rowtype;
+  v_room_name text;
+  v_attempt oe_attempts%rowtype;
+  v_count integer;
+  v_question_count integer;
+  v_access_required boolean;
+begin
+  if not public.app_authorized() then raise exception 'unauthorized'; end if;
+
+  select * into v_exam from oe_exams where exam_code = upper(trim(coalesce(p_exam_code,'')));
+  if not found then raise exception 'exam_not_found'; end if;
+  if v_exam.status <> 'published' then raise exception 'exam_not_open'; end if;
+  if v_exam.start_at is not null and now() < v_exam.start_at then raise exception 'exam_not_started'; end if;
+  if v_exam.end_at is not null and now() > v_exam.end_at then raise exception 'exam_closed'; end if;
+
+  v_access_required := coalesce(trim(v_exam.access_code),'') <> '';
+  if v_access_required and trim(coalesce(p_access_code,'')) = '' then
+    return jsonb_build_object(
+      'ready', false,
+      'access_required', true,
+      'needs_access_code', true,
+      'exam', jsonb_build_object(
+        'id', v_exam.id, 'title', v_exam.title, 'description', v_exam.description,
+        'duration_minutes', v_exam.duration_minutes, 'show_score', v_exam.show_score
+      )
+    );
+  end if;
+  if v_access_required and trim(coalesce(p_access_code,'')) <> trim(v_exam.access_code) then
+    raise exception 'wrong_access_code';
+  end if;
+
+  if trim(coalesce(p_student_code,'')) = '' then
+    return jsonb_build_object(
+      'ready', false,
+      'access_required', v_access_required,
+      'exam', jsonb_build_object(
+        'id', v_exam.id, 'title', v_exam.title, 'description', v_exam.description,
+        'duration_minutes', v_exam.duration_minutes, 'show_score', v_exam.show_score
+      )
+    );
+  end if;
+
+  select * into v_student from students
+  where student_code = trim(coalesce(p_student_code,'')) and status = 'active';
+  if not found then raise exception 'student_not_found'; end if;
+
+  select room_name into v_room_name from classrooms where id = v_student.classroom_id;
+  if v_room_name is null then raise exception 'student_mismatch'; end if;
+
+  if coalesce(v_exam.room_ids,'') = ''
+     or (','||v_exam.room_ids||',') not like ('%,'||v_student.classroom_id||',%') then
+    raise exception 'room_not_allowed';
+  end if;
+
+  select count(*) into v_question_count from oe_questions where exam_id = v_exam.id;
+  if coalesce(v_question_count,0) = 0 then raise exception 'exam_has_no_questions'; end if;
+
+  select * into v_attempt from oe_attempts
+  where exam_id = v_exam.id and student_id = v_student.id and status = 'in_progress'
+  order by attempt_number desc limit 1;
+
+  if found and extract(epoch from (now() - v_attempt.started_at)) <= (v_exam.duration_minutes * 60 + 30) then
+    return jsonb_build_object(
+      'ready', true,
+      'access_required', v_access_required,
+      'resume_available', true,
+      'exam', jsonb_build_object(
+        'id', v_exam.id, 'title', v_exam.title, 'description', v_exam.description,
+        'duration_minutes', v_exam.duration_minutes, 'show_score', v_exam.show_score
+      ),
+      'student', jsonb_build_object(
+        'fullname', v_student.fullname,
+        'student_code', v_student.student_code,
+        'room_name', v_room_name
+      )
+    );
+  end if;
+
+  select count(*) into v_count from oe_attempts
+  where exam_id = v_exam.id and student_id = v_student.id;
+
+  if v_count >= v_exam.attempt_limit then
+    select * into v_attempt from oe_attempts
+    where exam_id = v_exam.id and student_id = v_student.id
+    order by attempt_number desc limit 1;
+    return jsonb_build_object(
+      'already_submitted', true,
+      'access_required', v_access_required,
+      'score', case when v_exam.show_score then v_attempt.final_score else null end,
+      'show_score', v_exam.show_score,
+      'student', jsonb_build_object(
+        'fullname', v_student.fullname,
+        'student_code', v_student.student_code,
+        'room_name', v_room_name
+      )
+    );
+  end if;
+
+  return jsonb_build_object(
+    'ready', true,
+    'access_required', v_access_required,
+    'exam', jsonb_build_object(
+      'id', v_exam.id, 'title', v_exam.title, 'description', v_exam.description,
+      'duration_minutes', v_exam.duration_minutes, 'show_score', v_exam.show_score
+    ),
+    'student', jsonb_build_object(
+      'fullname', v_student.fullname,
+      'student_code', v_student.student_code,
+      'room_name', v_room_name
+    )
+  );
+end;
+$$ language plpgsql security definer;
+
 -- เริ่มสอบ / กลับเข้าสอบต่อ / ดูผลถ้าสอบไปแล้ว
 create or replace function oe_start_attempt(
   p_exam_code text, p_access_code text, p_student_code text, p_fullname text, p_room text
@@ -182,7 +302,7 @@ begin
   if v_exam.status <> 'published' then raise exception 'exam_not_open'; end if;
   if v_exam.start_at is not null and now() < v_exam.start_at then raise exception 'exam_not_started'; end if;
   if v_exam.end_at is not null and now() > v_exam.end_at then raise exception 'exam_closed'; end if;
-  if coalesce(v_exam.access_code,'') <> '' and coalesce(p_access_code,'') <> v_exam.access_code then
+  if coalesce(trim(v_exam.access_code),'') <> '' and trim(coalesce(p_access_code,'')) <> trim(v_exam.access_code) then
     raise exception 'wrong_access_code';
   end if;
 
@@ -191,10 +311,7 @@ begin
   if not found then raise exception 'student_not_found'; end if;
 
   select room_name into v_room_name from classrooms where id = v_student.classroom_id;
-  if v_room_name is null or trim(v_room_name) <> trim(coalesce(p_room,''))
-     or trim(v_student.fullname) <> trim(coalesce(p_fullname,'')) then
-    raise exception 'student_mismatch';
-  end if;
+  if v_room_name is null then raise exception 'student_mismatch'; end if;
 
   if coalesce(v_exam.room_ids,'') = ''
      or (','||v_exam.room_ids||',') not like ('%,'||v_student.classroom_id||',%') then
@@ -277,7 +394,7 @@ begin
     ),
     'started_at', v_attempt.started_at,
     'questions', v_questions,
-    'student', jsonb_build_object('fullname', v_student.fullname, 'student_code', v_student.student_code)
+    'student', jsonb_build_object('fullname', v_student.fullname, 'student_code', v_student.student_code, 'room_name', v_room_name)
   );
 end;
 $$ language plpgsql security definer;
