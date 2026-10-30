@@ -987,12 +987,6 @@ textarea.form-control{height:auto;padding:10px 12px;resize:vertical;}
 .oe-take-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
 .oe-take-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(13,45,94,.15);padding:28px 24px;max-width:420px;width:100%;text-align:center;}
 .oe-take-logo img{width:56px;height:56px;border-radius:12px;margin-bottom:10px;}
-.oe-id-hint{font-size:13.5px;color:var(--text3);background:#f4f9ff;border:1px solid #c5d5ee;border-radius:12px;padding:10px 12px;margin-bottom:14px;text-align:left;line-height:1.45;}
-.oe-confirm-box{background:#f4f9ff;border:1px solid #c5d5ee;border-radius:14px;padding:14px;margin:8px 0 14px;}
-.oe-confirm-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #c5d5ee;padding:8px 0;font-size:14px;}
-.oe-confirm-row:last-child{border-bottom:0;}
-.oe-confirm-row span{color:var(--text3);}
-.oe-confirm-row b{color:var(--blue);text-align:right;}
 .oe-run-top{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(100deg,#0d2d5e,#1a3a6b);color:#fff;}
 .oe-run-title{font-weight:700;font-size:14.5px;}
 .oe-run-timer{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.15);}
@@ -1666,29 +1660,23 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <p id="oeVDesc" style="color:var(--text3);font-size:13.5px;margin:0 0 14px;"></p>
 
       <div id="oeVForm">
-        <div class="oe-id-hint">กรอกเลขประจำตัวนักเรียน แล้วระบบจะแสดงชื่อและห้องให้ตรวจสอบก่อนเริ่มสอบ</div>
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">ชื่อ-นามสกุล</label>
+          <input class="form-control" id="oeVName" placeholder="เช่น เด็กชายสมชาย ใจดี">
+        </div>
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">ชั้น/ห้อง</label>
+          <input class="form-control" id="oeVRoom" placeholder="เช่น ม.5/1">
+        </div>
         <div class="form-group" style="text-align:left;">
           <label class="form-label">เลขประจำตัวนักเรียน</label>
-          <input class="form-control" id="oeVCode" type="text" inputmode="numeric" autocomplete="off" placeholder="เช่น 07958">
+          <input class="form-control" id="oeVCode" inputmode="numeric" placeholder="เลขประจำตัว">
         </div>
         <div class="form-group" id="oeVAccessWrap" style="display:none;text-align:left;">
-          <label class="form-label">รหัสเข้าสอบเพิ่มเติม</label>
+          <label class="form-label">รหัสเข้าสอบ</label>
           <input class="form-control" id="oeVAccess" placeholder="รหัสที่ครูให้">
         </div>
-        <button class="btn btn-primary" style="width:100%;height:44px;" id="oeVBtn" onclick="oeVerifyStart()">➜ ตรวจสอบข้อมูล</button>
-      </div>
-
-      <div id="oeVConfirm" style="display:none;text-align:left;">
-        <div style="font-weight:800;color:var(--blue);font-size:17px;margin-bottom:8px;text-align:center;">ยืนยันตัวตนก่อนเริ่มสอบ</div>
-        <div class="oe-confirm-box">
-          <div class="oe-confirm-row"><span>ชื่อ-นามสกุล</span><b id="oeVCName">-</b></div>
-          <div class="oe-confirm-row"><span>ชั้น/ห้อง</span><b id="oeVCRoom">-</b></div>
-          <div class="oe-confirm-row"><span>เลขประจำตัว</span><b id="oeVCCode">-</b></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="btn btn-outline" style="height:44px;justify-content:center;font-size:14px;" onclick="oeEditIdentity()">ไม่ใช่ฉัน/แก้เลข</button>
-          <button class="btn btn-primary" style="height:44px;justify-content:center;" id="oeVStartBtn" onclick="oeConfirmIdentity()">ใช่ เริ่มสอบ</button>
-        </div>
+        <button class="btn btn-primary" style="width:100%;height:44px;" id="oeVBtn" onclick="oeVerifyStart()">➜ เข้าสอบ</button>
       </div>
 
       <div id="oeVErr" style="color:var(--red);font-size:13.5px;margin-top:12px;"></div>
@@ -1841,7 +1829,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
       <a class="stu-back" onclick="closeStuLogin()">← กลับไปหน้าหลัก</a>
     </div>
   </div>
-  <div class="login-foot"><span class="ms" style="font-size:14px;vertical-align:middle;">calendar_today</span> ภาคเรียนที่ 1 / 2569 &nbsp;|&nbsp; © 2569 <b>โรงเรียนนายางกลักพิทยาคม</b> สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>
+  <div class="login-foot"><span class="ms" style="font-size:14px;vertical-align:middle;">calendar_today</span> ระบบดูแลช่วยเหลือนักเรียน &nbsp;|&nbsp; <b>โรงเรียนนายางกลักพิทยาคม</b> สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>
 </div>
 
 <!-- ===== STUDENT / PARENT PORTAL (ดูอย่างเดียว) ===== -->
@@ -2131,7 +2119,7 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
         </div>
         <div class="footer">
           <div class="fdot"></div><span class="fonline">ออนไลน์</span>
-          <div class="fdiv"></div><span>ภาคเรียน <span class="fhl">1/2569</span></span>
+          <div class="fdiv"></div><span>ภาคเรียน <span class="fhl" id="currentTermLabel">—</span></span>
           <div class="fdiv"></div><span>สพม.ชัยภูมิ</span>
           <div class="fdiv"></div><span>นักเรียน <span class="fhl">796 คน</span></span>
           <div class="fdiv"></div><span>💻 พัฒนาโดย <span class="fhl">อดิศักดิ์ วนาใส</span> · <a href="tel:0822979163" style="color:#1565c0;text-decoration:none;">082-297-9163</a></span>
@@ -2648,7 +2636,6 @@ tbody td{padding:9px 12px;font-size:15.6px;color:var(--text);vertical-align:midd
                   <div class="form-group">
                     <label class="form-label">รหัสเข้าสอบเพิ่มเติม (ไม่บังคับ)</label>
                     <input class="form-control" id="oeAccessCode" placeholder="เช่น 1234">
-                    <div style="font-size:12px;color:var(--text3);margin-top:5px;line-height:1.35;">ไม่ต้องกรอกหากต้องการให้นักเรียนใช้ลิงก์ + เลขประจำตัวเท่านั้น</div>
                   </div>
                 </div>
                 <div class="form-row">
@@ -4061,6 +4048,14 @@ var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/js
 
 // ===== STATE =====
 var G={user:null,room:null,students:[],att:{},eveningAtt:{},eveMorningRef:{},goodCats:[],behaveCats:[],currentReport:null,myAssigns:[],curAssign:null,curGradeAssign:null,rewardToken:null};
+async function refreshAcademicTerm(){
+  var rows=await api('/rest/v1/system_settings?key=in.(school_year,semester)&select=key,value');
+  var found={};(rows||[]).forEach(function(r){found[r.key]=+r.value;});
+  if(!found.school_year||![1,2].includes(found.semester))throw new Error('ไม่พบค่าปีการศึกษา/ภาคเรียนในระบบ');
+  HV_YEAR=MH_YEAR=ACT_YEAR=found.school_year;
+  G.semester=MH_TERM=ACT_TERM=found.semester;
+  var label=document.getElementById('currentTermLabel');if(label)label.textContent=G.semester+'/'+HV_YEAR;
+}
 
 // ===== SHORTCUTS =====
 var SC_ALL=[
@@ -4440,7 +4435,7 @@ async function examLoadStructureLinks(){
   if(!EX.structs.length)return;
   var ids=EX.structs.map(function(s){return s.id;}).join(',');
   var scope=document.getElementById('exScope')?.value||'single';
-  var rows=await api('/rest/v1/exam_subjects?structure_id=in.('+ids+')&select=id,structure_id,assignment_id,scope,exam_title,updated_at&order=updated_at.desc').catch(function(e){
+  var rows=await api('/rest/v1/exam_subjects?structure_id=in.('+ids+')&school_year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,structure_id,assignment_id,scope,exam_title,updated_at&order=updated_at.desc').catch(function(e){
     examMsg(examFriendlySqlError(e,'โหลดสถานะชุดข้อสอบไม่สำเร็จ'),true);
     return [];
   });
@@ -4500,7 +4495,7 @@ async function examLoadLinkedExam(){
   EX.structure=EX.structs.find(function(s){return String(s.id)===String(sid);})||null;
   EX.subject=null;EX.results=[];EX.saved=0;
   if(!EX.structure){examUpdateStructureHint();examRenderResults();return;}
-  var rows=await api('/rest/v1/exam_subjects?structure_id=eq.'+EX.structure.id+'&select=*&order=updated_at.desc').catch(function(e){
+  var rows=await api('/rest/v1/exam_subjects?structure_id=eq.'+EX.structure.id+'&school_year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=*&order=updated_at.desc').catch(function(e){
     examMsg(examFriendlySqlError(e,'โหลดชุดข้อสอบไม่สำเร็จ'),true);
     return [];
   });
@@ -4568,6 +4563,7 @@ async function examSaveConfig(){
   var subj=EX.assign.subjects||{},room=EX.assign.classrooms||{},scope=document.getElementById('exScope').value||'single';
   var payload={
     assignment_id:scope==='shared'?gradeStructKey(EX.assign.id):EX.assign.id,
+    school_year:HV_YEAR,semester:G.semester,
     structure_id:EX.structure.id,
     scope:scope,
     subject_name:subj.subject_name||document.getElementById('exTitle').value.trim()||'ชุดข้อสอบ',
@@ -5069,7 +5065,7 @@ async function examCreateSa(){
   if(!checked.length){toast('เลือกห้องเรียนอย่างน้อย 1 ห้อง','err');return;}
   var numQ=Math.min(Math.max(parseInt(document.getElementById('exSaNumQ').value)||20,1),60);
   var choices=parseInt(document.getElementById('exSaChoices').value)||4;
-  var payload={assignment_id:null,structure_id:null,scope:'standalone',subject_name:title,exam_title:title,school_name:'โรงเรียนนายางกลักพิทยาคม',room:'',class_level:'',num_questions:numQ,choices:choices,objective_full:numQ,subjective_full:0,target_full:0,answer_key:{},question_scores:{}};
+  var payload={assignment_id:null,structure_id:null,scope:'standalone',school_year:HV_YEAR,semester:G.semester,subject_name:title,exam_title:title,school_name:'โรงเรียนนายางกลักพิทยาคม',room:'',class_level:'',num_questions:numQ,choices:choices,objective_full:numQ,subjective_full:0,target_full:0,answer_key:{},question_scores:{}};
   try{
     var saved=(await api('/rest/v1/exam_subjects',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(payload)}))[0];
     saved._room_ids=checked;examSaveSaRooms(saved.id,checked);
@@ -5100,7 +5096,7 @@ async function examLoadStudentsFromRooms(roomIds){
 async function examLoadSaList(){
   if(!G.user)return;
   var el=document.getElementById('exSaList');if(!el)return;
-  var rows=await api('/rest/v1/exam_subjects?scope=eq.standalone&select=id,exam_title,num_questions,created_at&order=created_at.desc').catch(function(){return[];});
+  var rows=await api('/rest/v1/exam_subjects?scope=eq.standalone&school_year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,exam_title,num_questions,created_at&order=created_at.desc').catch(function(){return[];});
   if(!rows||!rows.length){el.innerHTML='<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อสอบอิสระ</div>';return;}
   el.innerHTML=rows.map(function(r){
     var active=EX.subject&&String(EX.subject.id)===String(r.id)?' ex-sa-active':'';
@@ -5390,7 +5386,7 @@ var OE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ตัดตัวที่�
 
 function oeFriendlyErr(e,prefix){
   var m=(e&&e.message)||'';
-  if(/oe_exams|oe_questions|oe_options|oe_attempts|oe_answers|oe_events|oe_prepare_attempt|oe_start_attempt|oe_save_answer|oe_submit_attempt|oe_log_event|oe_get_review|schema cache/i.test(m)){
+  if(/oe_exams|oe_questions|oe_options|oe_attempts|oe_answers|oe_events|oe_start_attempt|oe_save_answer|oe_submit_attempt|oe_log_event|oe_get_review|schema cache/i.test(m)){
     return (prefix?prefix+': ':'')+'ยังไม่ได้ติดตั้งฐานข้อมูลสอบออนไลน์ — กรุณารันไฟล์ sql/online_exam_module.sql ใน Supabase SQL Editor ก่อนใช้งาน';
   }
   return (prefix?prefix+': ':'')+m;
@@ -5420,7 +5416,7 @@ function oeRoomName(id){
 async function oeLoadExamList(){
   var el=document.getElementById('oeExamList');
   el.innerHTML='<div style="color:#aaa;font-size:13px;text-align:center;padding:30px;">กำลังโหลด...</div>';
-  var q='/rest/v1/oe_exams?select=*&order=created_at.desc';
+  var q='/rest/v1/oe_exams?school_year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=*&order=created_at.desc';
   if(!oeIsAdmin())q+='&created_by=eq.'+G.user.id;
   var rows=null;
   try{rows=await api(q);}catch(e){el.innerHTML='<div style="color:var(--red);font-size:13px;text-align:center;padding:30px;">'+oeFriendlyErr(e)+'</div>';return;}
@@ -5568,7 +5564,7 @@ async function oeSaveExam(){
   var roomIds=oeGatherRoomIds();
   if(!roomIds.length){toast('เลือกห้องเรียนอย่างน้อย 1 ห้อง','err');return;}
   var payload={
-    title:title,
+    title:title,school_year:HV_YEAR,semester:G.semester,
     description:document.getElementById('oeDesc').value.trim()||null,
     room_ids:roomIds.join(','),
     duration_minutes:Math.max(1,parseInt(document.getElementById('oeDuration').value)||60),
@@ -6054,7 +6050,7 @@ function oeExportCsv(){
 }
 
 // ===== ONLINE EXAM — ฝั่งนักเรียน (เข้าทางลิงก์ ?exam=CODE ไม่ต้องล็อกอิน ไม่พึ่ง G/session เดิม) =====
-var OET={code:null,attemptToken:null,exam:null,questions:[],cur:0,flags:{},timerInt:null,deadline:null,warnCount:0,fsEntered:false,submitting:false,student:null,prepared:null,accessRequired:false};
+var OET={code:null,attemptToken:null,exam:null,questions:[],cur:0,flags:{},timerInt:null,deadline:null,warnCount:0,fsEntered:false,submitting:false,student:null};
 
 // เรียกจาก bootstrap ตอนโหลดหน้า — คืน true ถ้าเป็นลิงก์เข้าสอบ (ต้องข้าม flow login ปกติทั้งหมด)
 function oeTakeCheckBoot(){
@@ -6067,9 +6063,10 @@ function oeTakeCheckBoot(){
   OET.code=code.trim();
   var saved=null;try{saved=JSON.parse(localStorage.getItem('oe_last_id')||'null');}catch(e){}
   if(saved){
+    document.getElementById('oeVName').value=saved.name||'';
+    document.getElementById('oeVRoom').value=saved.room||'';
     document.getElementById('oeVCode').value=saved.code||'';
   }
-  setTimeout(oeLoadTakeMeta,0);
   return true;
 }
 
@@ -6078,152 +6075,52 @@ var OE_ERR_MSG={
   exam_not_open:'ข้อสอบชุดนี้ยังไม่เปิดให้สอบในขณะนี้',
   exam_not_started:'ยังไม่ถึงเวลาเปิดสอบ',
   exam_closed:'หมดเวลาสอบแล้ว หรือครูปิดสอบแล้ว',
-  access_code_required:'ข้อสอบนี้มีรหัสเข้าสอบเพิ่มเติม กรุณากรอกรหัสที่ครูให้',
   wrong_access_code:'รหัสเข้าสอบไม่ถูกต้อง',
   student_not_found:'ไม่พบเลขประจำตัวนักเรียนนี้ในระบบ — ติดต่อครูผู้สอน',
-  student_mismatch:'ข้อมูลนักเรียนในทะเบียนยังไม่สมบูรณ์ กรุณาติดต่อครูผู้สอน',
+  student_mismatch:'ชื่อ-สกุล หรือ ชั้น/ห้อง ไม่ตรงกับเลขประจำตัวนักเรียนที่ครูลงทะเบียนไว้ กรุณาตรวจสอบการสะกด',
   room_not_allowed:'ห้องเรียนของคุณไม่ได้อยู่ในรายชื่อที่อนุญาตให้สอบชุดนี้',
   attempt_limit_reached:'คุณเข้าสอบครบจำนวนครั้งที่กำหนดแล้ว',
   exam_has_no_questions:'ข้อสอบชุดนี้ยังไม่มีคำถาม — ติดต่อครูผู้สอน',
   unauthorized:'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่'
 };
 
-function oeSetAccessRequired(required){
-  OET.accessRequired=!!required;
-  var wrap=document.getElementById('oeVAccessWrap');
-  if(wrap)wrap.style.display=OET.accessRequired?'block':'none';
-  if(!OET.accessRequired){
-    var inp=document.getElementById('oeVAccess');
-    if(inp)inp.value='';
-  }
-}
-function oeApplyPrepareMeta(data){
-  data=data||{};
-  if(data.exam){
-    document.getElementById('oeVTitle').textContent=data.exam.title||'สอบออนไลน์';
-    document.getElementById('oeVDesc').textContent=data.exam.description||'';
-  }
-  oeSetAccessRequired(!!data.access_required);
-}
-async function oeLoadTakeMeta(){
-  try{
-    var data=await api('/rest/v1/rpc/oe_prepare_attempt',{method:'POST',body:JSON.stringify({
-      p_exam_code:OET.code,p_access_code:'',p_student_code:''
-    })});
-    oeApplyPrepareMeta(data);
-  }catch(e){
-    var key=(e.message||'').trim();
-    document.getElementById('oeVErr').textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
-  }
-}
-
 async function oeVerifyStart(){
+  var name=document.getElementById('oeVName').value.trim();
+  var room=document.getElementById('oeVRoom').value.trim();
   var code=document.getElementById('oeVCode').value.trim();
   var access=document.getElementById('oeVAccess').value.trim();
   var errEl=document.getElementById('oeVErr');errEl.textContent='';
-  OET.prepared=null;
-  if(!code){errEl.textContent='กรอกเลขประจำตัวนักเรียน';return;}
+  if(!name||!room||!code){errEl.textContent='กรอกข้อมูลให้ครบทุกช่อง';return;}
   var btn=document.getElementById('oeVBtn');btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';
   try{
-    var data=await api('/rest/v1/rpc/oe_prepare_attempt',{method:'POST',body:JSON.stringify({
-      p_exam_code:OET.code,p_access_code:access,p_student_code:code
+    var data=await api('/rest/v1/rpc/oe_start_attempt',{method:'POST',body:JSON.stringify({
+      p_exam_code:OET.code,p_access_code:access,p_student_code:code,p_fullname:name,p_room:room
     })});
-    oeApplyPrepareMeta(data);
+    try{localStorage.setItem('oe_last_id',JSON.stringify({name:name,room:room,code:code}));}catch(e){}
 
     if(data.already_submitted){
-      oeShowAlreadySubmitted(data);
+      oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
       return;
     }
 
-    if(data.needs_access_code){
-      oeSetAccessRequired(true);
-      errEl.textContent=OE_ERR_MSG.access_code_required;
-      document.getElementById('oeVAccess').focus();
-      return;
-    }
-    if(!data.ready||!data.student){errEl.textContent='ไม่สามารถตรวจสอบข้อมูลได้ กรุณาลองใหม่';return;}
+    OET.attemptToken=data.attempt_token;
+    OET.exam=data.exam;
+    OET.questions=data.questions||[];
+    OET.student=data.student;
+    OET.deadline=new Date(data.started_at).getTime()+OET.exam.duration_minutes*60000;
 
-    OET.prepared=data;
-    try{localStorage.setItem('oe_last_id',JSON.stringify({code:code}));}catch(e){}
-    document.getElementById('oeVCName').textContent=data.student.fullname||'-';
-    document.getElementById('oeVCRoom').textContent=data.student.room_name||'-';
-    document.getElementById('oeVCCode').textContent=data.student.student_code||code;
     document.getElementById('oeVForm').style.display='none';
-    document.getElementById('oeVConfirm').style.display='block';
-  }catch(e){
-    var key=(e.message||'').trim();
-    if(key==='access_code_required')oeSetAccessRequired(true);
-    errEl.textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
-    if(key==='access_code_required'||key==='wrong_access_code'){
-      document.getElementById('oeVAccess').focus();
-    }
-  }finally{
-    btn.disabled=false;btn.textContent='➜ ตรวจสอบข้อมูล';
-  }
-}
-
-function oeEditIdentity(){
-  OET.prepared=null;
-  document.getElementById('oeVConfirm').style.display='none';
-  document.getElementById('oeVIntro').style.display='none';
-  document.getElementById('oeVForm').style.display='block';
-  document.getElementById('oeVErr').textContent='';
-  document.getElementById('oeVCode').focus();
-}
-
-async function oeConfirmIdentity(){
-  var data=OET.prepared||{};
-  var code=(data.student&&data.student.student_code)||document.getElementById('oeVCode').value.trim();
-  var access=document.getElementById('oeVAccess').value.trim();
-  var errEl=document.getElementById('oeVErr');errEl.textContent='';
-  var btn=document.getElementById('oeVStartBtn');btn.disabled=true;btn.textContent='กำลังเริ่มสอบ...';
-  try{
-    var started=await api('/rest/v1/rpc/oe_start_attempt',{method:'POST',body:JSON.stringify({
-      p_exam_code:OET.code,
-      p_access_code:access,
-      p_student_code:code,
-      p_fullname:(data.student&&data.student.fullname)||'',
-      p_room:(data.student&&data.student.room_name)||''
-    })});
-    oeShowExamIntro(started);
+    document.getElementById('oeVIntroTitle').textContent=OET.exam.title||'';
+    document.getElementById('oeVIntroDesc').textContent=OET.exam.description||'';
+    document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
+    document.getElementById('oeVIntro').style.display='block';
+    document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
   }catch(e){
     var key=(e.message||'').trim();
     errEl.textContent=OE_ERR_MSG[key]||oeFriendlyErr(e);
-    if(key==='wrong_access_code'){
-      document.getElementById('oeVConfirm').style.display='none';
-      document.getElementById('oeVForm').style.display='block';
-      oeSetAccessRequired(true);
-      document.getElementById('oeVAccess').focus();
-    }
   }finally{
-    btn.disabled=false;btn.textContent='ใช่ เริ่มสอบ';
+    btn.disabled=false;btn.textContent='➜ เข้าสอบ';
   }
-}
-
-function oeShowExamIntro(data){
-  if(data.already_submitted){
-    oeShowAlreadySubmitted(data);
-    return;
-  }
-  OET.attemptToken=data.attempt_token;
-  OET.exam=data.exam;
-  OET.questions=data.questions||[];
-  OET.student=data.student;
-  OET.deadline=new Date(data.started_at).getTime()+OET.exam.duration_minutes*60000;
-
-  document.getElementById('oeVForm').style.display='none';
-  document.getElementById('oeVConfirm').style.display='none';
-  document.getElementById('oeVIntroTitle').textContent=OET.exam.title||'';
-  document.getElementById('oeVIntroDesc').textContent=OET.exam.description||'';
-  document.getElementById('oeVIntroDur').textContent=OET.exam.duration_minutes;
-  document.getElementById('oeVIntro').style.display='block';
-  document.getElementById('oeWatermark').textContent=(OET.student.fullname||'')+' · '+(OET.student.student_code||'');
-}
-
-function oeShowAlreadySubmitted(data){
-  OET.attemptToken=data.attempt_token||null;
-  OET.student=data.student||OET.student;
-  oeShowDone(data.score,data.show_score,'คุณสอบชุดนี้ไปแล้ว');
 }
 
 function oeEnterRun(){
@@ -6400,18 +6297,15 @@ function oeShowDone(score,showScore,msg){
   document.getElementById('oeRunBox').style.display='none';
   document.getElementById('oeVerifyBox').style.display='flex';
   document.getElementById('oeVForm').style.display='none';
-  document.getElementById('oeVConfirm').style.display='none';
   document.getElementById('oeVIntro').style.display='none';
   document.getElementById('oeVDone').style.display='block';
   document.getElementById('oeVDoneMsg').textContent=msg||'ส่งข้อสอบเรียบร้อยแล้ว';
   document.getElementById('oeVDoneScore').textContent=(showScore&&score!=null)?('คะแนน: '+examFmt(score)):'';
-  document.getElementById('oeVReviewBtn').style.display=OET.attemptToken?'':'none';
-  document.getElementById('oeVReviewBox').style.display='none';
+  document.getElementById('oeVReviewBtn').style.display='';
 }
 async function oeShowReview(){
   var box=document.getElementById('oeVReviewBox');
   box.style.display='block';
-  if(!OET.attemptToken){box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">ยังไม่พบข้อมูลการสอบสำหรับดูเฉลย กรุณาเข้าใหม่ผ่านลิงก์สอบ</div>';return;}
   box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;">กำลังโหลด...</div>';
   try{
     var res=await api('/rest/v1/rpc/oe_get_review',{method:'POST',body:JSON.stringify({p_attempt_token:OET.attemptToken})});
@@ -6759,6 +6653,7 @@ function restoreLastPage(){
 function refreshStaffSessionContext(){
   return (async function(){
     try{
+      await refreshAcademicTerm();
       var rd=await api('/rest/v1/room_teachers?select=classroom_id&teacher_id=eq.'+G.user.id).catch(function(){return[];});
       G.myRoomIds=(rd||[]).map(function(x){return x.classroom_id;});
       if(rd&&rd.length){
@@ -6776,7 +6671,7 @@ function refreshStaffSessionContext(){
       loadDashStats();
       populateStudentSelects();
       saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds,rewardToken:G.rewardToken});
-    }catch(e){console.log('session refresh:',e.message);}
+    }catch(e){console.log('session refresh:',e.message);toast('โหลดภาคเรียนปัจจุบันไม่ได้: '+e.message,'err');}
   })();
 }
 async function resumeSession(){
@@ -6795,7 +6690,7 @@ async function resumeSession(){
       restoreLastPage();
       return true;
     }
-    if(s.t==='viewer'){G.user=s.user;G.rewardToken=s.rewardToken||null;G.viewOnly=true;await loadCategories();execStart();return true;}
+    if(s.t==='viewer'){G.user=s.user;G.rewardToken=s.rewardToken||null;G.viewOnly=true;await refreshAcademicTerm();await loadCategories();execStart();return true;}
     if(s.t==='student'||s.t==='parent'){
       STU.mode=s.t;STU.student=s.student;STU.rewardToken=s.rewardToken||null;STU.rewardExpiresAt=s.rewardExpiresAt||null;
       // session เก่าที่บันทึกก่อนมีโมดูลเหรียญจะไม่มี rewardToken — ออก token ให้ใหม่โดยไม่บังคับออกจากระบบ
@@ -6826,8 +6721,8 @@ async function doLogin(){
     admLoginEvent({action:'login',success:true,entity:'auth',summary:'เข้าสู่ระบบสำเร็จ',actor_username:u});
     // โหลด is_academic + shortcuts — ไม่ block login ถ้าคอลัมน์ยังไม่มี
     try{var tEx=await api('/rest/v1/teachers?id=eq.'+G.user.id+'&select=is_academic,shortcuts&limit=1');if(tEx&&tEx[0]){G.user.is_academic=!!tEx[0].is_academic;if(tEx[0].shortcuts&&tEx[0].shortcuts.length)G.user.shortcuts=tEx[0].shortcuts;}}catch(e){}
-    // โหลด school_year + semester จาก system_settings → ตั้ง HV_YEAR + MH_YEAR + ACT_YEAR อัตโนมัติ
-    try{var ss=await api('/rest/v1/system_settings?key=in.(school_year,semester)&select=key,value').catch(function(){return[];});(ss||[]).forEach(function(r){if(r.key==='school_year'&&+r.value){HV_YEAR=+r.value;MH_YEAR=+r.value;ACT_YEAR=+r.value;}if(r.key==='semester'){G.semester=+r.value||1;MH_TERM=+r.value||1;ACT_TERM=+r.value||1;}});}catch(e){}
+    // อ่านค่าภาคเรียนจริงทุกครั้งก่อนเปิดหน้าที่ผูกกับภาคเรียน
+    await refreshAcademicTerm();
     // ผู้บริหาร (viewer) → เข้าแดชบอร์ดผู้บริหารโดยตรง (ไม่ใช้เมนูครู)
     if(G.user.role==='viewer'){
       G.viewOnly=true;await loadCategories();
@@ -7029,13 +6924,13 @@ async function buildStudentDetailHTML(stu,opts){
   try{
     var classId=stu.classroom_id;
     if(classId){
-      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
+      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
       if(pubA&&pubA.length){
         // วิชาเดียว+ครูเดียว ใช้โครงสร้างชุดเดียว → หา assignment_id "เจ้าของโครงสร้าง" (น้อยสุด)
         var tids=[],sjs=[];(pubA||[]).forEach(function(a){if(a.teacher_id!=null)tids.push(a.teacher_id);if(a.subject_id!=null)sjs.push(a.subject_id);});
         var canon={};
         if(tids.length&&sjs.length){
-          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&select=id,teacher_id,subject_id').catch(e0);
+          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,teacher_id,subject_id').catch(e0);
           (sib||[]).forEach(function(x){var k=x.teacher_id+'_'+x.subject_id;if(canon[k]==null||x.id<canon[k])canon[k]=x.id;});
         }
         var ownerOf=function(a){var k=a.teacher_id+'_'+a.subject_id;return canon[k]!=null?canon[k]:a.id;};
@@ -7109,7 +7004,7 @@ async function buildStudentDetailHTML(stu,opts){
     +'</div>';
   // เวลาเรียนรายวิชา (subject_attendance จัดกลุ่มตาม assignment)
   try{
-    var classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+(stu.classroom_id||0)+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(function(){return[];});
+    var classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+(stu.classroom_id||0)+'&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(function(){return[];});
     var attByAss={};
     (subj||[]).forEach(function(a){
       var aid=a.assignment_id;if(!aid)return;
@@ -7201,7 +7096,7 @@ async function buildStudentDetailHTML(stu,opts){
   // ผลแบบประเมินสุขภาพจิต — แสดงเฉพาะครู/ผู้บริหาร (นักเรียน/ผู้ปกครองไม่เห็นผลเสี่ยง)
   if(mode==='exec'||mode==='teacher'){
     try{
-      var mh=await api('/rest/v1/mh_assessments?student_id=eq.'+id+'&year=eq.'+MH_YEAR+'&select=kind,form,risk_level,result&order=kind').catch(function(){return[];});
+      var mh=await api('/rest/v1/mh_assessments?student_id=eq.'+id+'&year=eq.'+MH_YEAR+'&term=eq.'+MH_TERM+'&select=kind,form,risk_level,result&order=kind').catch(function(){return[];});
       html+='<div class="sp-card"><h3>🧠 ผลแบบประเมินสุขภาพจิต</h3>';
       if(mh&&mh.length){mh.forEach(function(m){html+='<div class="sp-row"><span>'+mhKindLabel(m.kind)+' <span class="d">'+mhFormLabel(m.form)+'</span><div class="d" style="font-size:13.2px;">'+(m.result||'')+'</div></span>'+mhBadge(m.risk_level)+'</div>';});}
       else html+='<div class="sp-empty">ยังไม่มีผลการประเมิน</div>';
@@ -7209,7 +7104,8 @@ async function buildStudentDetailHTML(stu,opts){
     }catch(e){}
     // กิจกรรม/ชุมนุม
     try{
-      var av=await api('/rest/v1/activity_enrollments?student_id=eq.'+id+'&select=result,activities(name,category,atype)').catch(function(){return[];});
+      var av=await api('/rest/v1/activity_enrollments?student_id=eq.'+id+'&select=result,activities(name,category,atype,year,term)').catch(function(){return[];});
+      av=(av||[]).filter(actCurrentEnrollment);
       html+='<div class="sp-card"><h3>🎪 กิจกรรม/ชุมนุม</h3>';
       if(av&&av.length){av.forEach(function(m){var a=m.activities||{};var res=m.result==='pass'?'<span class="mh-badge mh-normal">ผ่าน</span>':(m.result==='fail'?'<span class="mh-badge mh-problem">ไม่ผ่าน</span>':'<span class="d" style="font-size:13.2px;">กำลังเรียน</span>');html+='<div class="sp-row"><span>'+(a.name||'-')+' <span class="d">'+(a.atype||'')+'</span></span>'+res+'</div>';});}
       else html+='<div class="sp-empty">ยังไม่ได้เข้าร่วมกิจกรรม</div>';
@@ -7921,13 +7817,13 @@ async function buildStuPortalTabbed(stu,mode){
   try{
     var classId=stu.classroom_id;
     if(classId){
-      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
-      classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(e0)||[];
+      var pubA=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&published=eq.true&select=id,teacher_id,subject_id,subjects(subject_code,subject_name)').catch(e0);
+      classAssAll=await api('/rest/v1/teaching_assignments?classroom_id=eq.'+classId+'&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,subject_id,subjects(subject_code,subject_name)').catch(e0)||[];
       if(pubA&&pubA.length){
         var tids=[],sjs=[];(pubA||[]).forEach(function(a){if(a.teacher_id!=null)tids.push(a.teacher_id);if(a.subject_id!=null)sjs.push(a.subject_id);});
         var canon={};
         if(tids.length&&sjs.length){
-          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&select=id,teacher_id,subject_id').catch(e0);
+          var sib=await api('/rest/v1/teaching_assignments?teacher_id=in.('+tids.join(',')+')&subject_id=in.('+sjs.join(',')+')&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,teacher_id,subject_id').catch(e0);
           (sib||[]).forEach(function(x){var k=x.teacher_id+'_'+x.subject_id;if(canon[k]==null||x.id<canon[k])canon[k]=x.id;});
         }
         var ownerOf=function(a){var k=a.teacher_id+'_'+a.subject_id;return canon[k]!=null?canon[k]:a.id;};
@@ -8134,6 +8030,7 @@ async function buildStuPortalTabbed(stu,mode){
 }
 
 async function renderStuPortal(stu){
+  await refreshAcademicTerm();
   STU.student=stu;
   document.getElementById('loginPage').style.display='none';
   document.getElementById('stuPortal').style.display='block';
@@ -8447,11 +8344,37 @@ function mhFormLabel(f){return({student:'ฉบับนักเรียน',p
 function mhHome(){
   var b=document.getElementById('mhBody');
   b.innerHTML='<div class="mh-warn">⚠️ ข้อคำถามและเกณฑ์แปลผลเป็น "ฉบับตั้งต้น" อ้างอิงแนวทางกรมสุขภาพจิต — โปรดตรวจสอบ/อัปโหลดต้นฉบับจริงก่อนใช้ตัดสินผลทางคลินิก</div>'
+    +'<div style="padding:8px 12px;"><button class="btn btn-outline btn-sm" onclick="mhHistory()">ดูผลประเมินภาคก่อน</button></div>'
     +'<div class="mh-cards">'
     +'<div class="mh-card" onclick="mhList(\'eq\')"><div class="ic">💚</div><h3 style="color:#2e7d32;">EQ</h3><p>ความฉลาดทางอารมณ์ · นักเรียนประเมินตนเอง</p></div>'
     +'<div class="mh-card" onclick="mhList(\'sdq\')"><div class="ic">🧩</div><h3 style="color:#7b1fa2;">SDQ</h3><p>จุดแข็ง-จุดอ่อน · นักเรียน/ผู้ปกครอง/ครู</p></div>'
     +'<div class="mh-card" onclick="mhList(\'phq\')"><div class="ic">💗</div><h3 style="color:#c2185b;">ภาวะซึมเศร้า</h3><p>9Q + 8Q · นักเรียนประเมินตนเอง</p></div>'
     +'</div>';
+}
+
+function srPastTerm(){
+  var defaultYear=G.semester===2?HV_YEAR:HV_YEAR-1,defaultSem=G.semester===2?1:2;
+  var v=prompt('ระบุภาคเรียน/ปีการศึกษาที่ต้องการดูย้อนหลัง',defaultSem+'/'+defaultYear);
+  if(v===null)return null;
+  var m=/^([12])\/(25[0-9]{2})$/.exec(v.trim());
+  if(!m){toast('รูปแบบต้องเป็น 1/2569 หรือ 2/2569','err');return null;}
+  var term=+m[1],year=+m[2];
+  if(year>HV_YEAR||(year===HV_YEAR&&term>=G.semester)){toast('เลือกภาคเรียนก่อนหน้าปัจจุบัน','err');return null;}
+  return {year:year,term:term};
+}
+async function mhHistory(){
+  var p=srPastTerm();if(!p||!G.room)return;
+  var b=document.getElementById('mhBody');b.innerHTML='<div class="loading">กำลังโหลดประวัติ...</div>';
+  try{
+    var students=await api('/rest/v1/students?classroom_id=eq.'+G.room.id+'&select=id,fullname,student_code&limit=2000')||[];
+    var ids=students.map(function(s){return s.id;}).join(',')||'0',names={};
+    students.forEach(function(s){names[s.id]=s.fullname;});
+    var rows=await api('/rest/v1/mh_assessments?student_id=in.('+ids+')&year=eq.'+p.year+'&term=eq.'+p.term+'&select=student_id,kind,form,risk_level,result&limit=5000')||[];
+    b.innerHTML='<div style="padding:14px"><button class="btn btn-outline btn-sm" onclick="mhHome()">← กลับ</button><h3>ผลประเมิน '+p.term+'/'+p.year+' (อ่านอย่างเดียว)</h3>'
+      +(rows.length?'<div class="tbl-wrap"><table><tr><th>นักเรียน</th><th>แบบประเมิน</th><th>ฉบับ</th><th>ผล</th></tr>'
+      +rows.map(function(r){return '<tr><td>'+hvEsc(names[r.student_id]||String(r.student_id))+'</td><td>'+hvEsc(mhKindLabel(r.kind))+'</td><td>'+hvEsc(mhFormLabel(r.form))+'</td><td>'+hvEsc(r.result||r.risk_level||'-')+'</td></tr>';}).join('')+'</table></div>'
+      :'<div class="sp-empty">ไม่มีข้อมูลภาคนี้</div>')+'</div>';
+  }catch(e){b.innerHTML='<div class="sp-empty">'+hvEsc(e.message)+'</div>';}
 }
 
 // ---------- รายชื่อนักเรียน + ปุ่มกรอก/ผลการประเมิน ----------
@@ -9390,6 +9313,7 @@ var ACT_TYPES=[
   {v:'นศท. (รด.)',cat:'develop',both:true}
 ];
 var ACT={editing:null,manageId:null};
+function actCurrentEnrollment(m){var a=m&&m.activities;return a&&+a.year===ACT_YEAR&&+a.term===ACT_TERM;}
 function actTypeMeta(t){for(var i=0;i<ACT_TYPES.length;i++)if(ACT_TYPES[i].v===t)return ACT_TYPES[i];return {v:t,cat:'club'};}
 function actCatBadge(c){return '<span class="act-cat '+c+'">'+(c==='club'?'ชุมนุม':'พัฒนาผู้เรียน')+'</span>';}
 function actLevelText(a){if(!a.level_min&&!a.level_max)return 'ทุกระดับชั้น';if(a.level_min<=3&&a.level_max<=3)return 'ม.ต้น';if(a.level_min>=4)return 'ม.ปลาย';return 'ม.'+(a.level_min||1)+'-'+(a.level_max||6);}
@@ -9400,7 +9324,7 @@ async function loadActivityTTMap(){
     var at=await api('/rest/v1/activity_teachers?teacher_id=eq.'+G.user.id+'&select=activity_id').catch(function(){return[];});
     var ids=(at||[]).map(function(x){return x.activity_id;});
     if(!ids.length)return map;
-    var acts=await api('/rest/v1/activities?id=in.('+ids.join(',')+')&select=id,name,category,atype,day,period,location').catch(function(){return[];});
+    var acts=await api('/rest/v1/activities?id=in.('+ids.join(',')+')&year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=id,name,category,atype,day,period,location').catch(function(){return[];});
     (acts||[]).forEach(function(a){if(!a.day||a.period==null)return;var p=parseInt(String(a.period).replace(/[^0-9]/g,''));if(!p)return;map[a.day+'_'+p]=a;});
   }catch(e){}
   return map;
@@ -9422,18 +9346,18 @@ async function actHome(){
   try{
     var acts=[];
     if(G.user.role==='admin'){
-      acts=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&select=*&order=category,name')||[];
+      acts=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=*&order=category,name')||[];
     }else{
       var at=await api('/rest/v1/activity_teachers?teacher_id=eq.'+G.user.id+'&select=activity_id,role')||[];
       var ids=at.map(function(x){return x.activity_id;});
-      if(ids.length)acts=await api('/rest/v1/activities?id=in.('+ids.join(',')+')&select=*&order=category,name')||[];
+      if(ids.length)acts=await api('/rest/v1/activities?id=in.('+ids.join(',')+')&year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=*&order=category,name')||[];
       acts.forEach(function(a){var r=at.filter(function(x){return x.activity_id==a.id;})[0];a._role=r?r.role:'co';});
     }
     ACT._cache={};acts.forEach(function(a){ACT._cache[a.id]=a;});
     var cnt={};
     if(acts.length){var enr=await api('/rest/v1/activity_enrollments?activity_id=in.('+acts.map(function(a){return a.id;}).join(',')+')&select=activity_id').catch(function(){return[];});(enr||[]).forEach(function(e){cnt[e.activity_id]=(cnt[e.activity_id]||0)+1;});}
     var html='<div style="padding:12px 14px;">'
-      +'<button class="btn btn-green btn-sm" onclick="actOpenEditor()">➕ สร้างกิจกรรม/ชุมนุม</button>'
+      +'<button class="btn btn-green btn-sm" onclick="actOpenEditor()">➕ สร้างกิจกรรม/ชุมนุม</button> <button class="btn btn-outline btn-sm" onclick="actHistory()">ประวัติภาคก่อน</button>'
       +'<div style="font-size:14.4px;color:var(--text2);margin:8px 0;">'+(G.user.role==='admin'?'ทุกกิจกรรมในระบบ':'กิจกรรมที่คุณเป็นครูผู้ดูแล')+' · '+acts.length+' รายการ</div>';
     if(!acts.length)html+='<div class="sp-empty" style="padding:30px;">ยังไม่มีกิจกรรม — กด "สร้างกิจกรรม" เพื่อเริ่ม</div>';
     acts.forEach(function(a){
@@ -9461,7 +9385,7 @@ async function actHome(){
       b.innerHTML=html;
       // โหลดรายชื่อทั้งโรงเรียน
       try{
-        var allActs=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&select=id,name,category,atype,capacity,is_open,day,location&order=category,name')||[];
+        var allActs=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=id,name,category,atype,capacity,is_open,day,location&order=category,name')||[];
         var allCnt={};
         if(allActs.length){
           var allEnr=await api('/rest/v1/activity_enrollments?activity_id=in.('+allActs.map(function(a){return a.id;}).join(',')+')'+'&select=activity_id').catch(function(){return[];});
@@ -9493,6 +9417,18 @@ async function actHome(){
     html+='</div>';
     b.innerHTML=html;
   }catch(e){b.innerHTML='<div class="sp-empty" style="padding:30px;">โหลดไม่สำเร็จ: '+(e.message||'')+'<br><span style="font-size:14.4px;">(หากขึ้น does not exist ให้รัน activities_module.sql ก่อน)</span></div>';}
+}
+async function actHistory(){
+  var p=srPastTerm();if(!p)return;
+  var b=document.getElementById('actBody');b.innerHTML='<div class="loading">กำลังโหลดประวัติ...</div>';
+  try{
+    var q='/rest/v1/activities?year=eq.'+p.year+'&term=eq.'+p.term+'&select=id,name,category,atype,day,location&order=category,name&limit=2000';
+    var rows=await api(q)||[];
+    b.innerHTML='<div style="padding:14px"><button class="btn btn-outline btn-sm" onclick="actHome()">← กลับ</button><h3>กิจกรรม '+p.term+'/'+p.year+' (อ่านอย่างเดียว)</h3>'
+      +(rows.length?'<div class="tbl-wrap"><table><tr><th>ชื่อ</th><th>ประเภท</th><th>วัน</th><th>สถานที่</th></tr>'
+      +rows.map(function(r){return '<tr><td>'+hvEsc(r.name)+'</td><td>'+hvEsc(r.atype||r.category||'-')+'</td><td>'+hvEsc(r.day||'-')+'</td><td>'+hvEsc(r.location||'-')+'</td></tr>';}).join('')+'</table></div>'
+      :'<div class="sp-empty">ไม่มีข้อมูลภาคนี้</div>')+'</div>';
+  }catch(e){b.innerHTML='<div class="sp-empty">'+hvEsc(e.message)+'</div>';}
 }
 
 // ---------- สร้าง/แก้ไขกิจกรรม ----------
@@ -9623,7 +9559,8 @@ async function actAddMember(sid,el){
   var a=ACT._cur;
   if(a.capacity>0&&(ACT._mem||[]).length>=a.capacity){toast('กิจกรรมเต็มแล้ว ('+a.capacity+' คน)','err');return;}
   try{
-    var ex=await api('/rest/v1/activity_enrollments?student_id=eq.'+sid+'&select=activities(category,counts_both)').catch(function(){return[];});
+    var ex=await api('/rest/v1/activity_enrollments?student_id=eq.'+sid+'&select=activities(category,counts_both,year,term)').catch(function(){return[];});
+    ex=(ex||[]).filter(actCurrentEnrollment);
     var blk=actQuotaCheck(ex,a);if(blk){toast('⛔ '+blk,'err');return;}
     await api('/rest/v1/activity_enrollments',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({activity_id:a.id,student_id:sid,registered_by:'teacher:'+G.user.id})});
     toast('✅ เพิ่มสมาชิกแล้ว');if(el){el.outerHTML='<span style="font-size:13.2px;color:#2e7d32;">✓ เพิ่มแล้ว</span>';}
@@ -9658,8 +9595,8 @@ async function actSaveAtt(){
 async function actPortalHTML(stu,mode){
   var e0=function(){return[];},id=stu.id;
   try{
-    var mine=await api('/rest/v1/activity_enrollments?student_id=eq.'+id+'&select=id,result,activities(id,name,category,atype,day,location,is_open,allow_self)').catch(e0);
-    mine=mine||[];
+    var mine=await api('/rest/v1/activity_enrollments?student_id=eq.'+id+'&select=id,result,activities(id,name,category,atype,day,location,is_open,allow_self,year,term)').catch(e0);
+    mine=(mine||[]).filter(actCurrentEnrollment);
     var html='<div class="sp-card"><h3>🎪 กิจกรรมของฉัน</h3>';
     if(mine.length){mine.forEach(function(m){var a=m.activities||{};var res=m.result==='pass'?' <span class="mh-badge mh-normal">ผ่าน</span>':(m.result==='fail'?' <span class="mh-badge mh-problem">ไม่ผ่าน</span>':'');
       html+='<div class="act-srow"><span class="nm">'+actCatBadge(a.category)+' '+a.name+res+'<div class="d" style="font-size:13.2px;color:var(--text3);">'+(a.day?'📅 '+a.day:'')+(a.location?' · '+a.location:'')+'</div></span>'
@@ -9668,7 +9605,7 @@ async function actPortalHTML(stu,mode){
     html+='</div>';
     // สมัครชุมนุม (นักเรียนเท่านั้น)
     if(mode!=='parent'){
-      var clubs=await api('/rest/v1/activities?category=eq.club&is_open=eq.true&allow_self=eq.true&year=eq.'+ACT_YEAR+'&select=id,name,atype,capacity,day,location,level_min,level_max').catch(e0);
+      var clubs=await api('/rest/v1/activities?category=eq.club&is_open=eq.true&allow_self=eq.true&year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=id,name,atype,capacity,day,location,level_min,level_max').catch(e0);
       clubs=clubs||[];
       var cnt={};
       if(clubs.length){var enr=await api('/rest/v1/activity_enrollments?activity_id=in.('+clubs.map(function(c){return c.id;}).join(',')+')&select=activity_id').catch(e0);(enr||[]).forEach(function(x){cnt[x.activity_id]=(cnt[x.activity_id]||0)+1;});}
@@ -9690,7 +9627,8 @@ async function actStudentRegister(aid){
     if(!a||!a.is_open){toast('ชุมนุมนี้ปิดรับแล้ว','err');return;}
     var cnt=await api('/rest/v1/activity_enrollments?activity_id=eq.'+aid+'&select=id').catch(function(){return[];});
     if(a.capacity>0&&(cnt||[]).length>=a.capacity){toast('ชุมนุมเต็มแล้ว','err');return;}
-    var ex=await api('/rest/v1/activity_enrollments?student_id=eq.'+STU.student.id+'&select=activities(category,counts_both)').catch(function(){return[];});
+    var ex=await api('/rest/v1/activity_enrollments?student_id=eq.'+STU.student.id+'&select=activities(category,counts_both,year,term)').catch(function(){return[];});
+    ex=(ex||[]).filter(actCurrentEnrollment);
     var blk=actQuotaCheck(ex,a);if(blk){toast('⛔ '+blk,'err');return;}
     await api('/rest/v1/activity_enrollments',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({activity_id:aid,student_id:STU.student.id,registered_by:'student'})});
     toast('✅ สมัครเรียบร้อย');renderStuPortal(STU.student);
@@ -9774,7 +9712,7 @@ async function arRun(kind){
     var amap={};
     if(cfg.hasPeriod){
       var aidu={};recs.forEach(function(r){if(r.assignment_id)aidu[r.assignment_id]=1;});var alist=Object.keys(aidu);
-      if(alist.length){var asn=await api('/rest/v1/teaching_assignments?id=in.('+alist.join(',')+')&select=id,subject_id,subjects(subject_code,subject_name)')||[];
+      if(alist.length){var asn=await api('/rest/v1/teaching_assignments?id=in.('+alist.join(',')+')&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,subject_id,subjects(subject_code,subject_name)')||[];
         asn.forEach(function(a){amap[a.id]={sid:a.subject_id,code:(a.subjects?a.subjects.subject_code:''),name:(a.subjects?a.subjects.subject_name:'-')};});}
     }
     // ข้อมูลนักเรียนที่เกี่ยวข้อง (ชื่อ+ห้อง)
@@ -12274,14 +12212,14 @@ async function loadMyAssigns(force){
   if(G.myAssigns.length&&!force)return G.myAssigns;
   var sel='id,subject_id,classroom_id,group_no,semester,year,attendance_mode,teacher_id,subjects(subject_code,subject_name,subject_group,credits),classrooms(room_name)';
   // กลุ่มที่ตัวเองเป็นเจ้าของ
-  var owned=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&select='+sel+'&order=subject_id,group_no')||[];
+  var owned=await api('/rest/v1/teaching_assignments?teacher_id=eq.'+G.user.id+'&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select='+sel+'&order=subject_id,group_no')||[];
   var map={};owned.forEach(function(a){a._role='owner';map[a.id]=a;});
   // กลุ่มที่ถูกเชิญให้สอนร่วม (co-teacher)
   try{
     var at=await api('/rest/v1/assignment_teachers?teacher_id=eq.'+G.user.id+'&select=assignment_id');
     var ids=(at||[]).map(function(x){return x.assignment_id;}).filter(Boolean);
     if(ids.length){
-      var co=await api('/rest/v1/teaching_assignments?id=in.('+ids.join(',')+')&select='+sel)||[];
+      var co=await api('/rest/v1/teaching_assignments?id=in.('+ids.join(',')+')&year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select='+sel)||[];
       co.forEach(function(a){if(!map[a.id]){a._role='co';map[a.id]=a;}});
     }
   }catch(e){}
@@ -12334,6 +12272,8 @@ async function openAddGroup(subjId,code,name){
     var rooms=await api('/rest/v1/classrooms?select=id,room_name,level,room_number&order=level,room_number');
     document.getElementById('agRoom').innerHTML=(rooms||[]).map(function(r){return '<option value="'+r.id+'">'+r.room_name+'</option>';}).join('');
   }catch(e){}
+  document.getElementById('agSem').value=G.semester||1;
+  document.getElementById('agYear').value=HV_YEAR;
   showModal('modalAddGroup');
 }
 
@@ -14028,7 +13968,7 @@ function exportStudentsExcel(){
   var html='<html><head><meta charset="utf-8"></head><body>'+
     '<table border="1" style="border-collapse:collapse;font-family:Sarabun,TH Sarabun New,sans-serif;font-size:16.8px;">'+
     '<tr><td colspan="'+totalCols+'" style="text-align:center;font-size:21.6px;font-weight:bold;border:none;padding:6px;">ใบรายชื่อนักเรียน โรงเรียนนายางกลักพิทยาคม</td></tr>'+
-    '<tr><td colspan="'+totalCols+'" style="text-align:center;font-size:18px;border:none;padding:2px;">ชั้น '+roomName+'    ภาคเรียนที่ 1 ปีการศึกษา 2569</td></tr>'+
+    '<tr><td colspan="'+totalCols+'" style="text-align:center;font-size:18px;border:none;padding:2px;">ชั้น '+roomName+'    ภาคเรียนที่ '+(G.semester||1)+' ปีการศึกษา '+HV_YEAR+'</td></tr>'+
     '<tr><td colspan="'+totalCols+'" style="text-align:center;font-size:16.8px;border:none;padding:2px 2px 8px;">ครูที่ปรึกษา: '+advisor+'</td></tr>'+
     '<tr style="background:#00695c;color:#fff;font-weight:bold;text-align:center;">'+
       '<th style="border:1px solid #333;width:40px;">เลขที่</th>'+
@@ -14597,7 +14537,7 @@ async function clubsAdminHome(){
   var el=_clubsEl();
   el.innerHTML='<div class="loading" style="padding:20px;">กำลังโหลด...</div>';
   try{
-    var acts=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&select=id,name,category,atype,day,period,location,capacity,is_open,report&order=category,name')||[];
+    var acts=await api('/rest/v1/activities?year=eq.'+ACT_YEAR+'&term=eq.'+ACT_TERM+'&select=id,name,category,atype,day,period,location,capacity,is_open,report&order=category,name')||[];
     var actIds=acts.map(function(a){return a.id;});
     var owners=[],cnt={};
     if(actIds.length){
@@ -15169,7 +15109,7 @@ function adminViewRoom(rid,rname){
 // ---------- โอนรายวิชา / เปลี่ยนครูผู้สอน (กรณีครูย้าย/สอนแทน) ----------
 async function admAssignments(){
   var el=document.getElementById('adminContent');el.innerHTML='<div class="loading">กำลังโหลด...</div>';
-  var data=await api('/rest/v1/teaching_assignments?select=id,group_no,teacher_id,subjects(subject_code,subject_name),classrooms(room_name),teachers(fullname)&order=subject_id,group_no')||[];
+  var data=await api('/rest/v1/teaching_assignments?year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id,group_no,teacher_id,subjects(subject_code,subject_name),classrooms(room_name),teachers(fullname)&order=subject_id,group_no')||[];
   ADM.assigns=data;
   if(!ADM.teachers.length)ADM.teachers=await api('/rest/v1/teachers?select=id,fullname,role&active=eq.true&order=fullname')||[];
   var h='<h3 style="font-weight:800;color:var(--blue);margin-bottom:4px;">🔄 โอนรายวิชา / เปลี่ยนครูผู้สอน</h3>'+
@@ -15499,15 +15439,6 @@ async function orgConfirmImport(){
 // ---------- ปีการศึกษา / เลื่อนชั้น ----------
 async function admSchoolYear(){
   var el=document.getElementById('adminContent');
-  el.innerHTML='<div class="loading">กำลังโหลด...</div>';
-  var rooms=await admRooms();
-  // นับนักเรียนแต่ละระดับ
-  var counts={};
-  try{
-    var sc=await api('/rest/v1/students?status=eq.active&select=classroom_id&limit=3000');
-    var cmap={};rooms.forEach(function(r){cmap[r.id]=r;});
-    (sc||[]).forEach(function(s){var r=cmap[s.classroom_id];if(r)counts[r.level]=(counts[r.level]||0)+1;});
-  }catch(e){}
   var nextSem=G.semester===1?2:1, nextYear=G.semester===1?HV_YEAR:HV_YEAR+1;
   var h='<h3 style="font-weight:800;color:#e65100;margin-bottom:12px;">📅 ปีการศึกษา / เลื่อนชั้นนักเรียน</h3>';
   h+='<div style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:16.2px;">'
@@ -15515,131 +15446,180 @@ async function admSchoolYear(){
     +'</div>';
   // กล่อง สิ้นภาคเรียน
   h+='<div style="border:1.5px solid #b3e5fc;border-radius:10px;padding:14px;margin-bottom:12px;background:#f9fdff;">'
-    +'<div style="font-weight:800;font-size:16.8px;color:var(--blue);margin-bottom:6px;">🔄 สิ้นภาคเรียนที่ '+G.semester+' → ภาคเรียนที่ '+nextSem+(G.semester===2?' (ปี '+(HV_YEAR+1)+')':'')+'</div>'
-    +'<div style="font-size:15px;color:var(--text2);margin-bottom:10px;line-height:1.7;">'
-    +'✅ นักเรียนยังอยู่ห้องเดิม<br>'
-    +'🗑️ ล้างรายวิชา/ตารางสอน/เช็คชื่อรายวิชา/คะแนน<br>'
-    +'🗑️ ล้างเช็คชื่อเสาธง-เย็น + บันทึกความดี/พฤติกรรม<br>'
+    +'<div id="srActionTitle" style="font-weight:800;font-size:16.8px;color:var(--blue);margin-bottom:6px;"></div>'
+    +'<div id="srActionSummary" style="font-size:15px;color:var(--text2);margin-bottom:10px;line-height:1.7;">'
+    +(G.semester===1?'✅ นักเรียนยังอยู่ห้องเดิม<br>':'🎓 ม.6 พ้นสภาพ และเลื่อนชั้น ม.1–ม.5 โดยเก็บข้อมูลนักเรียนไว้<br>')
+    +'🗑️ สำรองแล้วล้างรายวิชา ตารางสอน คะแนน เช็คชื่อ ความดี พฤติกรรม เหรียญ สลาก และข้อสอบ<br>'
+    +'✅ เก็บข้อมูลนักเรียน เยี่ยมบ้าน แบบประเมิน และกิจกรรม<br>'
     +'📅 ภาคเรียนถัดไป: <b>'+nextSem+'/'+nextYear+'</b>'
     +'</div>'
-    +'<button class="btn btn-primary btn-sm" onclick="admConfirmSemRollover()">▶ ดำเนินการสิ้นภาคเรียน</button>'
+    +'<div class="form-group"><label class="form-label">งานที่จะทำ</label><select class="form-control" id="srMode" onchange="srModeChanged()">'
+    +'<option value="cleanup">ล้างข้อมูลภาค '+(G.semester===2?'1/'+HV_YEAR:'2/'+(HV_YEAR-1))+' ที่ค้างจากการเปลี่ยนภาคครั้งก่อน (ไม่เปลี่ยนภาคปัจจุบัน)</option>'
+    +'<option value="rollover">สิ้นภาคปัจจุบัน '+G.semester+'/'+HV_YEAR+'</option></select></div>'
+    +'<div class="form-group"><label class="form-label">วันเริ่มภาคเรียนที่จะปิด</label><input class="form-control" type="date" id="srStart"></div>'
+    +'<div class="form-group"><label class="form-label">วันสิ้นภาคเรียนที่จะปิด</label><input class="form-control" type="date" id="srEnd"></div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;">'
+    +'<button class="btn btn-primary btn-sm" onclick="srDownloadBackup()">1. ดาวน์โหลด ZIP สำรอง</button>'
+    +'<label class="btn btn-outline btn-sm" style="cursor:pointer;">2. ตรวจไฟล์ ZIP <input type="file" accept=".zip,application/zip" style="display:none" onchange="srVerifyBackup(this.files[0])"></label>'
+    +'<button class="btn btn-sm" id="srCommitButton" disabled onclick="admConfirmSemRollover()">3. ยืนยันล้างและเปลี่ยนภาคเรียน</button>'
+    +'</div><div id="srStatus" style="font-size:14px;color:var(--text2);">ต้องรัน sql/semester_rollover.sql ก่อนใช้งาน · การเปิดหน้านี้ไม่ลบข้อมูล</div>'
     +'</div>';
-  // กล่อง สิ้นปีการศึกษา
-  h+='<div style="border:1.5px solid #ffccbc;border-radius:10px;padding:14px;background:#fff8f6;">'
-    +'<div style="font-weight:800;font-size:16.8px;color:#bf360c;margin-bottom:6px;">🎓 สิ้นปีการศึกษา '+HV_YEAR+' → '+(HV_YEAR+1)+'</div>'
-    +'<div style="font-size:15px;color:var(--text2);margin-bottom:10px;line-height:1.7;">'
-    +'🎓 นักเรียน ม.6 (<b>'+(counts[6]||0)+' คน</b>) พ้นสภาพ (status = transfer)<br>'
-    +[5,4,3,2,1].map(function(lv){return '↗️ ม.'+lv+' → ม.'+(lv+1)+' (<b>'+(counts[lv]||0)+' คน</b>)';}).join('<br>')+'<br>'
-    +'🗑️ ล้างรายวิชา/ตารางสอน/เช็คชื่อ/คะแนนทุกภาคเรียน<br>'
-    +'🗑️ ล้างเช็คชื่อเสาธง-เย็น + บันทึกความดี/พฤติกรรม<br>'
-    +'📅 ปีการศึกษาใหม่: <b>1/'+(HV_YEAR+1)+'</b><br>'
-    +'⚠️ <b>ห้อง ม.1 จะว่าง</b> — Admin เพิ่มนักเรียนใหม่เองในภายหลัง'
-    +'</div>'
-    +'<button class="btn btn-sm" style="background:#bf360c;color:#fff;border:none;font-weight:700;" onclick="admConfirmYearRollover()">⚠️ ดำเนินการสิ้นปีการศึกษา</button>'
-    +'</div>'
-    +'<div id="rolloverLog" style="margin-top:12px;font-size:15px;"></div>';
+  h+='<div id="rolloverLog" style="margin-top:12px;font-size:15px;"></div>';
   el.innerHTML=h;
+  srRenderMode();
 }
 
-async function admConfirmSemRollover(){
-  if(!confirm('ยืนยัน: สิ้นภาคเรียนที่ '+G.semester+'/'+HV_YEAR+'\n\nจะล้างรายวิชา/ตารางสอน/เช็คชื่อรายวิชาทั้งหมดของภาคเรียนนี้\nนักเรียนยังอยู่ห้องเดิม ข้อมูลอื่นไม่เปลี่ยน\n\n⚠️ ไม่สามารถยกเลิกได้'))return;
-  var log=document.getElementById('rolloverLog');log.innerHTML='<div class="loading">กำลังดำเนินการ...</div>';
-  var msgs=[];
-  try{
-    // ดึง assignment IDs ของปีนี้ทั้งหมด (ทุกครู ภาคเรียนนี้)
-    var assigns=await api('/rest/v1/teaching_assignments?year=eq.'+HV_YEAR+'&semester=eq.'+G.semester+'&select=id');
-    var ids=(assigns||[]).map(function(a){return a.id;});
-    msgs.push('พบ '+ids.length+' กลุ่มเรียน');
-    if(ids.length){
-      var q='assignment_id=in.('+ids.join(',')+')';
-      var d;
-      d=await api('/rest/v1/subject_attendance?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบเช็คชื่อรายวิชา'+(d&&d.err?' ❌'+d.err:' ✅'));
-      var enrRows=await api('/rest/v1/enrollments?'+q+'&select=id').catch(function(){return[];});
-      var enrIds=(enrRows||[]).map(function(e){return e.id;});
-      if(enrIds.length){d=await api('/rest/v1/grades?enrollment_id=in.('+enrIds.join(',')+')',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบคะแนน'+(d&&d.err?' ❌'+d.err:' ✅'));}
-      d=await api('/rest/v1/grade_structures?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบโครงสร้างคะแนน'+(d&&d.err?' ❌'+d.err:' ✅'));
-      d=await api('/rest/v1/enrollments?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบ enrollment'+(d&&d.err?' ❌'+d.err:' ✅'));
-      d=await api('/rest/v1/assignment_teachers?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบครูร่วมสอน'+(d&&d.err?' ❌'+d.err:' ✅'));
-      d=await api('/rest/v1/timetable?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบตารางสอน'+(d&&d.err?' ❌'+d.err:' ✅'));
-      d=await api('/rest/v1/teaching_assignments?year=eq.'+HV_YEAR+'&semester=eq.'+G.semester,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบกลุ่มเรียน'+(d&&d.err?' ❌'+d.err:' ✅'));
-    }
-    // ล้างเช็คชื่อเสาธง/เย็น + ความดี/พฤติกรรม + score_summary
-    var d2;
-    d2=await api('/rest/v1/morning_attendance?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบเช็คชื่อเสาธงเช้า'+(d2&&d2.err?' ❌'+d2.err:' ✅'));
-    d2=await api('/rest/v1/afternoon_attendance?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบเช็คชื่อตอนเย็น'+(d2&&d2.err?' ❌'+d2.err:' ✅'));
-    d2=await api('/rest/v1/good_deeds?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบบันทึกความดี'+(d2&&d2.err?' ❌'+d2.err:' ✅'));
-    d2=await api('/rest/v1/behavior_records?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบบันทึกพฤติกรรม'+(d2&&d2.err?' ❌'+d2.err:' ✅'));
-    d2=await api('/rest/v1/score_summary?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(e){return{err:e.message};});msgs.push('ลบ score_summary'+(d2&&d2.err?' ❌'+d2.err:' ✅'));
-    // อัปเดต semester ใน system_settings
-    var newSem=G.semester===1?2:1, newYear=G.semester===1?HV_YEAR:HV_YEAR+1;
-    await api('/rest/v1/system_settings?on_conflict=key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{key:'semester',value:String(newSem)},{key:'school_year',value:String(newYear)}])}).catch(function(){});
-    G.semester=newSem; HV_YEAR=newYear; MH_YEAR=newYear; MH_TERM=newSem; ACT_YEAR=newYear; ACT_TERM=newSem;
-    if(G.myAssigns)G.myAssigns=[];
-    msgs.push('✅ เสร็จสิ้น — ปัจจุบัน: ภาคเรียน '+newSem+'/'+newYear);
-    log.innerHTML='<div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;">'+msgs.map(function(m){return '• '+m;}).join('<br>')+'</div>';
-    admSchoolYear();
-  }catch(e){log.innerHTML='<div style="color:var(--red);">❌ เกิดข้อผิดพลาด: '+e.message+'</div>';}
+// Semester rollover: backup, verify, then one database transaction.
+var SR=null;
+function srRenderMode(){
+  var cleanup=(document.getElementById('srMode')||{}).value==='cleanup';
+  var title=document.getElementById('srActionTitle'),summary=document.getElementById('srActionSummary');
+  var commitButton=document.getElementById('srCommitButton');
+  if(!title||!summary)return;
+  if(commitButton)commitButton.textContent=cleanup?'3. ยืนยันล้างข้อมูลที่ค้าง':'3. ยืนยันล้างและเปลี่ยนภาคเรียน';
+  if(cleanup){
+    title.textContent='🧹 ล้างข้อมูลภาค '+(G.semester===2?'1/'+HV_YEAR:'2/'+(HV_YEAR-1))+' ที่ค้าง';
+    summary.innerHTML='📅 ภาคปัจจุบันยังเป็น <b>'+G.semester+'/'+HV_YEAR+'</b><br>🗑️ สำรองแล้วล้างข้อมูลการสอน คะแนน เหรียญ สลาก และข้อสอบภาคก่อนที่ค้าง<br>✅ เก็บนักเรียน เยี่ยมบ้าน แบบประเมิน กิจกรรม และข้อมูลภาคปัจจุบัน';
+  }else{
+    var n=G.semester===1?2:1,y=G.semester===1?HV_YEAR:HV_YEAR+1;
+    title.textContent='🔄 สิ้นภาคเรียน '+G.semester+'/'+HV_YEAR+' → '+n+'/'+y;
+    summary.innerHTML=(G.semester===1?'✅ นักเรียนอยู่ห้องเดิม':'🎓 ม.6 พ้นสภาพ และเลื่อนชั้น ม.1–ม.5')+'<br>🗑️ สำรองแล้วล้างรายวิชา ตารางสอน คะแนน เช็คชื่อ ความดี พฤติกรรม เหรียญ สลาก และข้อสอบ<br>✅ เก็บนักเรียน เยี่ยมบ้าน แบบประเมิน และกิจกรรม';
+  }
 }
-
-async function admConfirmYearRollover(){
-  if(!confirm('ยืนยัน: สิ้นปีการศึกษา '+HV_YEAR+'\n\n• นักเรียน ม.6 จะเปลี่ยนสถานะเป็น "พ้นสภาพ"\n• นักเรียน ม.1-5 จะเลื่อนชั้นอัตโนมัติ\n• ล้างรายวิชา/ตารางสอน/คะแนนทั้งหมด\n• ปีการศึกษาใหม่ '+(HV_YEAR+1)+'/1\n\n⚠️ ไม่สามารถยกเลิกได้'))return;
-  var log=document.getElementById('rolloverLog');log.innerHTML='<div class="loading">กำลังดำเนินการ...</div>';
-  var msgs=[];
+function srModeChanged(){if(SR&&SR.url)URL.revokeObjectURL(SR.url);SR=null;var b=document.getElementById('srCommitButton');if(b)b.disabled=true;srRenderMode();srStatus('กรุณาสำรอง ZIP ใหม่สำหรับงานที่เลือก');}
+function srArgs(){
+  var start=(document.getElementById('srStart')||{}).value;
+  var end=(document.getElementById('srEnd')||{}).value;
+  if(!start||!end||start>end||end>today())throw new Error('กรุณาระบุช่วงวันที่ของภาคเรียนที่จะปิดให้ถูกต้อง');
+  if(!G.user||G.user.role!=='admin')throw new Error('เฉพาะผู้ดูแลระบบ');
+  var cleanup=(document.getElementById('srMode')||{}).value==='cleanup';
+  return {p_year:cleanup&&G.semester===1?HV_YEAR-1:HV_YEAR,
+    p_semester:cleanup?(G.semester===1?2:1):G.semester,
+    p_start:start,p_end:end,p_cleanup:cleanup};
+}
+async function srRpc(name,args){
+  if(!await lotV2Reauth(false)||!G.rewardToken)throw new Error('กรุณาเข้าสู่ระบบผู้ดูแลอีกครั้ง');
+  return api('/rest/v1/rpc/'+name,{method:'POST',body:JSON.stringify(Object.assign({p_token:G.rewardToken},args))});
+}
+function srStatus(msg,error){
+  var el=document.getElementById('srStatus');if(el){el.textContent=msg;el.style.color=error?'var(--red)':'var(--blue)';}
+}
+function srShowCounts(manifest){
+  var el=document.getElementById('srStatus');if(!el||!manifest)return;
+  var d=document.createElement('details');d.style.marginTop='8px';
+  var rows=manifest.tables.filter(function(t){return t.count>0;});
+  d.innerHTML='<summary>ข้อมูลที่จะลบ '+rows.reduce(function(n,t){return n+t.count;},0)+' แถว ใน '+rows.length+' ตาราง</summary>'
+    +'<div style="max-height:220px;overflow:auto;padding:6px 12px;">'
+    +rows.map(function(t){return '<div>'+t.table+': '+t.count+'</div>';}).join('')
+    +'</div>';
+  el.appendChild(d);
+}
+function srBytes(s){return new TextEncoder().encode(s);}
+function srCrc(bytes){
+  var c=-1;for(var i=0;i<bytes.length;i++){c^=bytes[i];for(var j=0;j<8;j++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^-1)>>>0;
+}
+function srZip(files){
+  var chunks=[],central=[],offset=0;
+  function header(n){var a=new Uint8Array(n);return{a:a,v:new DataView(a.buffer)};}
+  files.forEach(function(f){
+    var name=srBytes(f.name),data=srBytes(f.text),crc=srCrc(data),h=header(30+name.length);
+    h.v.setUint32(0,0x04034b50,true);h.v.setUint16(4,20,true);
+    h.v.setUint16(8,0,true);h.v.setUint32(14,crc,true);
+    h.v.setUint32(18,data.length,true);h.v.setUint32(22,data.length,true);
+    h.v.setUint16(26,name.length,true);h.a.set(name,30);
+    chunks.push(h.a,data);
+    var d=header(46+name.length);
+    d.v.setUint32(0,0x02014b50,true);d.v.setUint16(4,20,true);d.v.setUint16(6,20,true);
+    d.v.setUint32(16,crc,true);d.v.setUint32(20,data.length,true);d.v.setUint32(24,data.length,true);
+    d.v.setUint16(28,name.length,true);d.v.setUint32(42,offset,true);d.a.set(name,46);
+    central.push(d.a);offset+=h.a.length+data.length;
+  });
+  var cdSize=central.reduce(function(n,a){return n+a.length;},0),end=header(22);
+  end.v.setUint32(0,0x06054b50,true);end.v.setUint16(8,files.length,true);
+  end.v.setUint16(10,files.length,true);end.v.setUint32(12,cdSize,true);
+  end.v.setUint32(16,offset,true);
+  return new Blob(chunks.concat(central,[end.a]),{type:'application/zip'});
+}
+function srCsv(rows){
+  var keys={};rows.forEach(function(r){Object.keys(r).forEach(function(k){keys[k]=1;});});
+  var cols=Object.keys(keys);
+  function cell(v){var s=v==null?'':typeof v==='object'?JSON.stringify(v):String(v);
+    if(/^[=+@-]/.test(s))s="'"+s;
+    return '"'+s.replace(/"/g,'""')+'"';}
+  return '\ufeff'+[cols.map(cell).join(',')].concat(rows.map(function(r){return cols.map(function(k){return cell(r[k]);}).join(',');})).join('\r\n');
+}
+async function srDownloadBackup(){
+  if(SR&&SR.url)URL.revokeObjectURL(SR.url);
+  SR=null;var btn=document.getElementById('srCommitButton');if(btn)btn.disabled=true;
   try{
-    var rooms=await admRooms();
-    // จัดกลุ่มห้องตาม level+room_number
-    var byLevel={};rooms.forEach(function(r){if(!byLevel[r.level])byLevel[r.level]=[];byLevel[r.level].push(r);});
-    // 1) นักเรียน ม.6 → inactive
-    var m6=(byLevel[6]||[]).map(function(r){return r.id;});
-    if(m6.length){
-      var d=await api('/rest/v1/students?classroom_id=in.('+m6.join(',')+')',{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'transfer'})}).catch(function(e){return{err:e.message};});
-      msgs.push('ม.6 พ้นสภาพ'+(d&&d.err?' ❌'+d.err:' ✅'));
-    }
-    // 2) เลื่อนชั้น ม.5→6, 4→5, 3→4, 2→3, 1→2 (reverse order ป้องกัน double-move)
-    for(var lv=5;lv>=1;lv--){
-      var fromRooms=byLevel[lv]||[], toRooms=byLevel[lv+1]||[];
-      // จับคู่ตาม room_number
-      var toMap={};toRooms.forEach(function(r){toMap[r.room_number]=r.id;});
-      for(var ri=0;ri<fromRooms.length;ri++){
-        var fr=fromRooms[ri],toId=toMap[fr.room_number];
-        if(!toId)continue;
-        var d=await api('/rest/v1/students?classroom_id=eq.'+fr.id+'&status=eq.active',{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({classroom_id:toId})}).catch(function(e){return{err:e.message};});
-        msgs.push('ม.'+lv+'/'+fr.room_number+' → ม.'+(lv+1)+'/'+fr.room_number+(d&&d.err?' ❌'+d.err:' ✅'));
+    var args=srArgs();srStatus('กำลังตรวจรายการที่จะสำรอง...');
+    var manifest=await srRpc('semester_rollover_manifest',args);
+    var files=[{name:'manifest.json',text:JSON.stringify(manifest,null,2)}];
+    for(var i=0;i<manifest.tables.length;i++){
+      var item=manifest.tables[i],rows=[];
+      for(var off=0;off<item.count;off+=500){
+        var page=await srRpc('semester_rollover_page',Object.assign({},args,{p_table:item.table,p_offset:off,p_limit:500}));
+        if(!Array.isArray(page)||!page.length)throw new Error('อ่านข้อมูล '+item.table+' ไม่ครบ');
+        rows=rows.concat(page);
       }
+      if(rows.length!==item.count)throw new Error('จำนวนข้อมูล '+item.table+' ไม่ตรง');
+      files.push({name:item.table+'.json',text:JSON.stringify(rows)});
+      files.push({name:item.table+'.csv',text:srCsv(rows)});
+      srStatus('กำลังสำรอง '+(i+1)+'/'+manifest.tables.length+' ตาราง...');
     }
-    // 3) ล้างรายวิชา/ตาราง (ทุกภาคเรียนของปีนี้)
-    var assigns=await api('/rest/v1/teaching_assignments?year=eq.'+HV_YEAR+'&select=id').catch(function(){return[];});
-    var ids=(assigns||[]).map(function(a){return a.id;});
-    msgs.push('พบกลุ่มเรียน '+ids.length+' กลุ่ม');
-    if(ids.length){
-      var q='assignment_id=in.('+ids.join(',')+')';
-      var enrRows=await api('/rest/v1/enrollments?'+q+'&select=id').catch(function(){return[];});
-      var enrIds=(enrRows||[]).map(function(e){return e.id;});
-      if(enrIds.length)await api('/rest/v1/grades?enrollment_id=in.('+enrIds.join(',')+')',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/subject_attendance?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/grade_structures?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/enrollments?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/assignment_teachers?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/timetable?'+q,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      await api('/rest/v1/teaching_assignments?year=eq.'+HV_YEAR,{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-      msgs.push('ล้างรายวิชา/ตารางสอน ✅');
+    var check=await srRpc('semester_rollover_manifest',args);
+    if(check.digest!==manifest.digest)throw new Error('ข้อมูลเปลี่ยนระหว่างสำรอง กรุณาเริ่มใหม่');
+    var blob=srZip(files),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='backup_'+args.p_semester+'_'+args.p_year+'_'+today()+'.zip';
+    a.textContent='แตะเพื่อบันทึก ZIP';a.style.cssText='display:inline-block;margin-left:8px;font-weight:700;text-decoration:underline;';
+    SR={args:args,manifest:manifest,verified:false,url:url};
+    srStatus('สร้าง ZIP แล้ว ('+Math.ceil(blob.size/1024)+' KB) บันทึกไฟล์แล้วเลือกไฟล์นั้นเพื่อตรวจสอบ');
+    document.getElementById('srStatus').appendChild(a);
+    srShowCounts(manifest);
+    if(!/iPad|iPhone|iPod/.test(navigator.userAgent)){a.click();}
+  }catch(e){SR=null;srStatus('สำรองไม่สำเร็จ: '+e.message,true);}
+}
+function srReadFile(file){return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=function(){reject(new Error('อ่านไฟล์ไม่ได้'));};r.readAsArrayBuffer(file);});}
+async function srVerifyBackup(file){
+  var btn=document.getElementById('srCommitButton');if(btn)btn.disabled=true;
+  if(!SR||!file)return srStatus('กรุณาดาวน์โหลด ZIP ใหม่ก่อน',true);
+  try{
+    var buffer=await srReadFile(file),v=new DataView(buffer),b=new Uint8Array(buffer),pos=0,found={};
+    while(pos+30<=b.length&&v.getUint32(pos,true)===0x04034b50){
+      var len=v.getUint32(pos+18,true),nameLen=v.getUint16(pos+26,true),extra=v.getUint16(pos+28,true);
+      var name=new TextDecoder().decode(b.slice(pos+30,pos+30+nameLen)),from=pos+30+nameLen+extra;
+      if(from+len>b.length)throw new Error('ไฟล์ ZIP ไม่ครบ');
+      var data=b.slice(from,from+len);
+      if(srCrc(data)!==v.getUint32(pos+14,true))throw new Error('CRC ไม่ตรง: '+name);
+      found[name]=new TextDecoder().decode(data);pos=from+len;
     }
-    // ล้างเช็คชื่อเสาธง/เย็น + ความดี/พฤติกรรม + score_summary
-    await api('/rest/v1/morning_attendance?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-    await api('/rest/v1/afternoon_attendance?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-    await api('/rest/v1/good_deeds?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-    await api('/rest/v1/behavior_records?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-    await api('/rest/v1/score_summary?id=gte.0',{method:'DELETE',headers:{'Prefer':'return=minimal'}}).catch(function(){});
-    msgs.push('ล้างเช็คชื่อเสาธง/เย็น + ความดี/พฤติกรรม ✅');
-    // 4) อัปเดต system_settings → ปี+1, เทอม 1
-    var newYear=HV_YEAR+1;
-    await api('/rest/v1/system_settings?on_conflict=key',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates'},body:JSON.stringify([{key:'school_year',value:String(newYear)},{key:'semester',value:'1'}])}).catch(function(){});
-    HV_YEAR=newYear; MH_YEAR=newYear; MH_TERM=1; ACT_YEAR=newYear; ACT_TERM=1; G.semester=1;
-    if(G.myAssigns)G.myAssigns=[];ADM.rooms=[];
-    msgs.push('✅ เสร็จสิ้น — ปีการศึกษาใหม่: 1/'+newYear+' (ห้อง ม.1 ว่าง รอเพิ่มนักเรียนใหม่)');
-    log.innerHTML='<div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;">'+msgs.map(function(m){return '• '+m;}).join('<br>')+'</div>';
-    admSchoolYear();
-  }catch(e){log.innerHTML='<div style="color:var(--red);">❌ เกิดข้อผิดพลาด: '+e.message+'</div>';}
+    var manifest=JSON.parse(found['manifest.json']||'null');
+    if(!manifest||manifest.digest!==SR.manifest.digest)throw new Error('ไฟล์สำรองไม่ตรงกับรอบนี้');
+    for(var i=0;i<manifest.tables.length;i++){
+      var item=manifest.tables[i],j=found[item.table+'.json'],c=found[item.table+'.csv'];
+      if(j===undefined||c===undefined||JSON.parse(j).length!==item.count)throw new Error('ข้อมูล '+item.table+' ไม่ครบ');
+    }
+    SR.verified=true;if(btn)btn.disabled=false;
+    srStatus('ตรวจไฟล์ ZIP ครบแล้ว · พร้อมให้ผู้ดูแลยืนยันล้างข้อมูล');
+    srShowCounts(manifest);
+  }catch(e){SR.verified=false;srStatus('ตรวจ ZIP ไม่ผ่าน: '+e.message,true);}
+}
+async function admConfirmSemRollover(){
+  if(!SR||!SR.verified)return srStatus('ต้องสำรองและตรวจ ZIP ก่อน',true);
+  try{
+    var args=srArgs();
+    if(JSON.stringify(args)!==JSON.stringify(SR.args))throw new Error('ช่วงวันที่หรือภาคเรียนเปลี่ยน กรุณาสำรองใหม่');
+    var now=await srRpc('semester_rollover_manifest',args);
+    if(now.digest!==SR.manifest.digest)throw new Error('ข้อมูลเปลี่ยนหลังสำรอง กรุณาสำรองใหม่');
+    if(!confirm('ยืนยันล้างข้อมูลภาค '+args.p_semester+'/'+args.p_year+' ตาม ZIP ที่ตรวจแล้ว?\nข้อมูลนักเรียนและเยี่ยมบ้านจะคงอยู่'+(args.p_cleanup?'\nภาคปัจจุบันจะยังเป็น '+G.semester+'/'+HV_YEAR:'')))return;
+    var btn=document.getElementById('srCommitButton');if(btn)btn.disabled=true;
+    srStatus('กำลังล้างข้อมูลในธุรกรรมเดียว...');
+    var result=await srRpc('semester_rollover_commit',Object.assign({},args,{p_digest:SR.manifest.digest}));
+    if(!result.cleanup){G.semester=result.semester;HV_YEAR=result.year;MH_YEAR=result.year;MH_TERM=result.semester;ACT_YEAR=result.year;ACT_TERM=result.semester;}
+    G.myAssigns=[];if(SR.url)URL.revokeObjectURL(SR.url);SR=null;
+    saveSession({t:'staff',user:G.user,semester:G.semester,hvYear:HV_YEAR,room:G.room,myRoomIds:G.myRoomIds,rewardToken:G.rewardToken});
+    admSchoolYear();toast(result.cleanup?'ล้างข้อมูลภาคก่อนที่ค้างแล้ว':'เปลี่ยนเป็นภาคเรียน '+result.semester+'/'+result.year+' แล้ว');
+  }catch(e){srStatus('ไม่ล้างข้อมูล: '+e.message,true);}
 }
 
 // ---------- ประเภทความดี/พฤติกรรม ----------
@@ -16433,7 +16413,7 @@ async function hvPdf(sid){
         +'<div class="sub">ระบบดูแลช่วยเหลือนักเรียน ขั้นที่ 1 (รู้จักนักเรียนรายบุคคล)</div>'
         +'<div class="title">แบบบันทึกการเยี่ยมบ้านนักเรียน</div>'
         +'<div class="school">โรงเรียนนายางกลักพิทยาคม  สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาชัยภูมิ</div>'
-        +'<div class="school">ภาคเรียนที่ 1  ปีการศึกษา '+HV_YEAR+'</div>'
+        +'<div class="school">ปีการศึกษา '+HV_YEAR+'</div>'
         +'<div class="stu-info">'
           +'<span><b>ชื่อ-สกุล:</b> '+hvEsc(s.fullname||'-')+'</span>'
           +'<span><b>รหัส:</b> '+hvEsc(s.student_code||'-')+'</span>'
@@ -16860,7 +16840,7 @@ async function hvSummaryReport(){
       +'<span class="ex-back" onclick="hvHome()">← รายชื่อ</span>'
       +'<div style="background:linear-gradient(135deg,#0d2d5e 0%,#00695c 50%,#00bfa5 100%);border-radius:14px;padding:14px 16px;color:#fff;margin:8px 0 10px;">'
       +'<div style="font-size:16.8px;font-weight:800;">📋 แบบสรุปรายงานการเยี่ยมบ้านนักเรียน</div>'
-      +'<div style="font-size:15.6px;opacity:.85;">ชั้น '+hvEsc(room)+' · ภาคเรียนที่ 1/'+HV_YEAR+'</div>'
+      +'<div style="font-size:15.6px;opacity:.85;">ชั้น '+hvEsc(room)+' · ปีการศึกษา '+HV_YEAR+'</div>'
       +'</div>'
       +'<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">'
       +'<button class="btn" style="background:linear-gradient(135deg,#00695c,#0d2d5e);color:#fff;border:none;" onclick="hvSummaryPrint()">🖨️ พิมพ์แบบสรุป</button>'
@@ -16966,7 +16946,7 @@ function hvSummaryPrint(){
   var inner='<div style="font-family:Sarabun,sans-serif;padding:8px 0;">'
     +'<div style="text-align:center;margin-bottom:14px;">'
     +'<div style="font-size:20.4px;font-weight:800;color:#00695c;">แบบสรุปรายงานการเยี่ยมบ้านนักเรียน</div>'
-    +'<div style="font-size:16.8px;margin-top:2px;">ชั้น '+hvEsc(room)+' ภาคเรียนที่ 1 ปีการศึกษา '+HV_YEAR+'</div>'
+    +'<div style="font-size:16.8px;margin-top:2px;">ชั้น '+hvEsc(room)+' ปีการศึกษา '+HV_YEAR+'</div>'
     +'</div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:16.8px;" cellspacing="0">'
     +row(1,'จำนวนนักเรียนทั้งหมด',s.total+' คน')
